@@ -3,6 +3,8 @@
 A lightweight, high‑performance personal website built with [Eleventy](https://www.11ty.dev/).  
 Features a simple page structure, responsive design, light/dark theme toggle, and Markdown‑powered blog ready for easy publishing from Obsidian.
 
+**Note:** All content should be written in Markdown unless absolutely required to use another format.
+
 ## Structure
 - **Home (`/`)**
 - **About (`/about/`)**
@@ -51,10 +53,8 @@ To deploy your site to Vercel:
 
 5. **Enhancements** — Consider adding search, tagging, or other features in future iterations.
 
-
 # Adding new Blog posts
 
-## Adding new Blog posts
 
 To publish a new markdown file as a blog post:
 
@@ -70,6 +70,7 @@ To publish a new markdown file as a blog post:
      layout: "post"
      ---
      ```
+   - Make sure to include `layout: layout.njk` so that it chooses the right theme
 
 3. **Build the Site**
    - Run the build command to generate the HTML files from the markdown source. This is typically done with:

@@ -1,4 +1,5 @@
 ---
+layout: layout.njk
 title: Obsidian Formatting Showcase
 author:
   - Ben

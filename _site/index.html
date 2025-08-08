@@ -65,7 +65,14 @@
     if (storedTheme) {
       applyTheme(storedTheme);
     } else {
-      applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      let theme;
+      try {
+        if (window.matchMedia) {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+      } catch (e) {}
+      if (!theme) theme = 'dark'; // Default to dark if detection fails
+      applyTheme(theme);
     }
 
     toggle.addEventListener('click', () => {

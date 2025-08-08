@@ -23,6 +23,14 @@
 <p>Welcome to my blog.<br>
 I write about things I find interesting, from short notes to longer essays.</p>
 <hr>
+<ul>
+<li>
+<p><a href="/posts/Note Formatting Example/">Obsidian Formatting Showcase</a> — 2025-08-08</p>
+</li>
+<li>
+<p><a href="/posts/first-post/">My First Post</a> — 2025-08-07</p>
+</li>
+</ul>
 
   </main>
   <footer>
@@ -42,7 +50,14 @@ I write about things I find interesting, from short notes to longer essays.</p>
     if (storedTheme) {
       applyTheme(storedTheme);
     } else {
-      applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      let theme;
+      try {
+        if (window.matchMedia) {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+      } catch (e) {}
+      if (!theme) theme = 'dark'; // Default to dark if detection fails
+      applyTheme(theme);
     }
 
     toggle.addEventListener('click', () => {

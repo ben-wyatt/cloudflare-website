@@ -1,4 +1,25 @@
-<h1>Obsidian Formatting Showcase</h1>
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta name="color-scheme" content="light dark">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Obsidian Formatting Showcase</title>
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="">
+  <header>
+    <nav>
+      <a href="/">Home</a> | 
+      <a href="/blog/">Blog</a>
+      <button id="theme-toggle" aria-label="Toggle Theme" style="margin-left:1rem;">🌓</button>
+    </nav>
+  </header>
+  <main>
+    <h1>Obsidian Formatting Showcase</h1>
 <p>In this note I show examples of the most common formatting that I personally use.</p>
 <h2>Text formatting</h2>
 <h3>Inline</h3>
@@ -172,3 +193,48 @@ tags:
 <h3><a href="https://help.obsidian.md/tags">Tags</a></h3>
 <p>Tags help with note search.</p>
 <p>You can create tags inline by using a hash <code>#formatting</code> #formatting.</p>
+
+  </main>
+  <footer>
+    <p>© 2025 Ben Wyatt</p>
+  </footer>
+  <script>
+    const toggle = document.getElementById('theme-toggle');
+    const root = document.documentElement;
+    const storedTheme = localStorage.getItem('theme');
+
+    function applyTheme(theme) {
+      root.setAttribute('data-theme', theme);
+      root.classList.remove('light', 'dark');
+      root.classList.add(theme);
+    }
+
+    if (storedTheme) {
+      applyTheme(storedTheme);
+    } else {
+      let theme;
+      try {
+        if (window.matchMedia) {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+      } catch (e) {}
+      if (!theme) theme = 'dark'; // Default to dark if detection fails
+      applyTheme(theme);
+    }
+
+    toggle.addEventListener('click', () => {
+      const currentTheme = root.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      applyTheme(newTheme);
+      localStorage.setItem('theme', newTheme);
+    });
+
+    // Auto-update on system theme change if no manual override is set
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (!localStorage.getItem('theme')) {
+        applyTheme(e.matches ? 'dark' : 'light');
+      }
+    });
+  </script>
+</body>
+</html>

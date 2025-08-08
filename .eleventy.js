@@ -15,6 +15,21 @@ module.exports = function(eleventyConfig) {
   // Copy static assets like icons if needed
   eleventyConfig.addPassthroughCopy("assets");
 
+  // Add posts collection sorted by date (newest first)
+  eleventyConfig.addCollection("post", collectionApi => {
+    return collectionApi.getFilteredByGlob("src/posts/*.md").sort((a, b) => b.date - a.date);
+  });
+
+  eleventyConfig.addShortcode("theme", function() {
+    return `<script>
+      (function() {
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = prefersDark ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>`;
+  });
+
   return {
     dir: {
       input: "src",
