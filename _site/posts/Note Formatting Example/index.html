@@ -1,0 +1,174 @@
+<h1>Obsidian Formatting Showcase</h1>
+<p>In this note I show examples of the most common formatting that I personally use.</p>
+<h2>Text formatting</h2>
+<h3>Inline</h3>
+<p><em>Italics</em> can either be done with <em>asterisks</em> or with <em>underscores</em>.</p>
+<p><strong>Bold</strong>, which works with <strong>double asterisks</strong> or <strong>double underscores</strong>.</p>
+<p>You can highlight with ==double equals==.</p>
+<p>And write inline code with <code>backticks</code>.</p>
+<p>And do footnote references with brackets and carrots: <code>[^1]</code>[^1]</p>
+<h3>Multiline</h3>
+<blockquote>
+<p>You can use greater than's (&gt;) to do blockquotes.
+Which can be multi line.</p>
+</blockquote>
+<ul>
+<li>lists can be created using <code>- </code> (notice the space)
+<ul>
+<li>and can be nested by tabbing: <code>	- </code></li>
+</ul>
+</li>
+</ul>
+<ol>
+<li>And can be ordered using numbers <code>1. </code></li>
+</ol>
+<ul>
+<li>[ ] TODOs can be created by doing <code>- [ ]</code></li>
+<li>[&gt;] Can be in progress <code>- [&gt;]</code></li>
+<li>[-] Cancelled <code>- [-]</code></li>
+<li>[x] Or Done <code>- [x]</code></li>
+</ul>
+<blockquote>
+<p>[!tip] Callouts
+You can turn a blockquote into a Callout by  adding  <code>[!tip]</code> to the beginning.</p>
+</blockquote>
+<blockquote>
+<p>[!info] Title Only Callout using <code>[!info]</code></p>
+</blockquote>
+<blockquote>
+<p>[!warning]- Collapsing Callouts
+Add a minus sign to make the callout collapse.</p>
+<pre><code>&gt; [!warning]- Collapsing Callouts
+&gt; Add a minus sign to make the callout collapse.
+</code></pre>
+</blockquote>
+<p>A few others colors.</p>
+<blockquote>
+<p>[!note]</p>
+</blockquote>
+<blockquote>
+<p>[!success]</p>
+</blockquote>
+<blockquote>
+<p>[!failure]</p>
+</blockquote>
+<blockquote>
+<p>[!example]</p>
+</blockquote>
+<blockquote>
+<p>[!warning]</p>
+</blockquote>
+<blockquote>
+<p>[!quote]</p>
+</blockquote>
+<p>Code blocks are started with triple backticks ``` and can be customized to a specific language.</p>
+<pre><code class="language-python">from datetime import date
+print(f'hello world! Today is {date}')
+</code></pre>
+<pre><code class="language-bash">echo &quot;Hello World&quot; | grep 'h'
+</code></pre>
+<p>Tables are also standard markdown.</p>
+<pre><code class="language-markdown">| First name | Last name |
+| ---------- | --------- |
+| Max        | Planck    |
+| Marie      | Curie     |
+</code></pre>
+<p>becomes</p>
+<table>
+<thead>
+<tr>
+<th>First name</th>
+<th>Last name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Max</td>
+<td>Planck</td>
+</tr>
+<tr>
+<td>Marie</td>
+<td>Curie</td>
+</tr>
+</tbody>
+</table>
+<p>Well actually you can simplify this down to:</p>
+<pre><code class="language-markdown">First name | Last name 
+-- | -- 
+Max | Planck 
+Marie | Curie
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>First name</th>
+<th>Last name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Max</td>
+<td>Planck</td>
+</tr>
+<tr>
+<td>Marie</td>
+<td>Curie</td>
+</tr>
+</tbody>
+</table>
+<h2>Links &amp; Embeds</h2>
+<h3>Notes</h3>
+<p>The most interesting feature of Obsidian is how it links notes.</p>
+<p>You can link vault notes by using double brackets <code>[[Another Note]]</code> to make [[Another Note]].</p>
+<p>You can point to a specific header by including hashes <code>[[AnotherNote#Header 1]]</code> to make [[Another Note#Header 1]].</p>
+<p>You can use [[Another Note|an alias]] to the same note using pipes <code>[[Another Note|an alias]]</code>.</p>
+<p>To embed your note add an exclamation point <code>![[Another Note]]</code>.</p>
+<p>![[Another Note]]</p>
+<h3>Internal Media</h3>
+<p>Images can be embedded by storing the file in the note vault. Make sure to include the file extension. You can set it based on pixel count using a pipe. <code>![[Obsidian Logo.png|100x100]]</code></p>
+<p>![[Obsidian Logo.png|100x100]]</p>
+<p>A bunch of other type of media work to:</p>
+<ul>
+<li>audio files</li>
+<li>PDFs: <code>![[Document.pdf#page=3,height=400]]</code></li>
+<li></li>
+</ul>
+<h3>Hyperlinks</h3>
+<p>You can use the standard markdown format for web URL links <code>[Obsidian Home Page](https://obsidian.md/)</code><a href="https://obsidian.md/">Obsidian Home Page</a>.</p>
+<p>And embed images from the web automatically.</p>
+<p><code>![Lorem Picksum](https://picsum.photos/200/300)</code></p>
+<p><img src="https://picsum.photos/200/300" alt="Lorem Picsum"></p>
+<h3>Blocknames</h3>
+<p>You can assign a blockname  to pieces of text using <code>#^</code> two lines down next line. Then reference it elsewhere.</p>
+<ul>
+<li>this</li>
+<li>is</li>
+<li>a</li>
+<li>list</li>
+</ul>
+<p>^samplelist</p>
+<p><code>![[Note Formatting Example#^samplelist]]</code>
+![[Note Formatting Example#^samplelist]]</p>
+<h2>Metadata</h2>
+<h3><a href="https://help.obsidian.md/properties">Properties</a></h3>
+<p>You can add a frontmatter to a note to store metadata. It uses YAML formatting.</p>
+<pre><code class="language-markdown">---
+title: Obsidian Formatting Showcase #text
+author:              #list
+  - Ben
+  - o3
+created: 2025-05-18  #date
+note: true           #boolean
+pi: 3.14159          #numbers
+link: &quot;[[Another Note]]&quot; #links by surrounding in quotes
+aliases:
+  - Formatting Demo
+  - Markdown Kitchen Sink
+tags:
+  - Obsidian
+---
+</code></pre>
+<p>There are a few <a href="https://help.obsidian.md/properties#Default+properties">special properties</a> that have extra meaning, like <code>tags</code>, <code>aliases</code>, and <code>cssclassses</code>.</p>
+<h3><a href="https://help.obsidian.md/tags">Tags</a></h3>
+<p>Tags help with note search.</p>
+<p>You can create tags inline by using a hash <code>#formatting</code> #formatting.</p>

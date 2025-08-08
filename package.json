@@ -1,0 +1,20 @@
+{
+  "name": "website",
+  "version": "1.0.0",
+  "description": "I want to create a personal website. It should be multi-purpose, like it should have an about page for some links about my work and whatever, and I should be able to update it pretty easily. It should have a blog section where I can post short, medium, and long-length blogs of basically things that I think are interesting. I use Obsidian for my note-taking app, and that has the benefit of being able to write my stuff in Markdown. And so what I want to do is just have a very simple way of exporting a Markdown file and having it show up, you know, be published nicely on my blog very easily. But I want to have some steerability in the design, like I want it to be really simple, like light mode and dark mode and some text and whatever, but with a few specific key design decisions, like nice font, headers, links have like little icons that say what the website is, like for like Wikipedia or whatever, things like that. So I want to see your first pass at something that looks like this. I've included a little bit more information as well. Just try and bring something together and let me know. Yeah, just something that's very lightweight, very easy to, very fast to load. I want it to be a very performant website. I mean, it's just going to be like text basically.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com-personal:ben-wyatt/ben-wyatt.github.io.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@11ty/eleventy": "^3.1.2",
+    "luxon": "^3.7.1"
+  }
+}

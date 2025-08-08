@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta name="color-scheme" content="light dark">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="">
+  <header>
+    <nav>
+      <a href="/">Home</a> | 
+      <a href="/blog/">Blog</a>
+      <button id="theme-toggle" aria-label="Toggle Theme" style="margin-left:1rem;">🌓</button>
+    </nav>
+  </header>
+  <main>
+    <h2>About Me</h2>
+<p>Hello—I'm <strong>Ben Wyatt</strong>.  I graduated from the <strong>University of Rochester</strong> in 2023, earning dual degrees in <strong>Physics</strong> and <strong>Economics</strong>.</p>
+<h3>Academic &amp; Research Experience</h3>
+<p>During my internship at <strong>Los Alamos National Laboratory</strong>, I conducted data science work in Python for an experiment at the OMEGA‐EP facility.  The project used very short, intense laser pulses to strike thin film targets, producing fast‐moving proton beams.  Our goal was to evaluate how effectively these beams could be used for imaging.  Laser-driven proton radiography can penetrate dense materials and capture rapid changes in high‐pressure, high‐temperature environments, making it valuable for studying fusion experiments and other extreme physics scenarios.</p>
+<blockquote>
+<p><a href="https://pubs.aip.org/aip/pop/article/32/3/033107/3340167/Characterization-of-laser-accelerated-proton-beams"><strong>Characterization of laser-accelerated proton beams from a 0.5 kJ sub-picosecond laser for radiography applications</strong></a></p>
+</blockquote>
+<h3>Current Role</h3>
+<p>I'm currently at <strong>EY</strong>, working on training large language models. I’m focused on advancing generative AI technologies through data preparation, model fine-tuning, and evaluation.</p>
+<h3>Get in Touch</h3>
+<ul>
+<li>
+<p><a href="mailto:blwyatt32@gmail.com"><strong>Personal Email</strong></a></p>
+</li>
+<li>
+<p><a href="mailto:ben.wyatt@ey.com"><strong>Work Email</strong></a></p>
+</li>
+<li>
+<p><a href="https://www.linkedin.com/in/bwyatt3/"><strong>LinkedIn</strong></a></p>
+</li>
+<li>
+<p><a href="https://github.com/ben-wyatt"><strong>GitHub</strong></a></p>
+</li>
+<li>
+<p><a href="/blog/"><strong>Blog</strong></a></p>
+</li>
+</ul>
+
+  </main>
+  <footer>
+    <p>© 2025 Ben Wyatt</p>
+  </footer>
+  <script>
+    const toggle = document.getElementById('theme-toggle');
+    const root = document.documentElement;
+    const storedTheme = localStorage.getItem('theme');
+
+    function applyTheme(theme) {
+      root.setAttribute('data-theme', theme);
+      root.classList.remove('light', 'dark');
+      root.classList.add(theme);
+    }
+
+    if (storedTheme) {
+      applyTheme(storedTheme);
+    } else {
+      applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    }
+
+    toggle.addEventListener('click', () => {
+      const currentTheme = root.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      applyTheme(newTheme);
+      localStorage.setItem('theme', newTheme);
+    });
+
+    // Auto-update on system theme change if no manual override is set
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (!localStorage.getItem('theme')) {
+        applyTheme(e.matches ? 'dark' : 'light');
+      }
+    });
+  </script>
+</body>
+</html>
