@@ -111,3 +111,17 @@ To deploy your site to Vercel:
 
 5. **Custom Domain (Optional)**
    - If you have a custom domain, add it in the Vercel dashboard and update your DNS settings to point to Vercel's servers.
+
+
+## shell script
+
+
+
+
+# TODO
+
+- [ ] Tinker with Dark Mode Colors
+- [ ] Tinker with Light Mode Colors
+- [ ] Add LaTeX support for equations
+- [ ] add link emoticons. external links default to ↗ or something similar. But specific websites will have their own little icon
+- [ ] obsidian shell script

@@ -54,7 +54,7 @@ html.dark, [data-theme="dark"] {
   background-color: var(--bg-color-dark);
   color: var(--text-color-dark);
   --em-color: #f3d6bf;   /* warm peach for italics */
-  --bold-color: #ffc49a; /* stronger warm peach for bold */
+  --bold-color: #518adf; /* stronger warm peach for bold */
   --link-internal: #7fb3ff; /* soft blue */
   --link-external: #7fb3ff; /* warm rose */
 }
@@ -171,6 +171,7 @@ pre {
   margin: 1rem 0;
   border: 1px solid rgba(127,127,127,0.2);
   tab-size: 2;
+  position: relative;
 }
 
 /* Keep inline code subtle and readable in both themes */
@@ -180,6 +181,37 @@ code:not(pre code) {
   border-radius: 4px;
   font-family: var(--font-body);
   font-size: 0.95em;
+}
+
+/* Copy button / language badge */
+.code-copy-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 0.35rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(127,127,127,0.35);
+  background: rgba(127,127,127,0.12);
+  color: inherit;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 100ms ease;
+}
+
+.code-copy-button:hover { 
+  background: rgba(127,127,127,0.18);
+  border-color: rgba(127,127,127,0.45);
+}
+
+.code-copy-button:active {
+  transform: translateY(1px);
+}
+
+.code-copy-button.copied {
+  background: rgba(120, 200, 120, 0.18);
+  border-color: rgba(120, 200, 120, 0.45);
 }
 
 /* Optional line wrapping behavior for very long lines in code blocks */

@@ -123,6 +123,79 @@
         for (const link of links) link.addEventListener('click', onAnchorClick);
       });
     })();
+
+    // Code block language badge + copy-to-clipboard (Obsidian-style)
+    (function() {
+      function getLanguageName(pre, code) {
+        // Shiki sometimes exposes data-language or data-lang
+        const shikiLang = pre.getAttribute('data-language') || pre.getAttribute('data-lang');
+        if (shikiLang) return shikiLang;
+
+        // Prism/markdown-it add classes like language-python
+        const classes = (pre.className + ' ' + code.className).split(/\s+/);
+        for (const cls of classes) {
+          const match = /^language-(.+)$/i.exec(cls);
+          if (match) return match[1];
+        }
+        return '';
+      }
+
+      function createCopyButton(langLabel, codeEl) {
+        const btn = document.createElement('button');
+        btn.className = 'code-copy-button';
+        btn.type = 'button';
+        const pretty = langLabel ? (langLabel.charAt(0).toUpperCase() + langLabel.slice(1)) : 'Copy';
+        btn.textContent = pretty || 'Copy';
+        btn.setAttribute('aria-label', 'Copy code');
+        btn.title = 'Copy code';
+        btn.addEventListener('click', async () => {
+          const text = codeEl.innerText.replace(/\n+$/,'');
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(text);
+            } else {
+              // Fallback: hidden textarea
+              const textarea = document.createElement('textarea');
+              textarea.value = text;
+              textarea.setAttribute('readonly', '');
+              textarea.style.position = 'absolute';
+              textarea.style.left = '-9999px';
+              document.body.appendChild(textarea);
+              textarea.select();
+              document.execCommand('copy');
+              document.body.removeChild(textarea);
+            }
+            const original = btn.textContent;
+            btn.textContent = 'Copied';
+            btn.classList.add('copied');
+            setTimeout(() => {
+              btn.textContent = original;
+              btn.classList.remove('copied');
+            }, 1400);
+          } catch (e) {}
+        });
+        return btn;
+      }
+
+      function enhanceAllCodeBlocks() {
+        const pres = document.querySelectorAll('pre');
+        for (const pre of pres) {
+          if (pre.classList.contains('has-copy-button')) continue;
+          const code = pre.querySelector('code');
+          if (!code) continue;
+          const lang = getLanguageName(pre, code);
+          const btn = createCopyButton(lang, code);
+          pre.classList.add('has-copy-button');
+          pre.appendChild(btn);
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', enhanceAllCodeBlocks);
+      } else {
+        enhanceAllCodeBlocks();
+      }
+    })();
   </script>
 </body>
 </html>
