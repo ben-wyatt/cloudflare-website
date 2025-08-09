@@ -25,6 +25,8 @@ A comprehensive, practical reference to see how common Markdown features render 
 - [Escaping](#escaping)
 - [Math (raw)](#math-raw)
 - [Longform Paragraphs](#longform-paragraphs)
+- [Large Table](#large-table)
+ - [Two-Column Table](#two-column-table)
 
 ## Headings
 
@@ -155,6 +157,26 @@ Alignment (GFM):
 | :--- | :----: | ----: |
 | a    |   b    |     c |
 | long text here | centered | 12345 |
+
+### Large Table
+
+Four columns and three rows with multi-sentence content in each cell.
+
+| Overview | Details | Considerations | Outcome |
+| --- | --- | --- | --- |
+| This section introduces the main idea of the row. It provides quick context and sets expectations. Clarity and brevity are prioritized here. | This cell expands on the topic with supporting information. It adds examples and gives the reader concrete anchors. The tone remains neutral and descriptive. | Here we discuss trade-offs and caveats. Edge cases and constraints are highlighted to guide decisions. Readers should weigh costs against benefits. | The concluding cell summarizes what happens next. It names the decision and calls out follow-ups. Success criteria are briefly reiterated.
+| The second row focuses on a variation of the theme. It contrasts with the first to show boundaries. Similarities are noted to reduce cognitive load. | Additional depth is provided with sequential steps. Assumptions are stated so the flow is reproducible. Alternatives are referenced for comparison. | Risks and mitigations are outlined succinctly. Failure modes are listed alongside detection methods. Owners and timelines are suggested. | The result proposes a clean path forward. It defines a checkpoint and a review cadence. Any blockers are documented transparently.
+| This final row is intentionally verbose for wrapping tests. It ensures multi-sentence content behaves well across devices. Typography and spacing should remain readable. | Extra narrative stresses paragraph-like content inside cells. Punctuation and capitalization mirror normal writing. Links and inline code can appear too. | Performance and accessibility are considered. Keyboard navigation and screen reader cues should be preserved. Mobile columns may need stacking. | The outcome emphasizes maintainability and clarity. It summarizes learnings and closes the loop. Future adjustments are easy to apply.
+
+### Two-Column Table
+
+Two columns with multi-sentence cells to test wrapping and spacing.
+
+| Column A | Column B |
+| --- | --- |
+| This left cell offers a short narrative. It provides context in two to three sentences so wrapping is visible. The tone stays neutral. | The right cell mirrors the style while varying the content. It validates consistent spacing and alignment. Formatting should remain balanced.
+| Another example appears here to compare lengths across rows. Slightly longer phrasing helps exercise line breaks and hyphenation where available. | Complementary text balances the row and avoids dominance. It ensures readability across screen sizes and zoom levels for accessibility.
+| Final row demonstrates stability under repeated patterns. Typography should remain readable and even, with adequate line-height and padding. | Closing text confirms that two-column layouts behave well. It focuses on clarity and rhythm of paragraphs for comfortable scanning.
 
 ## Horizontal Rules
 

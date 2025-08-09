@@ -1,6 +1,13 @@
 const { DateTime } = require("luxon");
 const markdownIt = require("markdown-it");
 const markdownItAnchor = require("markdown-it-anchor");
+let pluginShiki = null;
+try {
+  // Optional: prefer server-side highlighting when dependency is available
+  pluginShiki = require("@11ty/eleventy-plugin-shiki");
+} catch (e) {
+  // Fallback to client-side Prism when not installed
+}
 
 module.exports = function(eleventyConfig) {
   // Add a global `now` variable
@@ -16,6 +23,17 @@ module.exports = function(eleventyConfig) {
   
   // Copy static assets like icons if needed
   eleventyConfig.addPassthroughCopy("assets");
+
+  // IDE-quality code highlighting with Shiki (light/dark themes), if available
+  if (pluginShiki) {
+    eleventyConfig.addPlugin(pluginShiki, {
+      themes: {
+        light: "github-light",
+        dark: "github-dark",
+      },
+      skipInline: true,
+    });
+  }
 
   // Add posts collection sorted by date (newest first)
   eleventyConfig.addCollection("post", collectionApi => {

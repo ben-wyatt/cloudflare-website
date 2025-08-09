@@ -1,24 +1,62 @@
 :root {
   --bg-color-light: #fafafa;
-  --text-color-light: #2b211b;
+  --text-color-light: #3a2a1f;
   --bg-color-dark: #1a1a1a;
-  --text-color-dark: #e6ddd5;
-  --link-color: #0366d6;
+  --text-color-dark: #f0e6dc;
+  --link-color: #7fb3ff; /* legacy */
+  /* Link colors (scoped per theme below) */
+  --link-internal: #7fb3ff;
+  --link-external: #7fb3ff;
   --font-body: "Inconsolata", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   --font-heading: "Inconsolata", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  /* Emphasis color tokens (scoped per theme below) */
+  --em-color: inherit;
+  --bold-color: inherit;
+
+  /* Prism token palette (muted, solid colors) */
+  --code-punc-light: #6b635b;
+  --code-op-light: #6b635b;
+  --code-keyword-light: #a3369f;
+  --code-string-light: #2f7d32;
+  --code-number-light: #8a5a13;
+  --code-func-light: #255dcf;
+  --code-comment-light: #8a847d;
+  --code-attr-light: #8a5a13;
+  --code-tag-light: #b54745;
+  --code-prop-light: #8a5a13;
+
+  --code-punc-dark: #c9c2bb;
+  --code-op-dark: #c9c2bb;
+  --code-keyword-dark: #d16d9e;
+  --code-string-dark: #9ecb70;
+  --code-number-dark: #d19a66;
+  --code-func-dark: #61afef;
+  --code-comment-dark: #9aa0a6;
+  --code-attr-dark: #e5c07b;
+  --code-tag-dark: #e06c75;
+  --code-prop-dark: #e5c07b;
   font-family: var(--font-body);
 }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: auto; }
 
 html.light, [data-theme="light"] {
   background-color: var(--bg-color-light);
   color: var(--text-color-light);
+  --em-color: #6e3f2a;   /* warm chestnut for italics */
+  --bold-color: #7a2600; /* stronger warm brown for bold */
+  --link-internal: #7fb3ff; /* muted indigo */
+  --link-external: #7fb3ff; /* warm brick */
 }
 
 html.dark, [data-theme="dark"] {
   background-color: var(--bg-color-dark);
   color: var(--text-color-dark);
+  --em-color: #f3d6bf;   /* warm peach for italics */
+  --bold-color: #ffc49a; /* stronger warm peach for bold */
+  --link-internal: #7fb3ff; /* soft blue */
+  --link-external: #7fb3ff; /* warm rose */
 }
 
 /* Auto apply dark mode if system prefers it */
@@ -37,11 +75,33 @@ body {
 }
 
 a {
-  color: var(--link-color);
+  color: var(--link-internal);
   text-decoration: none;
 }
 a:hover {
   text-decoration: underline;
+}
+
+/* Internal links */
+a[href^="/"],
+a[href^="#"],
+a:not([href^="http"]):not([href^="https"]):not([href^="mailto:"]):not([href^="tel:"]) {
+  color: var(--link-internal);
+}
+a[href^="/"]:visited,
+a[href^="#"]:visited,
+a:not([href^="http"]):not([href^="https"]):not([href^="mailto:"]):not([href^="tel:"]):visited {
+  color: var(--link-internal);
+}
+
+/* External links */
+a[href^="http://"],
+a[href^="https://"] {
+  color: var(--link-external);
+}
+a[href^="http://"]:visited,
+a[href^="https://"]:visited {
+  color: var(--link-external);
 }
 
 header, footer {
@@ -75,6 +135,15 @@ p, li {
   font-size: 1rem;
 }
 
+/* Emphasis styles: distinct colors for italics and bold */
+em, i {
+  color: var(--em-color);
+}
+
+strong, b {
+  color: var(--bold-color);
+}
+
 /* Inconsolata utilities */
 .inconsolata-regular {
   font-family: "Inconsolata", monospace;
@@ -93,3 +162,97 @@ p, li {
   font-weight: 400;
   font-style: italic;
 }
+
+/* Code blocks (Shiki renders pre elements with code inside) */
+pre {
+  overflow: auto;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  border: 1px solid rgba(127,127,127,0.2);
+  tab-size: 2;
+}
+
+/* Keep inline code subtle and readable in both themes */
+code:not(pre code) {
+  background: rgba(127,127,127,0.12);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 0.95em;
+}
+
+/* Optional line wrapping behavior for very long lines in code blocks */
+pre code {
+  white-space: pre;
+}
+
+/* Let Shiki control its own foreground/background via CSS vars */
+pre.shiki { background-color: var(--shiki-color-background); color: var(--shiki-color-text); }
+
+/* Prism fallback theme alignment: light/dark */
+[data-theme="dark"] pre[class*="language-"],
+[data-theme="dark"] code[class*="language-"] {
+  text-shadow: none;
+}
+
+/* Prism tokens: keep solid colors without background highlighting */
+pre[class*="language-"] .token,
+code[class*="language-"] .token {
+  background: transparent !important;
+  text-shadow: none !important;
+}
+
+/* Light theme token colors */
+[data-theme="light"] pre[class*="language-"] .token.punctuation,
+[data-theme="light"] code[class*="language-"] .token.punctuation { color: inherit !important; }
+[data-theme="light"] pre[class*="language-"] .token.operator,
+[data-theme="light"] code[class*="language-"] .token.operator { color: inherit !important; }
+[data-theme="light"] pre[class*="language-"] .token.keyword,
+[data-theme="light"] code[class*="language-"] .token.keyword { color: var(--code-keyword-light) !important; }
+[data-theme="light"] pre[class*="language-"] .token.string,
+[data-theme="light"] code[class*="language-"] .token.string { color: var(--code-string-light) !important; }
+[data-theme="light"] pre[class*="language-"] .token.number,
+[data-theme="light"] code[class*="language-"] .token.number,
+[data-theme="light"] pre[class*="language-"] .token.boolean,
+[data-theme="light"] code[class*="language-"] .token.boolean { color: var(--code-number-light) !important; }
+[data-theme="light"] pre[class*="language-"] .token.function,
+[data-theme="light"] code[class*="language-"] .token.function { color: var(--code-func-light) !important; }
+[data-theme="light"] pre[class*="language-"] .token.comment,
+[data-theme="light"] code[class*="language-"] .token.comment { color: var(--code-comment-light) !important; font-style: normal !important; }
+[data-theme="light"] pre[class*="language-"] .token.attr-name,
+[data-theme="light"] code[class*="language-"] .token.attr-name { color: var(--code-attr-light) !important; }
+[data-theme="light"] pre[class*="language-"] .token.tag,
+[data-theme="light"] code[class*="language-"] .token.tag { color: var(--code-tag-light) !important; }
+[data-theme="light"] pre[class*="language-"] .token.property,
+[data-theme="light"] code[class*="language-"] .token.property { color: var(--code-prop-light) !important; }
+
+/* Dark theme token colors */
+[data-theme="dark"] pre[class*="language-"] .token.punctuation,
+[data-theme="dark"] code[class*="language-"] .token.punctuation { color: inherit !important; }
+[data-theme="dark"] pre[class*="language-"] .token.operator,
+[data-theme="dark"] code[class*="language-"] .token.operator { color: inherit !important; }
+[data-theme="dark"] pre[class*="language-"] .token.keyword,
+[data-theme="dark"] code[class*="language-"] .token.keyword { color: var(--code-keyword-dark) !important; }
+[data-theme="dark"] pre[class*="language-"] .token.string,
+[data-theme="dark"] code[class*="language-"] .token.string { color: var(--code-string-dark) !important; }
+[data-theme="dark"] pre[class*="language-"] .token.number,
+[data-theme="dark"] code[class*="language-"] .token.number,
+[data-theme="dark"] pre[class*="language-"] .token.boolean,
+[data-theme="dark"] code[class*="language-"] .token.boolean { color: var(--code-number-dark) !important; }
+[data-theme="dark"] pre[class*="language-"] .token.function,
+[data-theme="dark"] code[class*="language-"] .token.function { color: var(--code-func-dark) !important; }
+[data-theme="dark"] pre[class*="language-"] .token.comment,
+[data-theme="dark"] code[class*="language-"] .token.comment { color: var(--code-comment-dark) !important; font-style: normal !important; }
+[data-theme="dark"] pre[class*="language-"] .token.attr-name,
+[data-theme="dark"] code[class*="language-"] .token.attr-name { color: var(--code-attr-dark) !important; }
+[data-theme="dark"] pre[class*="language-"] .token.tag,
+[data-theme="dark"] code[class*="language-"] .token.tag { color: var(--code-tag-dark) !important; }
+[data-theme="dark"] pre[class*="language-"] .token.property,
+[data-theme="dark"] code[class*="language-"] .token.property { color: var(--code-prop-dark) !important; }
+
+/* Avoid bold/italic emphasis in tokens */
+pre[class*="language-"] .token.bold,
+code[class*="language-"] .token.bold { font-weight: 400 !important; }
+pre[class*="language-"] .token.italic,
+code[class*="language-"] .token.italic { font-style: normal !important; }

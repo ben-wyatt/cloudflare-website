@@ -6,6 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ title or "Ben Wyatt" }}</title>
   <link rel="stylesheet" href="/styles/main.css">
+  {% if not collections or true %}
+  <!-- Client-side Prism fallback when Shiki is not installed -->
+  <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism.css">
+  <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism-okaidia.css" media="(prefers-color-scheme: dark)">
+  <script defer src="https://unpkg.com/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script defer src="https://unpkg.com/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js" data-autoloader-path="https://unpkg.com/prismjs@1.29.0/components/"></script>
+  {% endif %}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap" rel="stylesheet">
@@ -16,7 +23,8 @@
       <a href="/" style="margin-right: 0.5rem;">Home</a>
       <span style="margin: 0 0.5rem;">|</span>
       <a href="/blog/" style="margin-left: 0.5rem;">Blog</a>
-      <button id="theme-toggle" aria-label="Toggle Theme" style="margin-left: 1rem;">🌓</button>
+      <span style="margin: 0 0.5rem;">|</span>
+      <button id="theme-toggle" aria-label="Toggle Theme" style="margin-left: 0.5rem;">🌓</button>
     </nav>
   </header>
   <main>
@@ -62,6 +70,59 @@
         applyTheme(e.matches ? 'dark' : 'light');
       }
     });
+    
+    // Instant jumps for in-page anchor links
+    (function() {
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const DURATION_MS = 0; // instant
+
+      function smoothScrollTo(targetY, duration) {
+        const startY = window.pageYOffset;
+        const distance = targetY - startY;
+        if (distance === 0 || duration <= 0) {
+          window.scrollTo(0, targetY);
+          return;
+        }
+        let startTime = null;
+        const easeOutQuad = t => t * (2 - t);
+        function step(timestamp) {
+          if (!startTime) startTime = timestamp;
+          const elapsed = timestamp - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = easeOutQuad(progress);
+          window.scrollTo(0, Math.round(startY + distance * eased));
+          if (elapsed < duration) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      }
+
+      function onAnchorClick(event) {
+        const href = event.currentTarget.getAttribute('href');
+        if (!href || !href.startsWith('#')) return;
+        const id = decodeURIComponent(href.slice(1));
+        const target = id ? document.getElementById(id) : null;
+        if (!target) return;
+        event.preventDefault();
+        if (prefersReduced) {
+          target.scrollIntoView();
+          return;
+        }
+        const rect = target.getBoundingClientRect();
+        const targetY = Math.max(0, rect.top + window.pageYOffset);
+        smoothScrollTo(targetY, DURATION_MS);
+        try {
+          history.replaceState(null, '', href);
+        } catch (e) {}
+        try {
+          target.focus({ preventScroll: true });
+        } catch (e) {}
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const links = document.querySelectorAll('a[href^="#"]');
+        for (const link of links) link.addEventListener('click', onAnchorClick);
+      });
+    })();
   </script>
 </body>
 </html>

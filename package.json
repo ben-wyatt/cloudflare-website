@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "eleventy",
-    "dev": "eleventy --serve"
+    "serve": "eleventy --serve",
+    "clean": "rm -rf _site"
   },
   "repository": {
     "type": "git",
@@ -17,6 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "@11ty/eleventy": "^3.1.2",
+    "@11ty/eleventy-plugin-shiki": "^0.7.0",
     "luxon": "^3.7.1"
   },
   "devDependencies": {
