@@ -1,0 +1,38 @@
+# Cursor/editor
+.cursorrules
+.cursorignore
+.cursor/
+.vscode/
+.idea/
+.history/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Eleventy build + caches
+_site/
+.cache/
+.tmp/
+.temp/
+dist/
+build/
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Deployment folders (local metadata)
+.vercel/
+.netlify/

@@ -9,6 +9,8 @@
   font-family: var(--font-body);
 }
 
+html { scroll-behavior: smooth; }
+
 html.light, [data-theme="light"] {
   background-color: var(--bg-color-light);
   color: var(--text-color-light);
