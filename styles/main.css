@@ -135,9 +135,9 @@ p, li {
   font-size: 1rem;
 }
 
-/* Emphasis styles: distinct colors for italics and bold */
+/* Emphasis styles: italics match bold color */
 em, i {
-  color: var(--em-color);
+  color: var(--bold-color);
 }
 
 strong, b {
