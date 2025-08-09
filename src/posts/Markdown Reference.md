@@ -1,5 +1,5 @@
 ---
-layout: layout.njk
+layout: post.njk
 title: Markdown Reference
 date_published: 2025-08-09
 ---
