@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Quiet by default; set VERBOSE=1 to see progress logs on stderr
+VERBOSE="${VERBOSE:-0}"
+log() { if [[ "$VERBOSE" == "1" ]]; then printf '%s\n' "$*" >&2; fi; }
+
 # --- CONFIG ---
 # Update this to your local repo path if different:
 REPO_DIR="$HOME/Repos/personal/website"
@@ -8,17 +12,17 @@ POSTS_DIR="$REPO_DIR/src/posts"
 # --------------
 
 if [[ $# -lt 1 ]]; then
-  echo "Usage: $0 /absolute/path/to/current-note.md"
+  echo "Usage: $0 /absolute/path/to/current-note.md" >&2
   exit 1
 fi
 
 SRC="$(perl -MCwd -e 'print Cwd::abs_path(shift)' "$1")"
 if [[ ! -f "$SRC" ]]; then
-  echo "Source file does not exist: $SRC"
+  echo "Source file does not exist: $SRC" >&2
   exit 1
 fi
 
-echo "Source file: $SRC"
+log "Source file: $SRC"
 
 mkdir -p "$POSTS_DIR"
 
@@ -30,10 +34,12 @@ today="$(date +%F)"
 replacing=0
 [[ -f "$DEST" ]] && replacing=1
 
-echo "Posts directory: $POSTS_DIR"
-echo "Destination file: $DEST"
-echo "Operation date: $today"
-echo "Replacing existing post: $replacing (1=yes, 0=no)"
+dest_base="$(basename "$DEST")"
+
+log "Posts directory: $POSTS_DIR"
+log "Destination file: $DEST"
+log "Operation date: $today"
+log "Replacing existing post: $replacing (1=yes, 0=no)"
 
 # Read the file and split frontmatter/body
 tmpdir="$(mktemp -d)"
@@ -60,11 +66,11 @@ awk '
 
 # Report on detected sections
 if [[ -s "$front" ]]; then
-  echo "Detected frontmatter block (lines: $(wc -l < "$front"))"
+  log "Detected frontmatter block (lines: $(wc -l < "$front"))"
 else
-  echo "No frontmatter detected at top; treating entire file as body"
+  log "No frontmatter detected at top; treating entire file as body"
 fi
-echo "Body lines: $(wc -l < "$body")"
+log "Body lines: $(wc -l < "$body")"
 
 # If there was no frontmatter at the top, treat entire file as body
 if [[ ! -s "$front" && -s "$body" ]]; then
@@ -85,7 +91,7 @@ upsert_key() {
   local key="$1"
   local value="$2"
   if has_key "$key"; then
-    echo "Updating key '$key' to: $value"
+    log "Updating key '$key' to: $value"
     # replace the first matching line
     # keep original indentation if present
     awk -v k="$key" -v v="$value" '
@@ -108,7 +114,7 @@ upsert_key() {
     ' "$front" > "$newfront"
     mv "$newfront" "$front"
   else
-    echo "Adding key '$key' with value: $value"
+    log "Adding key '$key' with value: $value"
     echo "$key: $value" >> "$front"
   fi
 }
@@ -121,7 +127,7 @@ if ! has_key "title"; then
   pretty_title="${pretty_title//-/ }"
   upsert_key "title" "$pretty_title"
 else
-  echo "Keeping existing 'title'"
+  log "Keeping existing 'title'"
 fi
 
 # layout: default to post.njk; migrate legacy 'layout.njk' to 'post.njk' for posts
@@ -130,10 +136,10 @@ if ! has_key "layout"; then
 else
   # If layout is explicitly 'layout.njk', switch to 'post.njk' for post pages
   if grep -Eiq '^[[:space:]]*layout[[:space:]]*:[[:space:]]*layout\.njk[[:space:]]*$' "$front"; then
-    echo "Migrating layout from 'layout.njk' to 'post.njk'"
+    log "Migrating layout from 'layout.njk' to 'post.njk'"
     upsert_key "layout" "post.njk"
   else
-    echo "Keeping existing 'layout'"
+    log "Keeping existing 'layout'"
   fi
 fi
 
@@ -141,14 +147,14 @@ fi
 if ! has_key "date_published"; then
   upsert_key "date_published" "$today"
 else
-  echo "Keeping existing 'date_published'"
+  log "Keeping existing 'date_published'"
 fi
 
 # tags: ensure exists as YAML list; default to empty list
 if ! has_key "tags"; then
   upsert_key "tags" "[]"
 else
-  echo "Keeping existing 'tags'"
+  log "Keeping existing 'tags'"
 fi
 
 # date_updated: must always exist; if replacing, bump to today; else set if missing
@@ -158,7 +164,7 @@ else
   if ! has_key "date_updated"; then
     upsert_key "date_updated" "$today"
   else
-    echo "Keeping existing 'date_updated'"
+    log "Keeping existing 'date_updated'"
   fi
 fi
 
@@ -216,17 +222,21 @@ mv "$body2" "$body"
 
 # Copy assembled content to destination in repo
 if cp "$assembled" "$DEST"; then
-  echo "Exported to: $DEST"
+  log "Exported to: $DEST"
 else
-  echo "Error: failed to write destination: $DEST"
+  echo "Error: failed to write destination: $DEST" >&2
   exit 1
 fi
 
 # Also overwrite the original source file with updated content
 if cp "$assembled" "$SRC"; then
-  echo "Overwrote source with updated content: $SRC"
+  log "Overwrote source with updated content: $SRC"
 else
-  echo "Warning: failed to overwrite source file: $SRC"
+  log "Warning: failed to overwrite source file: $SRC"
 fi
 
-(( replacing )) && echo "Updated existing post and set date_updated: $today" || echo "Created new post."
+if (( replacing )); then
+  echo "updated $dest_base"
+else
+  echo "exported new $dest_base to blog."
+fi

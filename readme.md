@@ -131,5 +131,6 @@ Each blog post should have these tags:
 - [ ] Tinker with Light Mode Colors
 - [ ] Add LaTeX support for equations
 - [ ] add link emoticons. external links default to ↗ or something similar. But specific websites will have their own little icon
-- [ ] obsidian shell script
+- [x] obsidian shell script
 - [ ] use blog tags to generate a "you might also like these posts" list at end of a post.
+- [ ] fix/figure out images

@@ -302,3 +302,14 @@ code[class*="language-"] .token.italic { font-style: normal !important; }
   border-top: 1px solid rgba(127,127,127,0.3);
   margin: 1.5rem 0 0.75rem 0;
 }
+
+/* Blog post list: no bullets, no left padding */
+.post-list {
+  list-style: none;
+  padding-left: 1rem;
+  margin: 0.75rem 0 0 0;
+}
+
+.post-list li {
+  margin: 0.25rem 0;
+}
