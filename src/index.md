@@ -5,7 +5,7 @@ title: Home
 
 ## About Me
 
-Hello—I'm **Ben Wyatt**.  I graduated from the **University of Rochester** in 2023, earning dual degrees in **Physics** and **Economics**.
+Hey there! I'm **Ben Wyatt**.  I graduated from the **University of Rochester** in 2023 with a BS in **Physics** and BA in **Economics**.
 
 ### Academic & Research Experience
 

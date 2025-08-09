@@ -1,4 +1,6 @@
 const { DateTime } = require("luxon");
+const markdownIt = require("markdown-it");
+const markdownItAnchor = require("markdown-it-anchor");
 
 module.exports = function(eleventyConfig) {
   // Add a global `now` variable
@@ -29,6 +31,22 @@ module.exports = function(eleventyConfig) {
       })();
     </script>`;
   });
+
+  // Configure Markdown with heading anchors so in-page links work
+  // Slugify to mimic GitHub-style slugs (e.g., "A & B" => "a--b")
+  const md = markdownIt({
+    html: true,
+    linkify: true,
+    typographer: true
+  }).use(markdownItAnchor, {
+    slugify: s => s
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]/g, ''),
+  });
+
+  eleventyConfig.setLibrary("md", md);
 
   return {
     dir: {
