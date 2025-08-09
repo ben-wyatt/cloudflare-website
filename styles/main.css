@@ -288,3 +288,17 @@ pre[class*="language-"] .token.bold,
 code[class*="language-"] .token.bold { font-weight: 400 !important; }
 pre[class*="language-"] .token.italic,
 code[class*="language-"] .token.italic { font-style: normal !important; }
+
+/* Post meta (dates) */
+.post-meta {
+  color: rgba(127,127,127,0.8);
+  font-size: 0.95rem;
+}
+
+.post-meta p { margin: 0.25rem 0; }
+
+.post-meta-sep {
+  border: none;
+  border-top: 1px solid rgba(127,127,127,0.3);
+  margin: 1.5rem 0 0.75rem 0;
+}

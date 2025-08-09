@@ -1,7 +1,7 @@
 ---
 layout: layout.njk
 title: Markdown Reference
-date: 2025-08-09
+date_published: 2025-08-09
 ---
 
 # Markdown Reference
@@ -26,7 +26,7 @@ A comprehensive, practical reference to see how common Markdown features render 
 - [Math (raw)](#math-raw)
 - [Longform Paragraphs](#longform-paragraphs)
 - [Large Table](#large-table)
- - [Two-Column Table](#two-column-table)
+- [Two-Column Table](#two-column-table)
 
 ## Headings
 

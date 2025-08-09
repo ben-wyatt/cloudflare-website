@@ -18,6 +18,45 @@ module.exports = function(eleventyConfig) {
     return DateTime.fromJSDate(dateObj).toFormat(format);
   });
 
+  // Pretty date: "Friday August 8th 2025" (no time). Accepts Date or ISO string
+  eleventyConfig.addFilter("prettyDate", (value) => {
+    if (!value) return "";
+    let dt;
+    if (value instanceof Date) {
+      dt = DateTime.fromJSDate(value);
+    } else if (typeof value === "string") {
+      // Support bare YYYY-MM-DD from YAML (js-yaml may already convert to Date, but handle string too)
+      dt = DateTime.fromISO(value, { zone: "utc" });
+      if (!dt.isValid) {
+        // Fallback: try JS Date parse
+        const asDate = new Date(value);
+        if (!isNaN(asDate.getTime())) dt = DateTime.fromJSDate(asDate);
+      }
+    } else {
+      try {
+        dt = DateTime.fromJSDate(new Date(value));
+      } catch (e) {}
+    }
+    if (!dt || !dt.isValid) return String(value);
+
+    const day = dt.day;
+    const suffix = (d => {
+      const v = d % 100;
+      if (v >= 11 && v <= 13) return "th";
+      switch (d % 10) {
+        case 1: return "st";
+        case 2: return "nd";
+        case 3: return "rd";
+        default: return "th";
+      }
+    })(day);
+
+    const weekday = dt.toFormat("cccc");   // Friday
+    const month = dt.toFormat("LLLL");     // August
+    const year = dt.toFormat("yyyy");      // 2025
+    return `${weekday} ${month} ${day}${suffix} ${year}`;
+  });
+
   // Copy `styles` folder to output
   eleventyConfig.addPassthroughCopy("styles");
   

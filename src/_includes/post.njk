@@ -1,0 +1,24 @@
+---
+layout: layout.njk
+---
+
+<article class="post">
+  <h1>
+    {{ (title or page.fileSlug) | replace("-", " ") | replace("_", " ") }}
+  </h1>
+  {{ content | safe }}
+
+  {% if date_published or (date_updated and date_updated != date_published) %}
+  <hr class="post-meta-sep">
+  <div class="post-meta">
+    {% if date_published %}
+      <p>Published {{ date_published | prettyDate }}</p>
+    {% endif %}
+    {% if date_updated and date_updated != date_published %}
+      <p>Updated {{ date_updated | prettyDate }}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+</article>
+
+

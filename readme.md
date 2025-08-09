@@ -113,8 +113,15 @@ To deploy your site to Vercel:
    - If you have a custom domain, add it in the Vercel dashboard and update your DNS settings to point to Vercel's servers.
 
 
-## shell script
+## shell script description
 
+## frontmatters
+
+Each blog post should have these tags:
+- date_published: date that the post first went live
+- date_updated: date that the post was most recently updated on
+- title: the name of the blog post.
+- tags: a list of topics and ideas that are talked about in the blog post
 
 
 
@@ -125,3 +132,4 @@ To deploy your site to Vercel:
 - [ ] Add LaTeX support for equations
 - [ ] add link emoticons. external links default to ↗ or something similar. But specific websites will have their own little icon
 - [ ] obsidian shell script
+- [ ] use blog tags to generate a "you might also like these posts" list at end of a post.

@@ -140,11 +140,82 @@
         return '';
       }
 
+      function labelForLanguage(raw) {
+        const value = (raw || '').toLowerCase();
+        if (!value) return '';
+
+        // Common overrides and aliases
+        const overrides = {
+          // JavaScript family
+          'javascript': 'JavaScript',
+          'js': 'JavaScript',
+          'jsx': 'JSX',
+          'node': 'JavaScript',
+          // TypeScript
+          'typescript': 'TypeScript',
+          'ts': 'TypeScript',
+          'tsx': 'TSX',
+          // Data/serializations
+          'json': 'JSON',
+          'yaml': 'YAML',
+          'yml': 'YAML',
+          'toml': 'TOML',
+          'ini': 'INI',
+          // Shells
+          'bash': 'Bash',
+          'sh': 'Shell',
+          'shell': 'Shell',
+          'zsh': 'Zsh',
+          'powershell': 'PowerShell',
+          'ps1': 'PowerShell',
+          // Markup & styles
+          'html': 'HTML',
+          'xml': 'XML',
+          'css': 'CSS',
+          'markdown': 'Markdown',
+          'md': 'Markdown',
+          // VCS / diffs
+          'diff': 'diff',
+          'git': 'Git',
+          // Popular languages
+          'python': 'Python',
+          'py': 'Python',
+          'java': 'Java',
+          'kotlin': 'Kotlin',
+          'swift': 'Swift',
+          'go': 'Go',
+          'golang': 'Go',
+          'rust': 'Rust',
+          'rs': 'Rust',
+          'ruby': 'Ruby',
+          'rb': 'Ruby',
+          'php': 'PHP',
+          'csharp': 'C#',
+          'cs': 'C#',
+          'cpp': 'C++',
+          'c++': 'C++',
+          'c': 'C',
+          'sql': 'SQL',
+          // Misc
+          'dockerfile': 'Dockerfile',
+          'docker': 'Dockerfile',
+          'regex': 'Regex',
+          'plaintext': 'Text',
+          'text': 'Text',
+          'txt': 'Text'
+        };
+
+        if (overrides[value]) return overrides[value];
+
+        // Default: capitalize first letter only
+        return value.charAt(0).toUpperCase() + value.slice(1);
+      }
+
       function createCopyButton(langLabel, codeEl) {
         const btn = document.createElement('button');
         btn.className = 'code-copy-button';
         btn.type = 'button';
-        const pretty = langLabel ? (langLabel.charAt(0).toUpperCase() + langLabel.slice(1)) : 'Copy';
+        const pretty = labelForLanguage(langLabel);
         btn.textContent = pretty || 'Copy';
         btn.setAttribute('aria-label', 'Copy code');
         btn.title = 'Copy code';
