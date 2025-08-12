@@ -15,3 +15,5 @@ I write about things I find interesting, from short notes to longer essays.
   <li>{{ post.date | date("yyyy-MM-dd") }} | <a href="{{ post.url }}">{{ post.data.title }}</a></li>
 {% endfor %}
 </ul>
+
+---

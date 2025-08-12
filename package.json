@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "prebuild": "node scripts/build-related.js",
     "build": "eleventy",
+    "preserve": "node scripts/build-related.js",
     "serve": "eleventy --serve",
     "clean": "rm -rf _site"
   },
@@ -18,11 +20,12 @@
   "license": "ISC",
   "dependencies": {
     "@11ty/eleventy": "^3.1.2",
-    "@11ty/eleventy-plugin-shiki": "^0.7.0",
     "luxon": "^3.7.1"
   },
   "devDependencies": {
     "markdown-it": "^14.1.0",
-    "markdown-it-anchor": "^9.2.0"
+    "markdown-it-anchor": "^9.2.0",
+    "@xenova/transformers": "^2.17.2",
+    "gray-matter": "^4.0.3"
   }
 }

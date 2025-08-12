@@ -1,136 +1,110 @@
-# Personal Website MVP
+## Personal Website (Eleventy) — Quick Start and Guide
 
-A lightweight, high‑performance personal website built with [Eleventy](https://www.11ty.dev/).  
-Features a simple page structure, responsive design, light/dark theme toggle, and Markdown‑powered blog ready for easy publishing from Obsidian.
+A lightweight, fast personal site built with Eleventy. Markdown-first content, simple layouts, light/dark theme toggle, and an accent palette system. Optimized code blocks use solid token colors without punctuation highlighting.
 
-**Note:** All content should be written in Markdown unless absolutely required to use another format.
+### Prerequisites
+- **Node.js**: 18+ recommended
+- **npm**: comes with Node
 
-## Structure
-- **Home (`/`)**
-- **About (`/about/`)**
-- **Blog (`/blog/`)** with listing of posts in `src/posts/`
-- **Individual blog pages** generated from Markdown
+### Install and Run
+- **Install**:
+  ```bash
+  npm install
+  ```
+- **Develop (watch + local server)**:
+  ```bash
+  npm run serve
+  ```
+  Eleventy will print the local URL when it starts.
+- **Build (static output to `_site/`)**:
+  ```bash
+  npm run build
+  ```
+- **Clean build output**:
+  ```bash
+  npm run clean
+  ```
 
-## Theme Modification
-You can adjust colors, fonts, and spacing in `styles/main.css`:
-- **Colors:** Update CSS variables at the top of the file (e.g. `--bg-color-light`, `--text-color-light`).
-- **Fonts:** Change the Google Fonts import in `src/_includes/layout.njk` and update `font-family` in CSS.
-- **Layout:** Modify body `max-width`, margins, and line-height.
-- **Icons/Links:** Extend CSS to style specific outbound links with icons.
-
-After making changes, run:
+### Project Structure
+```text
+.
+├─ src/
+│  ├─ _includes/
+│  │  ├─ layout.njk        Base layout (nav, theme + palette, Prism fallback)
+│  │  └─ post.njk          Post layout (injects <h1> and published/updated dates)
+│  ├─ posts/               Markdown posts (each becomes /posts/<slug>/)
+│  ├─ home.md              Home page (if present)
+│  └─ blog.md              Blog index at /blog/
+├─ styles/
+│  └─ main.css             Theme, palettes, typography, code styles
+├─ _site/                  Build output (generated)
+├─ export_post.sh          Helper to export/update a post from Obsidian
+├─ package.json            Scripts and dependencies
+└─ readme.md               This guide
 ```
-npx @11ty/eleventy --serve
+
+### Writing Posts (Front Matter)
+Posts live in `src/posts/` and should include:
+- **title**: string
+- **layout**: `post.njk`
+- **date_published**: `YYYY-MM-DD`
+- **date_updated**: `YYYY-MM-DD`
+- **tags**: array
+
+Example:
+```markdown
+---
+title: My New Post
+layout: post.njk
+date_published: 2025-01-31
+date_updated: 2025-01-31
+tags: [eleventy, notes]
+---
+
+Post content in Markdown...
 ```
-to preview locally.
+Note: `post.njk` injects the page `<h1>` from the front matter title; avoid duplicating a top-level `# Heading` at the top of the body.
 
-## Next Steps
-1. **Content** — Add real `src/posts/*.md` files by exporting from Obsidian.
-2. **Design Polish** — Fine‑tune typography, spacing, and colors to match your vision.
-3. **Icon Styling** — Add site‑specific icons for outbound links.
-4. **Deploy** — Commit and push changes to GitHub to auto‑deploy to Vercel.
+### Exporting from Obsidian (Helper Script)
+Use `export_post.sh` to move a note into the blog with clean front matter:
+```bash
+./export_post.sh "/absolute/path/to/note.md"
+```
+What it does:
+- Writes to `src/posts/<note-name>.md` (creating the directory if needed)
+- Ensures/upserts required front matter keys
+  - `layout: post.njk`
+  - `title`: derived from filename if missing
+  - `date_published`: added if missing
+  - `date_updated`: added, or bumped to today if replacing an existing post
+- Strips a leading H1 that duplicates the title
+- Also overwrites the source note with the updated front matter (handy round‑trip)
+- Quiet by default; set `VERBOSE=1` to see logs
 
-To deploy your site to Vercel:
+### Theming, Palettes, and UX
+- **Theme toggle**: light/dark, persisted in `localStorage` (`theme`). Defaults to system preference, falling back to dark.
+- **Accent palettes**: `indigo` (default), `forest`, `amber`, `rose`, `teal`, `purple`. Selected via the header picker; stored in `localStorage` (`palette`).
+- **Hidden palette cycler**: click the © year 5 times quickly to cycle palettes.
+- **Typography**: Inconsolata for headings and body.
+- **Links**: internal and external colors tuned per theme/palette in `styles/main.css`.
 
-1. **Set Up Vercel**
-   - Log in to [Vercel](https://vercel.com/) and create a new project.
-   - Connect your GitHub repository to Vercel.
+### Code Highlighting
+- The layout includes a Prism fallback via CDN; token colors are tuned in `styles/main.css` to keep backgrounds transparent and emphasis subtle.
+- Punctuation and operators inherit the surrounding text color by design, while keywords/strings/numbers/functions use solid colors to stay readable without visual noise.
+- A copy‑to‑clipboard button is added on code blocks; labels reflect the detected language.
 
-2. **Configure Build Settings**
-   - In the Vercel dashboard, set the following build settings:
-     - **Framework Preset:** Select "Eleventy".
-     - **Build Command:** `npx @11ty/eleventy`
-     - **Output Directory:** `_site`
+### Deploying to Vercel
+- Create a new Vercel project and connect the GitHub repo.
+- Build settings:
+  - **Framework Preset**: Eleventy
+  - **Build Command**: `npm run build` (or `eleventy`)
+  - **Output Directory**: `_site`
+- Push to `main`; Vercel builds and deploys automatically.
 
-3. **Push Changes**
-   - Commit and push your changes to the `main` branch (or the branch you configured in Vercel).
+### Tips and Troubleshooting
+- If you see missing highlights, ensure only one highlighter is active (Prism CDN is included by default).
+- Run `npm run clean && npm run build` to force a fresh build.
+- Blog index lives at `src/blog.md` and renders `/blog/`.
 
-4. **Verify Deployment**
-   - Vercel will automatically build and deploy your site. Check the live URL provided by Vercel to ensure everything is working correctly.
-
-5. **Custom Domain (Optional)**
-   - If you have a custom domain, add it in the Vercel dashboard and update your DNS settings to point to Vercel's servers.
-
-5. **Enhancements** — Consider adding search, tagging, or other features in future iterations.
-
-# Adding new Blog posts
-
-
-To publish a new markdown file as a blog post:
-
-1. **Create a New Markdown File**
-   - Place the new markdown file in the `src/posts/` directory. This is where your existing blog posts are stored (e.g., `first-post.md` and `Note Formatting Example.md`).
-
-2. **Add Frontmatter**
-   - Your markdown file should include frontmatter at the top (usually in YAML format) to define metadata like the title, date, and layout. For example:
-     ```markdown
-     ---
-     title: "My New Blog Post"
-     date: "2023-10-01"
-     layout: "post"
-     ---
-     ```
-   - Make sure to include `layout: layout.njk` so that it chooses the right theme
-
-3. **Build the Site**
-   - Run the build command to generate the HTML files from the markdown source. This is typically done with:
-     ```bash
-     npx @11ty/eleventy
-     ```
-
-4. **Verify the Output**
-   - After building, the new blog post should appear in the `_site/posts/` directory as an HTML file. For example:
-     ```
-     _site/posts/my-new-blog-post/index.html
-     ```
-
-5. **Link the Post**
-   - Ensure the new post is linked from the `src/blog.md` file (or wherever your blog index is defined). This file likely generates the `_site/blog/index.html` page.
-
-6. **Deploy**
-
-## Deploying to Vercel
-
-To deploy your site to Vercel:
-
-1. **Set Up Vercel**
-   - Log in to [Vercel](https://vercel.com/) and create a new project.
-   - Connect your GitHub repository to Vercel.
-
-2. **Configure Build Settings**
-   - In the Vercel dashboard, set the following build settings:
-     - **Framework Preset:** Select "Eleventy".
-     - **Build Command:** `npx @11ty/eleventy`
-     - **Output Directory:** `_site`
-
-3. **Push Changes**
-   - Commit and push your changes to the `main` branch (or the branch you configured in Vercel).
-
-4. **Verify Deployment**
-   - Vercel will automatically build and deploy your site. Check the live URL provided by Vercel to ensure everything is working correctly.
-
-5. **Custom Domain (Optional)**
-   - If you have a custom domain, add it in the Vercel dashboard and update your DNS settings to point to Vercel's servers.
-
-
-## shell script description
-
-## frontmatters
-
-Each blog post should have these tags:
-- date_published: date that the post first went live
-- date_updated: date that the post was most recently updated on
-- title: the name of the blog post.
-- tags: a list of topics and ideas that are talked about in the blog post
-
-
-
-# TODO
-
-- [ ] Tinker with Dark Mode Colors
-- [ ] Tinker with Light Mode Colors
-- [ ] Add LaTeX support for equations
-- [ ] add link emoticons. external links default to ↗ or something similar. But specific websites will have their own little icon
-- [x] obsidian shell script
-- [ ] use blog tags to generate a "you might also like these posts" list at end of a post.
-- [ ] fix/figure out images
+### License
+ISC

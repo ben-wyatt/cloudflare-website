@@ -22,3 +22,22 @@ layout: layout.njk
 </article>
 
 
+{% set currentSlug = page.fileSlug | slug %}
+{% set rel = related and related[currentSlug] %}
+{% if rel and rel.length %}
+<section class="related-posts">
+  <h2>You might also like</h2>
+  <ul class="post-list">
+    {% set postsCollection = collections.post or collections.all %}
+    {% for rec in rel %}
+      {% for p in postsCollection %}
+        {% if (p.fileSlug | slug) == rec.slug %}
+          <li>{{ p.date | date("yyyy-MM-dd") }} | <a href="{{ p.url }}">{{ p.data.title or (p.fileSlug | replace("-", " ") | replace("_", " ")) }}</a></li>
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+

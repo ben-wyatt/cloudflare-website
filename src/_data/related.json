@@ -1,0 +1,32 @@
+{
+  "future-of-stablecoins": [
+    {
+      "slug": "link-references-test",
+      "score": 0.2598002626643167
+    },
+    {
+      "slug": "markdown-reference",
+      "score": 0.07135618190538527
+    }
+  ],
+  "link-references-test": [
+    {
+      "slug": "markdown-reference",
+      "score": 0.3434734283309756
+    },
+    {
+      "slug": "future-of-stablecoins",
+      "score": 0.2598002626643167
+    }
+  ],
+  "markdown-reference": [
+    {
+      "slug": "link-references-test",
+      "score": 0.3434734283309756
+    },
+    {
+      "slug": "future-of-stablecoins",
+      "score": 0.07135618190538527
+    }
+  ]
+}

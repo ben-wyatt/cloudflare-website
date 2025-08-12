@@ -19,7 +19,7 @@
 </head>
 <body data-theme="">
   <header>
-    <nav style="display: flex; align-items: center; justify-content: center;">
+    <nav style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.25rem;">
       <a href="/" style="margin-right: 0.5rem;">Home</a>
       <span style="margin: 0 0.5rem;">|</span>
       <a href="/blog/" style="margin-left: 0.5rem;">Blog</a>
@@ -31,17 +31,22 @@
     {{ content | safe }}
   </main>
   <footer>
-    <p>© {{ now | date("yyyy") }} Ben Wyatt</p>
+    <p>© <span id="year-egg">{{ now | date("yyyy") }}</span> Ben Wyatt</p>
   </footer>
   <script>
     const toggle = document.getElementById('theme-toggle');
     const root = document.documentElement;
     const storedTheme = localStorage.getItem('theme');
+    const picker = null; // palette picker removed (easter egg remains)
+    const storedPalette = localStorage.getItem('palette') || 'indigo';
 
     function applyTheme(theme) {
       root.setAttribute('data-theme', theme);
       root.classList.remove('light', 'dark');
       root.classList.add(theme);
+    }
+    function applyPalette(palette) {
+      root.setAttribute('data-palette', palette);
     }
 
     if (storedTheme) {
@@ -56,6 +61,42 @@
       if (!theme) theme = 'dark'; // Default to dark if detection fails
       applyTheme(theme);
     }
+    applyPalette(storedPalette);
+
+    // Hidden palette cycler (5 clicks on footer year within ~1.2s)
+    (function() {
+      const egg = document.getElementById('year-egg');
+      if (!egg) return;
+      const palettes = ['indigo','forest','amber','rose','teal','purple'];
+      let clickCount = 0;
+      let clickTimer = null;
+      const WINDOW_MS = 1200;
+
+      function nextPalette() {
+        const current = root.getAttribute('data-palette') || 'indigo';
+        const idx = palettes.indexOf(current);
+        const next = palettes[(idx + 1) % palettes.length];
+        applyPalette(next);
+        localStorage.setItem('palette', next);
+      }
+
+      function resetClicks() {
+        clickCount = 0;
+        if (clickTimer) {
+          clearTimeout(clickTimer);
+          clickTimer = null;
+        }
+      }
+
+      egg.addEventListener('click', () => {
+        clickCount += 1;
+        if (!clickTimer) clickTimer = setTimeout(resetClicks, WINDOW_MS);
+        if (clickCount >= 5) {
+          nextPalette();
+          resetClicks();
+        }
+      });
+    })();
 
     toggle.addEventListener('click', () => {
       const currentTheme = root.getAttribute('data-theme');
@@ -63,6 +104,8 @@
       applyTheme(newTheme);
       localStorage.setItem('theme', newTheme);
     });
+
+    // no visible palette picker; switching is via hidden easter egg
 
     // Auto-update on system theme change if no manual override is set
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
