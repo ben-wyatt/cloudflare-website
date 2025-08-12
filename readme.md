@@ -93,6 +93,28 @@ What it does:
 - Punctuation and operators inherit the surrounding text color by design, while keywords/strings/numbers/functions use solid colors to stay readable without visual noise.
 - A copy‑to‑clipboard button is added on code blocks; labels reflect the detected language.
 
+### Semantic Related Posts (offline, incremental)
+- **What it does**: Computes semantic embeddings for each post and writes `src/_data/related.json`. `post.njk` renders a “You might also like” list (up to 5 items) after the post body.
+- **Offline + cached**: Uses `@xenova/transformers` (local `all-MiniLM-L6-v2`). Embeddings are cached in `.cache/embeddings.json` by a SHA‑256 hash of each post, so only changed posts are re‑embedded.
+- **Runs automatically**:
+  - `npm run build` → runs `prebuild` first to refresh embeddings and `related.json`.
+  - `npm run serve` → runs `preserve` before Eleventy dev server.
+- **Files**:
+  - `scripts/build-related.js`: embedding + similarity generator
+  - `.cache/embeddings.json`: per‑post `{ hash, vector }` cache
+  - `src/_data/related.json`: top‑K related posts per slug (consumed by templates)
+  - `src/_includes/post.njk`: renders the related list (date | title)
+- **Tuning**: Edit constants in `scripts/build-related.js`:
+  - `TOP_K` (default 5) controls how many related posts are shown.
+  - Content is chunked with overlap, mean‑pooled, and normalized. Swap the model or pooling strategy if desired.
+- **Force refresh**:
+  ```bash
+  rm -rf .cache && npm run build
+  ```
+- **Notes**:
+  - First run will download the small model into a local cache; subsequent runs are fast.
+  - If there are fewer than 5 other posts, the list shows whatever is available and never includes the current post.
+
 ### Deploying to Vercel
 - Create a new Vercel project and connect the GitHub repo.
 - Build settings:
