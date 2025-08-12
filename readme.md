@@ -128,5 +128,21 @@ What it does:
 - Run `npm run clean && npm run build` to force a fresh build.
 - Blog index lives at `src/blog.md` and renders `/blog/`.
 
+
+
+### Feature Ideas
+
+- client side search using lunr or fuse js to index post titles, tags, excerpts
+- tag related search pages
+- more hyperlink emoticons
+- chatbot?
+- draft mode preview URLs with vercel
+- post changelog? each update comes with a version history?
+- 
+
+
+
+
+
 ### License
 ISC

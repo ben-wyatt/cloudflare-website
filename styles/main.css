@@ -1,20 +1,27 @@
+/* ====================================
+   Color System
+   - Design tokens (neutrals, links/emphasis)
+   - Code token palettes (Prism fallback)
+   - Theme and accent palette overrides
+   ==================================== */
+
 :root {
+  /* Core surfaces and text (light/dark defaults) */
   --bg-color-light: #fafafa;
   --text-color-light: #3a2a1f;
   --bg-color-dark: #1a1a1a;
   --text-color-dark: #f0e6dc;
+
+  /* Legacy link token (not referenced directly) */
   --link-color: #7fb3ff; /* legacy */
-  /* Link colors (scoped per theme below) */
+
+  /* Default link/emphasis tokens (overridden by theme/palette below) */
   --link-internal: #7fb3ff;
   --link-external: #7fb3ff;
-  --font-body: "Inconsolata", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  --font-heading: "Inconsolata", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-
-  /* Emphasis color tokens (scoped per theme below) */
   --em-color: inherit;
   --bold-color: inherit;
 
-  /* Prism token palette (muted, solid colors) */
+  /* Prism token palette (solid, muted colors) */
   --code-punc-light: #6b635b;
   --code-op-light: #6b635b;
   --code-keyword-light: #a3369f;
@@ -36,27 +43,33 @@
   --code-attr-dark: #e5c07b;
   --code-tag-dark: #e06c75;
   --code-prop-dark: #e5c07b;
+
+  /* Typography tokens */
+  --font-body: "Inconsolata", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-heading: "Inconsolata", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-family: var(--font-body);
 }
 
 html { scroll-behavior: auto; }
 
+/* Theme base: maps tokens to concrete light colors */
 html.light, [data-theme="light"] {
   background-color: var(--bg-color-light);
   color: var(--text-color-light);
-  --em-color: #6e3f2a;   /* warm chestnut for italics */
-  --bold-color: #7a2600; /* stronger warm brown for bold */
-  --link-internal: #7fb3ff; /* muted indigo */
-  --link-external: #7fb3ff; /* warm brick */
+  --em-color: #518adf;
+  --bold-color: #518adf;
+  --link-internal: #7fb3ff;
+  --link-external: #7fb3ff;
 }
 
+/* Theme base: maps tokens to concrete dark colors */
 html.dark, [data-theme="dark"] {
   background-color: var(--bg-color-dark);
   color: var(--text-color-dark);
-  --em-color: #f3d6bf;   /* warm peach for italics */
-  --bold-color: #518adf; /* stronger warm peach for bold */
-  --link-internal: #7fb3ff; /* soft blue */
-  --link-external: #7fb3ff; /* warm rose */
+  --em-color: #518adf;
+  --bold-color: #518adf;
+  --link-internal: #7fb3ff;
+  --link-external: #7fb3ff;
 }
 
 /* Auto apply dark mode if system prefers it */
@@ -65,6 +78,103 @@ html.dark, [data-theme="dark"] {
     background-color: var(--bg-color-dark);
     color: var(--text-color-dark);
   }
+}
+
+/* Accent palettes (work with both light/dark modes via data-theme + data-palette) */
+/* Default palette is indigo to match current design */
+[data-theme="light"][data-palette="indigo"],
+[data-palette="indigo"][data-theme="light"] {
+  --link-internal: #7fb3ff;
+  --link-external: #7fb3ff;
+  --bold-color: #518adf;
+  --em-color: #518adf;
+}
+[data-theme="dark"][data-palette="indigo"],
+[data-palette="indigo"][data-theme="dark"] {
+  --link-internal: #7fb3ff;
+  --link-external: #7fb3ff;
+  --bold-color: #518adf;
+  --em-color: #518adf;
+}
+
+/* Forest */
+[data-theme="light"][data-palette="forest"],
+[data-palette="forest"][data-theme="light"] {
+  --link-internal: #2e7d32;
+  --link-external: #2e7d32;
+  --bold-color: #2e7d32;
+  --em-color: #2e7d32;
+}
+[data-theme="dark"][data-palette="forest"],
+[data-palette="forest"][data-theme="dark"] {
+  --link-internal: #9ecb70;
+  --link-external: #9ecb70;
+  --bold-color: #9ecb70;
+  --em-color: #9ecb70;
+}
+
+/* Amber */
+[data-theme="light"][data-palette="amber"],
+[data-palette="amber"][data-theme="light"] {
+  --link-internal: #a36f00;
+  --link-external: #a36f00;
+  --bold-color: #7a4e00;
+  --em-color: #7a4e00;
+}
+[data-theme="dark"][data-palette="amber"],
+[data-palette="amber"][data-theme="dark"] {
+  --link-internal: #e5c07b;
+  --link-external: #e5c07b;
+  --bold-color: #e5c07b;
+  --em-color: #e5c07b;
+}
+
+/* Rose */
+[data-theme="light"][data-palette="rose"],
+[data-palette="rose"][data-theme="light"] {
+  --link-internal: #b54745;
+  --link-external: #b54745;
+  --bold-color: #8a2c2a;
+  --em-color: #8a2c2a;
+}
+[data-theme="dark"][data-palette="rose"],
+[data-palette="rose"][data-theme="dark"] {
+  --link-internal: #e06c75;
+  --link-external: #e06c75;
+  --bold-color: #dd5b66;
+  --em-color: #dd5b66;
+}
+
+/* Teal */
+[data-theme="light"][data-palette="teal"],
+[data-palette="teal"][data-theme="light"] {
+  --link-internal: #007a78;
+  --link-external: #007a78;
+  --bold-color: #025554;
+  --em-color: #025554;
+}
+[data-theme="dark"][data-palette="teal"],
+[data-palette="teal"][data-theme="dark"] {
+  --link-internal: #64d3c8;
+  --link-external: #64d3c8;
+  --bold-color: #54938b;
+  --em-color: #54938b;
+}
+
+/* Purple */
+[data-theme="light"][data-palette="purple"],
+[data-palette="purple"][data-theme="light"] {
+  --link-internal: #7e57c2;
+  --link-external: #7e57c2;
+  --bold-color: #5e35b1;
+  --em-color: #5e35b1;
+}
+[data-theme="dark"][data-palette="purple"],
+[data-palette="purple"][data-theme="dark"] {
+  --link-internal: #c792ea;
+  --link-external: #c792ea;
+  --bold-color: #a373d6;
+  --em-color: #a373d6;
 }
 
 body {
@@ -312,103 +422,6 @@ code[class*="language-"] .token.italic { font-style: normal !important; }
 
 .post-list li {
   margin: 0.25rem 0;
-}
-
-/* Accent palettes (work with both light/dark modes via data-theme + data-palette) */
-/* Default palette is indigo to match current design */
-[data-theme="light"][data-palette="indigo"],
-[data-palette="indigo"][data-theme="light"] {
-  --link-internal: #7fb3ff;
-  --link-external: #7fb3ff;
-  --bold-color: #7a2600;
-  --em-color: #6e3f2a;
-}
-[data-theme="dark"][data-palette="indigo"],
-[data-palette="indigo"][data-theme="dark"] {
-  --link-internal: #7fb3ff;
-  --link-external: #7fb3ff;
-  --bold-color: #518adf;
-  --em-color: #f3d6bf;
-}
-
-/* Forest */
-[data-theme="light"][data-palette="forest"],
-[data-palette="forest"][data-theme="light"] {
-  --link-internal: #2e7d32;
-  --link-external: #2e7d32;
-  --bold-color: #2e7d32;
-  --em-color: #2e7d32;
-}
-[data-theme="dark"][data-palette="forest"],
-[data-palette="forest"][data-theme="dark"] {
-  --link-internal: #9ecb70;
-  --link-external: #9ecb70;
-  --bold-color: #9ecb70;
-  --em-color: #9ecb70;
-}
-
-/* Amber */
-[data-theme="light"][data-palette="amber"],
-[data-palette="amber"][data-theme="light"] {
-  --link-internal: #a36f00;
-  --link-external: #a36f00;
-  --bold-color: #7a4e00;
-  --em-color: #7a4e00;
-}
-[data-theme="dark"][data-palette="amber"],
-[data-palette="amber"][data-theme="dark"] {
-  --link-internal: #e5c07b;
-  --link-external: #e5c07b;
-  --bold-color: #e5c07b;
-  --em-color: #e5c07b;
-}
-
-/* Rose */
-[data-theme="light"][data-palette="rose"],
-[data-palette="rose"][data-theme="light"] {
-  --link-internal: #b54745;
-  --link-external: #b54745;
-  --bold-color: #8a2c2a;
-  --em-color: #8a2c2a;
-}
-[data-theme="dark"][data-palette="rose"],
-[data-palette="rose"][data-theme="dark"] {
-  --link-internal: #e06c75;
-  --link-external: #e06c75;
-  --bold-color: #e06c75;
-  --em-color: #e06c75;
-}
-
-/* Teal */
-[data-theme="light"][data-palette="teal"],
-[data-palette="teal"][data-theme="light"] {
-  --link-internal: #007a78;
-  --link-external: #007a78;
-  --bold-color: #006a68;
-  --em-color: #006a68;
-}
-[data-theme="dark"][data-palette="teal"],
-[data-palette="teal"][data-theme="dark"] {
-  --link-internal: #64d3c8;
-  --link-external: #64d3c8;
-  --bold-color: #64d3c8;
-  --em-color: #64d3c8;
-}
-
-/* Purple */
-[data-theme="light"][data-palette="purple"],
-[data-palette="purple"][data-theme="light"] {
-  --link-internal: #7e57c2;
-  --link-external: #7e57c2;
-  --bold-color: #5e35b1;
-  --em-color: #5e35b1;
-}
-[data-theme="dark"][data-palette="purple"],
-[data-palette="purple"][data-theme="dark"] {
-  --link-internal: #c792ea;
-  --link-external: #c792ea;
-  --bold-color: #c792ea;
-  --em-color: #c792ea;
 }
 
 /* Related posts */

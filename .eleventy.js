@@ -103,6 +103,102 @@ module.exports = function(eleventyConfig) {
       .replace(/[^\w-]/g, ''),
   });
 
+  // Obsidian-style wiki links [[Page Name]] → /posts/page-name/
+  // Supports aliases [[Page Name|Alias]] and heading anchors [[Page Name#Section]]
+  function slugifyForPost(input) {
+    return String(input || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^\w]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
+
+  function slugifyForHeading(input) {
+    return String(input || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]/g, '');
+  }
+
+  function wikiLinkPlugin(md) {
+    function isOpen(state, pos) {
+      return state.src.charCodeAt(pos) === 0x5B /* [ */ &&
+             state.src.charCodeAt(pos + 1) === 0x5B /* [ */;
+    }
+
+    function wikilink(state, silent) {
+      const start = state.pos;
+      if (!isOpen(state, start)) return false;
+
+      const src = state.src;
+      const max = state.posMax;
+      let pos = start + 2;
+      let found = false;
+
+      while (pos + 1 < max) {
+        if (src.charCodeAt(pos) === 0x5D /* ] */ && src.charCodeAt(pos + 1) === 0x5D /* ] */) {
+          found = true;
+          break;
+        }
+        pos++;
+      }
+
+      if (!found) return false;
+
+      if (!silent) {
+        const innerRaw = src.slice(start + 2, pos).trim();
+        if (innerRaw.length === 0) {
+          // Leave as-is if empty
+          const textToken = state.push('text', '', 0);
+          textToken.content = src.slice(start, pos + 2);
+          state.pos = pos + 2;
+          return true;
+        }
+
+        let pagePart = innerRaw;
+        let alias = '';
+        const pipeIndex = innerRaw.indexOf('|');
+        if (pipeIndex !== -1) {
+          pagePart = innerRaw.slice(0, pipeIndex).trim();
+          alias = innerRaw.slice(pipeIndex + 1).trim();
+        }
+
+        let hash = '';
+        const hashIndex = pagePart.indexOf('#');
+        if (hashIndex !== -1) {
+          hash = pagePart.slice(hashIndex + 1).trim();
+          pagePart = pagePart.slice(0, hashIndex).trim();
+        }
+
+        const postSlug = slugifyForPost(pagePart);
+        if (!postSlug) {
+          const textToken = state.push('text', '', 0);
+          textToken.content = src.slice(start, pos + 2);
+          state.pos = pos + 2;
+          return true;
+        }
+
+        const anchorSlug = hash ? slugifyForHeading(hash) : '';
+        const href = `/posts/${postSlug}/${anchorSlug ? '#' + anchorSlug : ''}`;
+        const linkText = alias || pagePart;
+
+        const tokenOpen = state.push('link_open', 'a', 1);
+        tokenOpen.attrs = [['href', href]];
+        const textToken = state.push('text', '', 0);
+        textToken.content = linkText;
+        state.push('link_close', 'a', -1);
+      }
+
+      state.pos = pos + 2;
+      return true;
+    }
+
+    md.inline.ruler.before('link', 'wikilink', wikilink);
+  }
+
+  md.use(wikiLinkPlugin);
+
   eleventyConfig.setLibrary("md", md);
 
   return {
