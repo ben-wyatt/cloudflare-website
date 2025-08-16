@@ -1,32 +1,288 @@
 {
-  "future-of-stablecoins": [
+  "anchors-and-toc": [
+    {
+      "slug": "edge-cases-wiki-links-and-slugs",
+      "score": 0.727385522570115
+    },
+    {
+      "slug": "wiki-links-deep-dive",
+      "score": 0.585042120260216
+    },
+    {
+      "slug": "obsidian-wiki-links-alias-test",
+      "score": 0.5307466539145236
+    },
     {
       "slug": "link-references-test",
-      "score": 0.2598002626643167
+      "score": 0.3490078029513342
     },
     {
       "slug": "markdown-reference",
-      "score": 0.07135618190538527
+      "score": 0.2757712658593719
+    }
+  ],
+  "code-blocks-language-badges-test": [
+    {
+      "slug": "markdown-reference",
+      "score": 0.22718689313914692
+    },
+    {
+      "slug": "link-references-test",
+      "score": 0.1302568065710422
+    },
+    {
+      "slug": "edge-cases-wiki-links-and-slugs",
+      "score": 0.11910721016660618
+    },
+    {
+      "slug": "related-cluster-gamma",
+      "score": 0.11452467167321975
+    },
+    {
+      "slug": "anchors-and-toc",
+      "score": 0.10336012349469047
+    }
+  ],
+  "dates-and-metadata-showcase": [
+    {
+      "slug": "tags-and-indexing",
+      "score": 0.24354608112766052
+    },
+    {
+      "slug": "wiki-links-deep-dive",
+      "score": 0.20423297415754124
+    },
+    {
+      "slug": "obsidian-wiki-links-alias-test",
+      "score": 0.18853721022192724
+    },
+    {
+      "slug": "link-references-test",
+      "score": 0.17161793838676564
+    },
+    {
+      "slug": "markdown-reference",
+      "score": 0.1350933866089884
+    }
+  ],
+  "edge-cases-wiki-links-and-slugs": [
+    {
+      "slug": "anchors-and-toc",
+      "score": 0.727385522570115
+    },
+    {
+      "slug": "wiki-links-deep-dive",
+      "score": 0.6593293308025899
+    },
+    {
+      "slug": "obsidian-wiki-links-alias-test",
+      "score": 0.5726349433321318
+    },
+    {
+      "slug": "link-references-test",
+      "score": 0.3856943181991354
+    },
+    {
+      "slug": "markdown-reference",
+      "score": 0.322597064695564
+    }
+  ],
+  "future-of-stablecoins": [
+    {
+      "slug": "link-references-test",
+      "score": 0.2633600855985589
+    },
+    {
+      "slug": "wiki-links-deep-dive",
+      "score": 0.17075003239039874
+    },
+    {
+      "slug": "obsidian-wiki-links-alias-test",
+      "score": 0.1272919934199409
+    },
+    {
+      "slug": "markdown-reference",
+      "score": 0.12693038453790098
+    },
+    {
+      "slug": "anchors-and-toc",
+      "score": 0.04756036101574994
     }
   ],
   "link-references-test": [
     {
-      "slug": "markdown-reference",
-      "score": 0.3434734283309756
+      "slug": "wiki-links-deep-dive",
+      "score": 0.67721556970359
     },
     {
-      "slug": "future-of-stablecoins",
-      "score": 0.2598002626643167
+      "slug": "obsidian-wiki-links-alias-test",
+      "score": 0.6640274107810671
+    },
+    {
+      "slug": "edge-cases-wiki-links-and-slugs",
+      "score": 0.3856943181991354
+    },
+    {
+      "slug": "anchors-and-toc",
+      "score": 0.3490078029513342
+    },
+    {
+      "slug": "markdown-reference",
+      "score": 0.3434734283309756
     }
   ],
   "markdown-reference": [
+    {
+      "slug": "wiki-links-deep-dive",
+      "score": 0.4648485429160395
+    },
     {
       "slug": "link-references-test",
       "score": 0.3434734283309756
     },
     {
-      "slug": "future-of-stablecoins",
-      "score": 0.07135618190538527
+      "slug": "edge-cases-wiki-links-and-slugs",
+      "score": 0.322597064695564
+    },
+    {
+      "slug": "obsidian-wiki-links-alias-test",
+      "score": 0.2833932922337676
+    },
+    {
+      "slug": "anchors-and-toc",
+      "score": 0.2757712658593719
+    }
+  ],
+  "obsidian-wiki-links-alias-test": [
+    {
+      "slug": "wiki-links-deep-dive",
+      "score": 0.7778581168098218
+    },
+    {
+      "slug": "link-references-test",
+      "score": 0.6640274107810671
+    },
+    {
+      "slug": "edge-cases-wiki-links-and-slugs",
+      "score": 0.5726349433321318
+    },
+    {
+      "slug": "anchors-and-toc",
+      "score": 0.5307466539145236
+    },
+    {
+      "slug": "markdown-reference",
+      "score": 0.2833932922337676
+    }
+  ],
+  "related-cluster-alpha": [
+    {
+      "slug": "related-cluster-beta",
+      "score": 0.8147422870891026
+    },
+    {
+      "slug": "related-cluster-gamma",
+      "score": 0.8053085986344595
+    },
+    {
+      "slug": "tags-and-indexing",
+      "score": 0.25868809455426156
+    },
+    {
+      "slug": "markdown-reference",
+      "score": 0.15975905000137927
+    },
+    {
+      "slug": "anchors-and-toc",
+      "score": 0.09551646435488409
+    }
+  ],
+  "related-cluster-beta": [
+    {
+      "slug": "related-cluster-alpha",
+      "score": 0.8147422870891026
+    },
+    {
+      "slug": "related-cluster-gamma",
+      "score": 0.7827172912954973
+    },
+    {
+      "slug": "tags-and-indexing",
+      "score": 0.27362825925427636
+    },
+    {
+      "slug": "edge-cases-wiki-links-and-slugs",
+      "score": 0.13639603193469885
+    },
+    {
+      "slug": "markdown-reference",
+      "score": 0.1361095321189561
+    }
+  ],
+  "related-cluster-gamma": [
+    {
+      "slug": "related-cluster-alpha",
+      "score": 0.8053085986344595
+    },
+    {
+      "slug": "related-cluster-beta",
+      "score": 0.7827172912954973
+    },
+    {
+      "slug": "tags-and-indexing",
+      "score": 0.22473404463466432
+    },
+    {
+      "slug": "markdown-reference",
+      "score": 0.19849336927010305
+    },
+    {
+      "slug": "edge-cases-wiki-links-and-slugs",
+      "score": 0.14145140123469616
+    }
+  ],
+  "tags-and-indexing": [
+    {
+      "slug": "wiki-links-deep-dive",
+      "score": 0.29520740160082226
+    },
+    {
+      "slug": "related-cluster-beta",
+      "score": 0.27362825925427636
+    },
+    {
+      "slug": "related-cluster-alpha",
+      "score": 0.25868809455426156
+    },
+    {
+      "slug": "dates-and-metadata-showcase",
+      "score": 0.24354608112766052
+    },
+    {
+      "slug": "edge-cases-wiki-links-and-slugs",
+      "score": 0.22510684350722673
+    }
+  ],
+  "wiki-links-deep-dive": [
+    {
+      "slug": "obsidian-wiki-links-alias-test",
+      "score": 0.7778581168098218
+    },
+    {
+      "slug": "link-references-test",
+      "score": 0.67721556970359
+    },
+    {
+      "slug": "edge-cases-wiki-links-and-slugs",
+      "score": 0.6593293308025899
+    },
+    {
+      "slug": "anchors-and-toc",
+      "score": 0.585042120260216
+    },
+    {
+      "slug": "markdown-reference",
+      "score": 0.4648485429160395
     }
   ]
 }

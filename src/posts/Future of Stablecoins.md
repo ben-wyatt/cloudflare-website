@@ -3,80 +3,47 @@ layout: post.njk
 title: Future of Stablecoins
 tags:
   - crypto
+  - blog
 date_published: 2025-08-09
-date_updated: 2025-08-09
+date_updated: 2025-08-12
 ---
 
 In April 2024, Stripe, the massive internet-native payments company, bought the stablecoin company Bridge for $1.1 billion. 
 
-I was wondering about some of the macro effects this might have.
+I've historically been pretty averse to the promises of cryptocurrencies. Partially due to the sheer number of grifters in the space and partially because the value proposition of a currency that *purposely isn't* backed by the US government didn't sound tremendously intriguing to me.  Stablecoins on the other hand... interesting!
 
-## Reinforcement of Dollarization
-
-Recently there has been a lot of buzz about *dedollarization*. the US has recently been using the dollar's status as a reserve currency for purposes of financial weaponization.  See things like the shutdown of the Russian economy after the invasion of Ukraine. 
-
-Country coalitions like BRICS (Brazil, Russia, India, China, South Africa) have emerged as possible attempts to dedollarize. They want to institute a new common currency that is detached from US control. This seems like a very high task, and the authoritarian bent of those coalition countries kinda gives it away. When it comes down to it *people really like dollars*. Take a look at upper-middle class Chinese nationals using grey markets to move savings out of their country into US stocks. Or hyperinflationary economies like Venezuela or Zimbabwe, where a substantial percentage of transactions are done in dollars, despite heavy currency controls from governments. 
-
-Stablecoins enable this latent demand. Now you don't need to go through a US bank or payments-tech company like AliPay or WePay or whatever. You can open a wallet freely and anonymously and transact through the blockchain. You're starting to see convenience stores in Pakistan and Thailand accept Tether.
-
-Governments lose currency control all together. Their federal reserves can't do shit. This could be pretty good for the citizens of the country. Losing currency sovereignty is probably a worthwhile tradeoff when your government sucks at using its currency sovereignty. *Anything* is better than hyperinflation.
-
-But what about the countries that are a little more stable? What about India? Or Bangladesh? Or the Middle East? Or Korea? China is going to continue to crack down on this type of stuff. How successful will they be?
+Here are some loose thoughts I've had about what stablecoins might due to the political-economy.
+## De-de-dollarization
 
 
+Globalization and the collapse of the Soviet Union left the US with a stranglehold on financial power.  Under Bill Clinton and his Treasury Secretary Robert Rubin, the government made a deliberate shift towards the use of financial sanctions as a core foreign-policy tool.  In effect, the dollar's status as a reserve currency became a  [weapon of the state](https://www.amazon.com/Chokepoints-American-Power-Economic-Warfare/dp/0593712978). The passing of the Patriot Act in response to 9/11 expanded the Treasury's reach over foreign banks.  
 
-Unanswered questions: how does this system work in aggregate? do employees get *paid* in tether? If not, how do they transfer between their native currency and USDT? Who are the important players in that space that are providing liquidity for the Bhat->USDT trade?
+More recently we've seen use of this financial warfare against Iran, Venezuela, some Chinese firms, and North Korea.  The 2022 invasion of Ukraine and the subsequent Russian sanctions were a turning point.  The Central Bank of Russia's overseas foreign-exchange reserves were seized (~$300 billion), Russian banks were kicked out of SWIFT, and oligarchs' assets were frozen.  
 
+Country coalitions like BRICS (Brazil, Russia, India, China, South Africa) have emerged as possible attempts to *de-dollarize*. They want to institute a new common currency that is detached from US control. But these measures are driven largely by top-down authoritarian states.  The people? Well the people *really like dollars*.
 
-## Shift Away from Local Banking
+Chinese investors are hitting their [state-imposed outbound investment limits](https://www.reuters.com/markets/asia/chinese-investors-rush-abroad-hitting-outbound-investment-limit-2024-03-06/).  There is such a demand for US currency that black markets, [powered by the fentanyl trade](https://www.ft.com/content/419db522-12e9-4237-9437-4d0d9b2f05e6), have enabled Chinese nationals to convert their yuan to USD.
 
-Currently, Venezuela has really shitty banks (?).  It's a great value unlock for individuals to now have this much better alternative in the form of a stablecoin wallet.
+In hyperinflationary economies like Venezuela or Zimbabwe a substantial percentage of transactions are done in dollars, despite heavy currency controls from governments. 
 
-But then everyone leaves the venezuelan banks. The banks close. What are the ripple effects of that? 
+Stablecoins enable this latent demand. Now you don't need to go through a US bank or payments-tech company like AliPay or WePay or whatever. You can open a wallet freely and anonymously and transact through the blockchain. In some parts of Argentina and Turkey you can [buy a coffee with tether](https://www.wsj.com/finance/currencies/tether-crypto-us-dollar-sanctions-52f85459). 
 
-The IMF said that stablecoins can "amplify currency substitution" (duh), "weaken monetary policy transmission" (yes yes of course), and "increase banking stress". What does the banking stress mean though, if its an increasingly small fraction of the total number of depositors?
+Governments want to de-dollarize. The people want to de-de-dollarize.  
 
-The United States continues to *Financialize*. The bankers disappear in Venezuela and more of them show up in the US. Marginal benefit to being a banker goes way up. Manufacturing continues to decline. We become even more entrenched as the *backbone of Capitalism*. Is that good for the US?
+## Ramifications
 
-Is it a good outcome for the entire world to outsource their finance to the United States?
+### Authoritarians get sad
 
+If this goes all the way then some governments lose currency control all together. Their federal reserves become divorced from transactional reality. The Venezuelan Bolivar would only exist on the balance sheet of the government. This could be pretty good for the citizens of the country. Losing currency sovereignty is probably a worthwhile tradeoff when your government sucks at using its currency sovereignty. Almost anything is better than hyperinflation.  But the authoritarians lose a powerful tool.
 
-Some people make a big deal about the value of "local banking". It's a talking point similar to the "support local businesses" and "keep the money in our town". I'm definitely not convinced on how important (if at all) this actually is, but I am open to hearing arguments for and against.  It is true that the local bank is more likely to support the town middle school's women's soccer team.
+### Bank centralization
 
-## Regulation Barriers
+Everyone starts using tether wallets -> the local banks lose all their reserves and close down. All Venezuelan cash reserves now live in the nebulous non-locality of Singapore-Hong Kong-Virgin Islands.
 
-What is stopping further adoption, especially by large US banks? 
+[The IMF](https://www.imf.org/en/Publications/WP/Issues/2023/12/05/Macro-Financial-Impacts-of-Foreign-Digital-Money-542034) said that stablecoins can "amplify currency substitution", "weaken monetary policy transmission", and "increase banking stress". What does the banking stress mean though, if its an increasingly small fraction of the total number of depositors?
 
+The United States and a select few continues to *Financialize*. The bankers disappear in Venezuela and more of them show up in the US. More Americans become bankers. Fewer become engineers. They become even more entrenched as the *backbone of Capitalism*. In the extreme, the rest of the world ends up outsourcing their finance sector to three or four countries.
 
-## Trustworthiness
+### More US Treasury demand
 
-So far stablecoins have had a rough history. Lots of bad/incompetent/cynical actors who have poisoned the well.  This is definitely effected the perception of blockchain tech in the western world. People can point towards crypto adoption rates all they want. It's one thing to gamble/speculate on the price of bitcoin (we're becoming a nation of gamblers). It's another thing entirely to start buying all your Chipotle burritos using USDT.
-
-
-## Possible Futures
-
-### Dollarization Causes US Currency Blockade
-
-Governments gets really scared by the grassroots adoption of USD stablecoins. There become three blocs: the US, the EU, and BRICS. As the EU economy continues to shrink, they eventually join BRICS and they all establish a new currency to compete. Eventually, wild incentive differences causes the effort to collapse. 
-
-
-### Stablecoins as Petrodollar++
-
-Mostly used for faster/cheaper interbank and foreign currency exchanges. 
-
-### Stablecoins as Government Reserve Currencies
-
-Will countries completely transfer over to using on-chain currency solutions? How would that work? Would they try to shut down the existing companies? Is that even feasible?
-
-### Stablecoins as the Anarcho-Capitalist Dream Machine
-
-There is insufficient oversight from governments and everything gets out of control. Some governments try to seize back power by enacts more and more draconian transactions restrictions until they completely hobble their own economies.
-
-Eventually we all hail the *one true world currency*. Not likely.
-
-
-## Some Sources
-
-[ChatGPT DeepResearch](https://chatgpt.com/share/6813a294-fc6c-8009-9537-334ea3975753) 
-
-Conversations with Tyler - Kenneth Rogoff - he doesn’t see an immediate future where the US adopts stablecoins as a national currency. Could start with Singapore or Latvia 
+Stablecoins aren't backed by *dollars*. They're backed by *treasuries*. Tether [holds over $100 billion in US Treasuries](https://x.com/Tether_to/status/1852064983560966308) already.  A stablecoin future means perpetual rolling demand for US government debt.  That means lower borrowing costs and even stronger financial leverage.  And it means the government can kick the deficit problem down the road for another decade.
