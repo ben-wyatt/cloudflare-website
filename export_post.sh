@@ -9,6 +9,12 @@ log() { if [[ "$VERBOSE" == "1" ]]; then printf '%s\n' "$*" >&2; fi; }
 # Update this to your local repo path if different:
 REPO_DIR="$HOME/Repos/personal/website"
 POSTS_DIR="$REPO_DIR/src/posts"
+# Where images will be copied to (served via Eleventy passthrough)
+ASSETS_DIR="$REPO_DIR/assets/images"
+# Optional: path to your Obsidian attachments dir (if images aren't next to the note)
+ATTACHMENTS_DIR="${ATTACHMENTS_DIR:-}"
+# Optional: path to your vault's Excalidraw folder (for .excalidraw and exported .png/.svg)
+EXCALIDRAW_DIR="${EXCALIDRAW_DIR:-}"
 # --------------
 
 if [[ $# -lt 1 ]]; then
@@ -44,9 +50,11 @@ log "Replacing existing post: $replacing (1=yes, 0=no)"
 # Read the file and split frontmatter/body
 tmpdir="$(mktemp -d)"
 front="$tmpdir/front.yml"
-body="$tmpdir/body.md"
+body="$tmpdir/body.md"          # body for source note (H1 stripped, embeds kept)
+body_images="$tmpdir/body_img.md" # body for site output (with image rewrites)
 newfront="$tmpdir/newfront.yml"
-assembled="$tmpdir/assembled.md"
+assembled_src="$tmpdir/assembled_src.md"
+assembled_dest="$tmpdir/assembled_dest.md"
 
 # Initialize
 > "$front"
@@ -212,24 +220,160 @@ awk -v t1="$title_value" -v t2="$file_pretty" '
 ' "$body" > "$body2"
 mv "$body2" "$body"
 
-# Reassemble once to a temp file
+# Prepare a copy used for site output where image embeds will be rewritten
+cp "$body" "$body_images"
+
+# --- Rewrite Obsidian image embeds and copy assets (for site output only) ---
+slugify_post() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$//g'
+}
+post_slug="$(slugify_post "$name_no_ext")"
+POST_ASSETS_DIR="$ASSETS_DIR/$post_slug"
+mkdir -p "$POST_ASSETS_DIR"
+
+note_dir="$(dirname "$SRC")"
+
+find_asset_for() {
+  # $1 = page (may include extension)
+  local page="$1"
+  local has_ext=0
+  local ext=""
+  local base_no_ext="$page"
+  if [[ "$page" == *.* ]]; then
+    has_ext=1
+    ext="${page##*.}"
+    base_no_ext="${page%.*}"
+  fi
+  # Candidate filenames
+  local names=()
+  if (( has_ext )); then
+    if [[ "$ext" == "excalidraw" ]]; then
+      # Prefer exported image formats for excalidraw entries
+      names+=("${page}.png" "${page}.svg" "${base_no_ext}.png" "${base_no_ext}.svg")
+    else
+      names+=("$page")
+    fi
+  else
+    names+=("${base_no_ext}.png" "${base_no_ext}.jpg" "${base_no_ext}.jpeg" "${base_no_ext}.webp" "${base_no_ext}.gif" "${base_no_ext}.svg")
+  fi
+
+  local cand
+  for cand in "${names[@]}"; do
+    if [[ -f "$note_dir/$cand" ]]; then
+      printf '%s\n' "$note_dir/$cand"
+      return 0
+    fi
+    if [[ -n "$ATTACHMENTS_DIR" && -f "$ATTACHMENTS_DIR/$cand" ]]; then
+      printf '%s\n' "$ATTACHMENTS_DIR/$cand"
+      return 0
+    fi
+    if [[ -n "$EXCALIDRAW_DIR" && -f "$EXCALIDRAW_DIR/$cand" ]]; then
+      printf '%s\n' "$EXCALIDRAW_DIR/$cand"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Collect unique embeds like ![[...]] from the stripped body (Bash 3.2 compatible)
+EMBEDS=()
+while IFS= read -r _embed_line; do
+  EMBEDS+=("$_embed_line")
+done < <(grep -oE '!\[\[[^]]+\]\]' "$body" | sed -E 's/^!\[\[//; s/\]\]$//' | sort -u || true)
+
+export_excalidraw_to_svg() {
+  # $1 = input .excalidraw path, $2 = output svg path
+  local in="$1"
+  local out="$2"
+  if command -v npx >/dev/null 2>&1; then
+    # Try to export via headless browser-based CLI for fidelity
+    if npx -y excalidraw-brute-export-cli -i "$in" --format svg -o "$out" >/dev/null 2>&1; then
+      [[ -f "$out" ]] && return 0
+    fi
+  fi
+  return 1
+}
+
+if (( ${#EMBEDS[@]} > 0 )); then
+  log "Found ${#EMBEDS[@]} embed(s) to process"
+  for inner in "${EMBEDS[@]}"; do
+    page="$inner"; alias=""
+    if [[ "$inner" == *"|"* ]]; then
+      page="${inner%%|*}"; alias="${inner#*|}"
+    fi
+    page="$(printf '%s' "$page" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+    alias="$(printf '%s' "$alias" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+
+    # If embed references a .excalidraw, try to resolve exported image first,
+    # then auto-export to SVG if raw file exists and no export found.
+    page_ext="${page##*.}"
+    if [[ "$page_ext" == "excalidraw" ]]; then
+      src_path=""
+      if src_path="$(find_asset_for "$page")"; then
+        : # found exported image variant
+      else
+        # Look for raw excalidraw file to export
+        raw=""
+        if [[ -f "$note_dir/$page" ]]; then raw="$note_dir/$page"; fi
+        if [[ -z "$raw" && -n "$EXCALIDRAW_DIR" && -f "$EXCALIDRAW_DIR/$page" ]]; then raw="$EXCALIDRAW_DIR/$page"; fi
+        if [[ -n "$raw" ]]; then
+          base_no_ext="${page%.*}"
+          out_svg="$POST_ASSETS_DIR/${base_no_ext}.svg"
+          log "Exporting Excalidraw to SVG: $raw -> $out_svg"
+          if export_excalidraw_to_svg "$raw" "$out_svg"; then
+            src_path="$out_svg"
+          else
+            log "Warning: Excalidraw export failed for '$raw' (ensure Playwright deps may be installed: npx playwright install)"
+          fi
+        fi
+      fi
+    else
+      src_path="$(find_asset_for "$page")" || src_path=""
+    fi
+
+    if [[ -n "$src_path" ]]; then
+      base="$(basename "$src_path")"
+      cp "$src_path" "$POST_ASSETS_DIR/$base"
+      log "Copied asset: $src_path -> $POST_ASSETS_DIR/$base"
+      alt="$alias"; [[ -z "$alt" ]] && alt="${base%.*}"
+      old="![[${inner}]]"
+      # Encode URL-sensitive chars (spaces, parentheses, #)
+      encoded_base="$(printf '%s' "$base" | sed -e 's/ /%20/g' -e 's/(/%28/g' -e 's/)/%29/g' -e 's/#/%23/g')"
+      new="![${alt}](/assets/images/${post_slug}/${encoded_base})"
+      EMBED_OLD="$old" EMBED_NEW="$new" perl -0777 -pe 'BEGIN{$o=$ENV{"EMBED_OLD"};$n=$ENV{"EMBED_NEW"};} s/\Q$o\E/$n/g' "$body_images" > "$body_images.tmp" && mv "$body_images.tmp" "$body_images"
+    else
+      log "Warning: could not resolve asset for '$inner' (looked in '$note_dir', '$ATTACHMENTS_DIR', '$EXCALIDRAW_DIR')"
+      # Leave as-is so it is visible during review
+    fi
+  done
+fi
+# --- End image handling ---
+
+# Reassemble to temp files (site output uses rewritten body; source keeps embeds)
+{
+  echo "---"
+  cat "$front"
+  echo "---"
+  cat "$body_images"
+} > "$assembled_dest"
+
 {
   echo "---"
   cat "$front"
   echo "---"
   cat "$body"
-} > "$assembled"
+} > "$assembled_src"
 
 # Copy assembled content to destination in repo
-if cp "$assembled" "$DEST"; then
+if cp "$assembled_dest" "$DEST"; then
   log "Exported to: $DEST"
 else
   echo "Error: failed to write destination: $DEST" >&2
   exit 1
 fi
 
-# Also overwrite the original source file with updated content
-if cp "$assembled" "$SRC"; then
+# Also overwrite the original source file with updated content (embeds preserved)
+if cp "$assembled_src" "$SRC"; then
   log "Overwrote source with updated content: $SRC"
 else
   log "Warning: failed to overwrite source file: $SRC"
