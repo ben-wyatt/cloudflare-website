@@ -76,7 +76,18 @@ module.exports = function(eleventyConfig) {
 
   // Add posts collection sorted by date (newest first)
   eleventyConfig.addCollection("post", collectionApi => {
-    return collectionApi.getFilteredByGlob("src/posts/*.md").sort((a, b) => b.date - a.date);
+    return collectionApi.getFilteredByGlob("src/posts/*.md")
+      .map(post => {
+        // Use date_published from frontmatter if available, otherwise use file date
+        if (post.data.date_published) {
+          const publishedDate = typeof post.data.date_published === 'string' 
+            ? new Date(post.data.date_published) 
+            : post.data.date_published;
+          post.date = publishedDate;
+        }
+        return post;
+      })
+      .sort((a, b) => b.date - a.date);
   });
 
   eleventyConfig.addShortcode("theme", function() {
