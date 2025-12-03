@@ -32,10 +32,7 @@ A Nation of Neighborhoods -- Benjamin Looker
 
 [Chokepoints: American Power in the age of Economic Warfare](https://www.amazon.com/Chokepoints-American-Power-Economic-Warfare/dp/0593712978?linkId=b8bf44b9a09e913fd7ad4415623f58ed&language=en_US) 
 
-
 [The Origins of Efficiency](https://press.stripe.com/origins-of-efficiency) -- Brian Potter (construction physics guy)
-
-[Breakneck: China's Quest to Engineer the Future](https://www.amazon.com/dp/1324106034/) by Dan Wang. recommended by Byrne Hobart and a few others
 
 ### Philosophy
 *Godel Escher Bach*: Douglass Hofstadter. On the nature of consciousness. Recommended by [[Nat Fernelius]]

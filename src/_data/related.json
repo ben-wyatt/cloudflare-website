@@ -2,13 +2,31 @@
   "book-recs": [
     {
       "slug": "future-of-stablecoins",
-      "score": 0.22597989799539026
+      "score": 0.27972341876288087
+    },
+    {
+      "slug": "notes-why-is-insulin-so-expensive",
+      "score": 0.05644372156491689
     }
   ],
   "future-of-stablecoins": [
     {
       "slug": "book-recs",
-      "score": 0.22597989799539026
+      "score": 0.27972341876288087
+    },
+    {
+      "slug": "notes-why-is-insulin-so-expensive",
+      "score": 0.2396118196142077
+    }
+  ],
+  "notes-why-is-insulin-so-expensive": [
+    {
+      "slug": "future-of-stablecoins",
+      "score": 0.2396118196142077
+    },
+    {
+      "slug": "book-recs",
+      "score": 0.05644372156491689
     }
   ]
 }

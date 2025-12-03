@@ -4,7 +4,11 @@ layout: layout.njk
 
 <article class="post">
   <h1>
-    {{ (title or page.fileSlug) | replace("-", " ") | replace("_", " ") }}
+    {% if title %}
+      {{ title }}
+    {% else %}
+      {{ page.fileSlug | replace("-", " ") | replace("_", " ") }}
+    {% endif %}
   </h1>
   {{ content | safe }}
 
