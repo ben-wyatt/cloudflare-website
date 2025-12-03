@@ -7,7 +7,7 @@ log() { if [[ "$VERBOSE" == "1" ]]; then printf '%s\n' "$*" >&2; fi; }
 
 # --- CONFIG ---
 # Update this to your local repo path if different:
-REPO_DIR="$HOME/Repos/personal/website"
+REPO_DIR="$HOME/Repos/cloudflare-website"
 POSTS_DIR="$REPO_DIR/src/posts"
 # Where images will be copied to (served via Eleventy passthrough)
 ASSETS_DIR="$REPO_DIR/assets/images"
