@@ -1,33 +1,23 @@
-## Useage
+## Usage
 
 Need to add this
+
+## TODO
+
+- fix highlighting for italicised links
 
 ## Personal Website (Eleventy) — Quick Start and Guide
 
 A lightweight, fast personal site built with Eleventy. Markdown-first content, simple layouts, light/dark theme toggle, and an accent palette system. Optimized code blocks use solid token colors without punctuation highlighting.
 
-### Prerequisites
-- **Node.js**: 18+ recommended
-- **npm**: comes with Node
 
-### Install and Run
-- **Install**:
-  ```bash
-  npm install
-  ```
-- **Develop (watch + local server)**:
-  ```bash
-  npm run serve
-  ```
-  Eleventy will print the local URL when it starts.
-- **Build (static output to `_site/`)**:
-  ```bash
-  npm run build
-  ```
-- **Clean build output**:
-  ```bash
-  npm run clean
-  ```
+### Usage
+
+```bash
+npm install
+npm run serve #build and serve locally to review
+```
+
 
 ### Project Structure
 ```text
@@ -146,11 +136,6 @@ This repo builds with Eleventy to `_site/`. Cloudflare Pages will run the Node b
   ```bash
   bash -euxo pipefail -c 'npx wrangler whoami; npx wrangler pages project list'
   ```
-
-### Tips and Troubleshooting
-- If you see missing highlights, ensure only one highlighter is active (Prism CDN is included by default).
-- Run `npm run clean && npm run build` to force a fresh build.
-- Blog index lives at `src/blog.md` and renders `/blog/`.
 
 
 ### Feature Ideas

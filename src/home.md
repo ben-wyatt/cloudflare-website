@@ -28,14 +28,20 @@ On the application end, I'm a big proponent of the declarative agent framework [
 - The most important organizational knowledge lives tacitly in employees' brains. For this and [other reasons](https://marginalrevolution.com/marginalrevolution/2025/02/why-i-think-ai-take-off-is-relatively-slow.html), AI adoption will be slow relative to what [some others are saying](https://ai-2027.com/).
 - I love the *idea* of GraphRAG but haven't seen an incredible integration yet.
 - [Small model agentic RL](https://github.com/OpenPipe/ART) is a very promising innovation and I'm excited to see those tools mature over time.
+- Generative AI is already creating immense value, and it’s [concentrating rapidly](https://en.wikipedia.org/wiki/Pareto_principle) in the hands of a small number of highly capable ICs. This is deeply worrying.
 
 ### Hobbies and Interests
 
 I've recently become obsessed with [Obsidian](https://obsidian.md/) for note taking and writing.
 
-I play the guitar and listen to music.
+I play the guitar and listen to music. Here are some artists I've been listening to recently:
+- [Geese](https://open.spotify.com/artist/0WCo84qtCKfbyIf1lqQWB4?si=CaXbRPIqSYii2Z4RP_DoLw)
+- [JPEGMAFIA](https://open.spotify.com/artist/6yJ6QQ3Y5l0s0tn7b0arrO?si=1ubu0LgLRSaTNBNlXSlV1Q)
+- [Wet Leg](https://open.spotify.com/artist/2TwOrUcYnAlIiKmVQkkoSZ?si=SdsdbPg3RgeO1quZna0aHw)
+- [Little Simz](https://open.spotify.com/artist/6eXZu6O7nAUA5z6vLV8NKI?si=th0K8h3fRrOQDD61WA_LOw)
+- [Jessie Ware](https://open.spotify.com/artist/5Mq7iqCWBzofK39FBqblNc?si=svNotbtvRZ2wbemWtIKLyw)
 
-I'm really interested in building great knowledge accumulation systems that enable my curiosity.  I like to curate my Substack and RSS feeds. As well as YouTube videos and podcasts.  I've only recently come around to the utility of Twitter.  I see LLMs as a powerful force for this type of curiosity-driven learning.
+I'm really interested in building great knowledge accumulation systems that enable curiosity-driven learning.  I like to curate my Substack and RSS feeds. As well as YouTube videos and podcasts.  I've only recently come around to the utility of Twitter.  I see LLMs as a powerful force for this type of curiosity-driven learning and I'm really excited to see what next-generation tools look like.  
 
 ### Get in Touch
 
