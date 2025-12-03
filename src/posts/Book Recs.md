@@ -65,16 +65,15 @@ Plain, Honest Men: The Making of the American Constitution -- about the Constitu
 - [Derek Thompson](https://www.derekthompson.org/p/1910-the-year-the-modern-world-lost) says “most underrated history book”
 ### Historical Governments
 
-Why Nations Fail - Acemoglu
-Secular Cycles
-Theory of culture change
-war and peace and war
-ages of discord
-origins of the state and civilization
-the collapse of complex societies
-the dawn of everything
-the darker angels of our nature
-ultra society
-The Dawn of Everything
-The Rise and Fall of the great Powers
-State Formations
+- Why Nations Fail - Acemoglu
+- Secular Cycles
+- Theory of culture change
+- war and peace and war
+- ages of discord
+- origins of the state and civilization
+- the collapse of complex societies
+- the darker angels of our nature
+- ultra society
+- The Dawn of Everything
+- The Rise and Fall of the great Powers
+- State Formations
