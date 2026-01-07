@@ -107,6 +107,6 @@ date_updated: 2026-01-07
 17. No AI bubble burst
 18. Worsening Sovereign Debt problems
 19. big lapels?
-20. AI will noticeably improve for end consumer, but the improvement will from better UX and app-side harnesses rather than training innovations
+20. AI will noticeably improve for end consumer, but the improvement will come from better UX and app-side harnesses rather than substantial training innovations
 21. NVLink cluster scaling slows down grace blackwell deployments
 22. Nvidia stock down YoY
