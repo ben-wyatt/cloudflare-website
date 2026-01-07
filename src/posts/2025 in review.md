@@ -89,7 +89,7 @@ date_updated: 2026-01-07
 ## 2026 Predictions
 
 1. Phone cleanses go mainstream
-2. College attendance drops in major way because if AI and worsened job market
+2. College attendance drops in major way because of AI and worsened job market
 3. stagflation
 4. sports betting counter reaction
 5. Analog is the major trend: big brands start making zines, pen pals
