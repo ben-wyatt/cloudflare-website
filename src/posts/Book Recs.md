@@ -3,16 +3,14 @@ title: Book Recs
 layout: post.njk
 date_published: 2025-12-03
 tags: []
-date_updated: 2025-12-03
+date_updated: 2026-01-07
 ---
+These are books that *other people* have recommended *to me*.
+
 ## Fiction
 ### Sci-fi/fantasy
-[*Hyperion*](https://en.wikipedia.org/wiki/Hyperion_(Simmons_novel)): really good short stories.
-	[[Nat Fernelius]]
 
 [Noah Smith fave sci-fi ](https://www.noahpinion.blog/p/my-sci-fi-novel-recommendations-888) 
-
-allie kuck recommends: the bright sword by lev grossman
 
 A Canticle for Leibowitz: rec from [[Nat Fernelius]]
 
@@ -41,7 +39,6 @@ A Nation of Neighborhoods -- Benjamin Looker
 
 [The Unexpurgated Code](https://www.nytimes.com/2025/04/07/books/review/jp-donleavy-unexpurgated-code.html?smid=nytcore-ios-share&referringSource=articleShare)
 
-[Modern Physics and Ancient Faith](https://undpress.nd.edu/9780268021986/modern-physics-and-ancient-faith/) 
 [Mind and Cosmos](https://global.oup.com/academic/product/mind-and-cosmos-9780199919758?cc=us&lang=en&) 
 
 [The Art of Doing Science and Engineering](https://www.amazon.com/Art-Doing-Science-Engineering-Learning/dp/1732265178) 
@@ -53,6 +50,14 @@ A Nation of Neighborhoods -- Benjamin Looker
 
 Tyler Cowan — In Praise of Commercial Culture
 
+The Upswing: How We Came Together a Century Ago and How We Can Do It Again - Robert Putnam
+
+### cocktails
+
+Imbibe! -- David Wondrich
+
+Liquid Intelligence -- Dave Arnold
+
 ## History
 
 Plain, Honest Men: The Making of the American Constitution -- about the Constitutional Convention
@@ -60,6 +65,10 @@ Plain, Honest Men: The Making of the American Constitution -- about the Constitu
 
 [The Vertigo Years : Europe 1900-1914](https://www.amazon.com/Vertigo-Years-Europe-1900-1914/dp/0465020291)
 - [Derek Thompson](https://www.derekthompson.org/p/1910-the-year-the-modern-world-lost) says “most underrated history book”
+
+The Fabric of Civilization — How Textiles Made the World. Hank Green recommends
+
+1929 — Andrew Ross Sorkin
 ### Historical Governments
 
 - Why Nations Fail - Acemoglu
@@ -74,3 +83,9 @@ Plain, Honest Men: The Making of the American Constitution -- about the Constitu
 - The Dawn of Everything
 - The Rise and Fall of the great Powers
 - State Formations
+- James C Scott: Seeing like a State, and The Art of Not Being Governed
+- 
+
+## Programming
+
+Functional Programming in Scala
