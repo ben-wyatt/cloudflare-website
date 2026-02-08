@@ -1,40 +1,40 @@
 {
   "2025-in-review": [
     {
+      "slug": "book-recs",
+      "score": 0.4192243623871051
+    },
+    {
       "slug": "future-of-stablecoins",
-      "score": 0.4375814023519281
+      "score": 0.39607857632214233
     },
     {
       "slug": "notes-why-is-insulin-so-expensive",
-      "score": 0.35139784355120685
-    },
-    {
-      "slug": "book-recs",
-      "score": 0.349227314863699
+      "score": 0.30032862999537274
     }
   ],
   "book-recs": [
     {
       "slug": "2025-in-review",
-      "score": 0.349227314863699
+      "score": 0.4192243623871051
     },
     {
       "slug": "future-of-stablecoins",
-      "score": 0.27972341876288087
+      "score": 0.2621564751238913
     },
     {
       "slug": "notes-why-is-insulin-so-expensive",
-      "score": 0.05644372156491689
+      "score": 0.08508521674158152
     }
   ],
   "future-of-stablecoins": [
     {
       "slug": "2025-in-review",
-      "score": 0.4375814023519281
+      "score": 0.39607857632214233
     },
     {
       "slug": "book-recs",
-      "score": 0.27972341876288087
+      "score": 0.2621564751238913
     },
     {
       "slug": "notes-why-is-insulin-so-expensive",
@@ -44,7 +44,7 @@
   "notes-why-is-insulin-so-expensive": [
     {
       "slug": "2025-in-review",
-      "score": 0.35139784355120685
+      "score": 0.30032862999537274
     },
     {
       "slug": "future-of-stablecoins",
@@ -52,7 +52,7 @@
     },
     {
       "slug": "book-recs",
-      "score": 0.05644372156491689
+      "score": 0.08508521674158152
     }
   ]
 }
