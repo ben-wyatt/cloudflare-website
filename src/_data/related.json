@@ -11,12 +11,20 @@
     {
       "slug": "notes-why-is-insulin-so-expensive",
       "score": 0.30032862999537274
+    },
+    {
+      "slug": "the-gardener",
+      "score": 0.2527743189492454
     }
   ],
   "book-recs": [
     {
       "slug": "2025-in-review",
       "score": 0.4192243623871051
+    },
+    {
+      "slug": "the-gardener",
+      "score": 0.3646424976582831
     },
     {
       "slug": "future-of-stablecoins",
@@ -39,6 +47,10 @@
     {
       "slug": "notes-why-is-insulin-so-expensive",
       "score": 0.2396118196142077
+    },
+    {
+      "slug": "the-gardener",
+      "score": 0.03464167431904727
     }
   ],
   "notes-why-is-insulin-so-expensive": [
@@ -53,6 +65,28 @@
     {
       "slug": "book-recs",
       "score": 0.08508521674158152
+    },
+    {
+      "slug": "the-gardener",
+      "score": 0.02308303896256124
+    }
+  ],
+  "the-gardener": [
+    {
+      "slug": "book-recs",
+      "score": 0.3646424976582831
+    },
+    {
+      "slug": "2025-in-review",
+      "score": 0.2527743189492454
+    },
+    {
+      "slug": "future-of-stablecoins",
+      "score": 0.03464167431904727
+    },
+    {
+      "slug": "notes-why-is-insulin-so-expensive",
+      "score": 0.02308303896256124
     }
   ]
 }
