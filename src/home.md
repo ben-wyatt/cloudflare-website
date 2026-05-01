@@ -6,7 +6,7 @@ permalink: "/"
 
 ## About Me
 
-Hey there! I'm **Ben Wyatt**.  I graduated from the **University of Rochester** in 2023 with a BS in **Physics** and BA in **Economics**.
+Hey there! I'm Ben Wyatt.  I graduated from the *University of Rochester* in 2023 with a BS in Physics and BA in Economics.
 
 ### Academic & Research Experience
 
@@ -14,7 +14,7 @@ During my internship at **Los Alamos National Laboratory**, I conducted data sci
 
 ### Current Role
 
-I'm currently at **EY** working as an AI Engineer in New York City.  My team is focused on training LLMs for specific internal tasks.  I've built end-to-end training pipelines for **Supervised Finetuning**, **Continuous Pretraining**, and **Model Distillation**.  Most of the grunt work is in the data preparation.  I'm also heavily focused on various **Synthetic Data Generation** techniques, especially multi-page long-context documents.
+I'm currently at **EY** working as an AI Engineer in New York City.  My team is focused on training LLMs for specific internal tasks.  I've built end-to-end training pipelines for Supervised Finetuning, Continuous Pretraining, and Model Distillation.  Most of the grunt work is in the data preparation.  I'm also heavily focused on various Synthetic Data Generation techniques, especially multi-page long-context documents.
 
 I've also been involved on the infrastructure side, managing the kubernetes deployment on a 16 H200 cluster. 
 
