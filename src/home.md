@@ -18,8 +18,6 @@ I'm currently at **EY** working as an AI Engineer in New York City.  My team is 
 
 I've also been involved on the infrastructure side, managing the kubernetes deployment on a 16 H200 cluster. 
 
-On the application end, I'm a big proponent of the declarative agent framework [DSPy](https://dspy.ai/).
-
 
 
 ### Some general thoughts about Generative AI
@@ -32,7 +30,7 @@ On the application end, I'm a big proponent of the declarative agent framework [
 
 ### Hobbies and Interests
 
-I've recently become obsessed with [Obsidian](https://obsidian.md/) for note taking and writing.
+I've been a big user of [Obsidian](https://obsidian.md/) for note taking and writing. I was into it before it blew up as the "Agent Brain" default application.
 
 I play the guitar and listen to music. Here are some artists I've been listening to recently:
 - [Geese](https://open.spotify.com/artist/0WCo84qtCKfbyIf1lqQWB4?si=CaXbRPIqSYii2Z4RP_DoLw)
