@@ -56,7 +56,7 @@ html { scroll-behavior: auto; }
 html.light, [data-theme="light"] {
   background-color: var(--bg-color-light);
   color: var(--text-color-light);
-  --em-color: #518adf;
+  --em-color: #627892;
   --bold-color: #518adf;
   --link-internal: #7fb3ff;
   --link-external: #7fb3ff;
@@ -66,7 +66,7 @@ html.light, [data-theme="light"] {
 html.dark, [data-theme="dark"] {
   background-color: var(--bg-color-dark);
   color: var(--text-color-dark);
-  --em-color: #518adf;
+  --em-color: #96a3b5;
   --bold-color: #518adf;
   --link-internal: #7fb3ff;
   --link-external: #7fb3ff;
@@ -87,14 +87,14 @@ html.dark, [data-theme="dark"] {
   --link-internal: #7fb3ff;
   --link-external: #7fb3ff;
   --bold-color: #518adf;
-  --em-color: #518adf;
+  --em-color: #627892;
 }
 [data-theme="dark"][data-palette="indigo"],
 [data-palette="indigo"][data-theme="dark"] {
   --link-internal: #7fb3ff;
   --link-external: #7fb3ff;
   --bold-color: #518adf;
-  --em-color: #518adf;
+  --em-color: #96a3b5;
 }
 
 /* Forest */
@@ -102,15 +102,15 @@ html.dark, [data-theme="dark"] {
 [data-palette="forest"][data-theme="light"] {
   --link-internal: #2e7d32;
   --link-external: #2e7d32;
-  --bold-color: #2e7d32;
-  --em-color: #2e7d32;
+  --bold-color: #1b5e20;
+  --em-color: #4d6350;
 }
 [data-theme="dark"][data-palette="forest"],
 [data-palette="forest"][data-theme="dark"] {
   --link-internal: #9ecb70;
   --link-external: #9ecb70;
-  --bold-color: #9ecb70;
-  --em-color: #9ecb70;
+  --bold-color: #aed581;
+  --em-color: #7a9574;
 }
 
 /* Amber */
@@ -119,14 +119,14 @@ html.dark, [data-theme="dark"] {
   --link-internal: #a36f00;
   --link-external: #a36f00;
   --bold-color: #7a4e00;
-  --em-color: #7a4e00;
+  --em-color: #6d5644;
 }
 [data-theme="dark"][data-palette="amber"],
 [data-palette="amber"][data-theme="dark"] {
   --link-internal: #e5c07b;
   --link-external: #e5c07b;
-  --bold-color: #e5c07b;
-  --em-color: #e5c07b;
+  --bold-color: #ecc89a;
+  --em-color: #a89472;
 }
 
 /* Rose */
@@ -135,14 +135,14 @@ html.dark, [data-theme="dark"] {
   --link-internal: #b54745;
   --link-external: #b54745;
   --bold-color: #8a2c2a;
-  --em-color: #8a2c2a;
+  --em-color: #7d5758;
 }
 [data-theme="dark"][data-palette="rose"],
 [data-palette="rose"][data-theme="dark"] {
   --link-internal: #e06c75;
   --link-external: #e06c75;
-  --bold-color: #dd5b66;
-  --em-color: #dd5b66;
+  --bold-color: #f0808a;
+  --em-color: #b0888d;
 }
 
 /* Teal */
@@ -151,14 +151,14 @@ html.dark, [data-theme="dark"] {
   --link-internal: #007a78;
   --link-external: #007a78;
   --bold-color: #025554;
-  --em-color: #025554;
+  --em-color: #3a6866;
 }
 [data-theme="dark"][data-palette="teal"],
 [data-palette="teal"][data-theme="dark"] {
   --link-internal: #64d3c8;
   --link-external: #64d3c8;
-  --bold-color: #54938b;
-  --em-color: #54938b;
+  --bold-color: #7ae0d6;
+  --em-color: #5f948e;
 }
 
 /* Purple */
@@ -167,14 +167,14 @@ html.dark, [data-theme="dark"] {
   --link-internal: #7e57c2;
   --link-external: #7e57c2;
   --bold-color: #5e35b1;
-  --em-color: #5e35b1;
+  --em-color: #6e6288;
 }
 [data-theme="dark"][data-palette="purple"],
 [data-palette="purple"][data-theme="dark"] {
   --link-internal: #c792ea;
   --link-external: #c792ea;
-  --bold-color: #a373d6;
-  --em-color: #a373d6;
+  --bold-color: #d7aaf5;
+  --em-color: #a894c4;
 }
 
 body {
@@ -186,10 +186,12 @@ body {
 
 a {
   color: var(--link-internal);
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 42%, transparent);
+  text-underline-offset: 0.18em;
 }
 a:hover {
-  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 82%, transparent);
 }
 
 /* Internal links */
@@ -220,6 +222,11 @@ header, footer {
 
 nav a {
   margin-right: 0.5rem;
+  text-decoration: none;
+}
+nav a:hover {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 82%, transparent);
 }
 
 button#theme-toggle {
@@ -245,13 +252,21 @@ p, li {
   font-size: 1rem;
 }
 
-/* Emphasis styles: italics match bold color */
+/* Emphasis: italic is muted (--em-color); bold uses accent (--bold-color) */
 em, i {
-  color: var(--bold-color);
+  color: var(--em-color);
 }
 
 strong, b {
   color: var(--bold-color);
+}
+
+/* Inside links, keep link color for nested emphasis */
+a em,
+a i,
+a strong,
+a b {
+  color: inherit;
 }
 
 /* Inconsolata utilities */
