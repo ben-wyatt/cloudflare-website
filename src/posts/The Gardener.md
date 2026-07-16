@@ -5,7 +5,7 @@ date_published: 2026-04-21
 tags: []
 date_updated: 2026-04-21
 ---
-[[2026-03-24]]
+2026-03-24
 
 When I was in the airport on my way home I saw an old couple.  The man looked like Jeff Dean from Google.  Long face.  He had out a well-loved iPad, and the newest MacBook, I think the *new* budget-level MacBook Neo which came out just a few days before. I noticed he had a sticker on the back. a red blue yellow green value-map shaped like one of those asymmetrical math fractal patterns.  I discretely took a photo and asked Claude about it.  it was a weather radar sticker of a supercell thunderstorm hook echo.
 

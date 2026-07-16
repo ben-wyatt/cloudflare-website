@@ -8,7 +8,7 @@ tags: []
 date_updated: 2026-02-08
 ---
 
-# News Stories
+## News Stories
 
 - Syria regime change solidifies (al-Assad flees end of Dec ‘24)
 - Big tech bends the knee at inauguration
@@ -35,7 +35,7 @@ date_updated: 2026-02-08
 - Death of the penny and the metrocard
 - Plane crashes
 
-# Trends
+## Trends
 
 - Chinese electric tech stack: solar, batteries, EVs, and drones are CHEAP
 - Crypto goes straight
@@ -52,7 +52,7 @@ date_updated: 2026-02-08
 - Affordability messaging emerges
 - Romance novel get smuttier
 
-# Funny Little Stories
+## Funny Little Stories
 
 - Louvre heist (and flood)
 - Coldplay concert CEO
@@ -66,7 +66,7 @@ date_updated: 2026-02-08
 - Diddy 
 - Labubu
 
-## Top 10 Albums
+### Top 10 Albums
 
 1. [Getting Killed](https://open.spotify.com/album/0eeXb23yMW6EaIgm63xxPC?si=gukl67PDSmiVJ2DWS61iSA) — Geese
 2. [moisturizer](https://open.spotify.com/album/3YVnHpyms4rLr3fXS0ROQy?si=K6opvoFpSpmy8SeQv25Lxg) — Wet Leg
@@ -80,7 +80,7 @@ date_updated: 2026-02-08
 10. [Cancionera](https://open.spotify.com/album/4gqGuqjdi0io8D0vgMPczu?si=MUKV7sWxRQuysow5zivjLA) -- Natalia Lafourcade
 
 
-# AI
+## AI
 
 - DeepSeek
 - MCP and other standards
@@ -99,7 +99,7 @@ date_updated: 2026-02-08
 - xAI Ani
 - Datacenter buildout reaches 2%+ of GDP
 
-## 2026 Predictions
+### 2026 Predictions
 
 1. Phone cleanses go mainstream
 2. College attendance drops in major way because of AI and worsened job market

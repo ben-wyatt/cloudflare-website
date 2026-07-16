@@ -12,11 +12,11 @@ These are books that *other people* have recommended *to me*.
 
 [Noah Smith fave sci-fi ](https://www.noahpinion.blog/p/my-sci-fi-novel-recommendations-888) 
 
-A Canticle for Leibowitz: rec from [[Nat Fernelius]]
+A Canticle for Leibowitz: rec from Nat Fernelius
 
 ## Nonfiction
 ### Business
-_Build: An Unorthodox Guide to Making Things Worth Making_: Tony Fadell, SVP if iPod. Founder of Nest. Recommended by [[Nate Hanafy]]
+_Build: An Unorthodox Guide to Making Things Worth Making_: Tony Fadell, SVP if iPod. Founder of Nest. Recommended by Nate Hanafy
 
 The Devil’s financial dictionary — Jason Zweig. Explain financial terms simply
 
@@ -33,9 +33,9 @@ A Nation of Neighborhoods -- Benjamin Looker
 [The Origins of Efficiency](https://press.stripe.com/origins-of-efficiency) -- Brian Potter (construction physics guy)
 
 ### Philosophy
-*Godel Escher Bach*: Douglass Hofstadter. On the nature of consciousness. Recommended by [[Nat Fernelius]]
+*Godel Escher Bach*: Douglass Hofstadter. On the nature of consciousness. Recommended by Nat Fernelius
 
-[*I Am a Strange Loop*](https://en.wikipedia.org/wiki/I_Am_a_Strange_Loop): same guy also rec'd by [[Nat Fernelius]]
+[*I Am a Strange Loop*](https://en.wikipedia.org/wiki/I_Am_a_Strange_Loop): same guy also rec'd by Nat Fernelius
 
 [The Unexpurgated Code](https://www.nytimes.com/2025/04/07/books/review/jp-donleavy-unexpurgated-code.html?smid=nytcore-ios-share&referringSource=articleShare)
 

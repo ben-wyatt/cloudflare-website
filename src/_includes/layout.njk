@@ -5,17 +5,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ title or "Ben Wyatt" }}</title>
+  <link rel="preload" href="/assets/fonts/inconsolata.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/styles/main.css">
-  {% if not collections or true %}
-  <!-- Client-side Prism fallback when Shiki is not installed -->
+  {% if "<pre" in content %}
   <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism.css">
   <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism-okaidia.css" media="(prefers-color-scheme: dark)">
   <script defer src="https://unpkg.com/prismjs@1.29.0/components/prism-core.min.js"></script>
   <script defer src="https://unpkg.com/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js" data-autoloader-path="https://unpkg.com/prismjs@1.29.0/components/"></script>
   {% endif %}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body data-theme="">
   <header>
