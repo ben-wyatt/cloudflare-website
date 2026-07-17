@@ -2,16 +2,16 @@
 layout: layout.njk
 title: Record Club 2026
 permalink: "/records/"
-pageStyles: "/styles/records.css?v=track-favorites"
-pageScript: "/assets/js/records.js?v=track-favorites"
+pageStyles: "/styles/records.css?v=albums-of-the-year"
+pageScript: "/assets/js/records.js?v=albums-of-the-year"
 bodyClass: "records-page"
 ---
 
 <section class="records-shell" aria-labelledby="records-title">
   <div class="records-hero">
     <p class="records-kicker">private listening room · 2026</p>
-    <h1 id="records-title">Your records of the year</h1>
-    <p>Build a ranked top ten, add a few words, and keep changing your mind. Your draft is private for now.</p>
+    <h1 id="records-title"><em>Our</em> albums of the year</h1>
+    <p>I'm sharing this with a few friends. Add the albums that you found this year and a few words on how you connected to it if you'd like.  Your list doesn't need to be albums that <em>came out</em> this year, just ones that you especially jammed to or connected with! I need at least 5; no more than 15. Feel free to revisit over the course of the year. You can also highlight specific tracks in the albums that were standouts. I'll lock ballots on **December 1st** and then we'll play some NYTimes-style games with the data. For questions, comments, suggestions, feature requests feel free to text me.</p>
   </div>
 
   <div id="records-loading" class="records-panel records-loading" role="status">
@@ -51,12 +51,13 @@ bodyClass: "records-page"
 
   <section id="records-app" hidden>
     <div class="records-member-bar">
-      <p>Signed in as <strong id="member-name"></strong></p>
-      <div class="records-member-actions">
-        <a id="record-game-link" class="records-game-link" href="/records/game/" hidden>Play Who Picked It?</a>
+      <p>
+        Signed in as <strong id="member-name"></strong><br>
         <button id="change-password-button" class="records-text-button" type="button">Change password</button>
+        |
         <button id="logout-button" class="records-text-button" type="button">Sign out</button>
-      </div>
+      </p>
+      <a id="record-game-link" href="/records/game/" hidden>Play</a>
     </div>
 
     <section id="password-panel" class="records-panel records-password-panel" hidden aria-labelledby="password-title">
@@ -86,30 +87,25 @@ bodyClass: "records-page"
     </section>
 
     <div class="records-workspace">
-      <section class="records-panel records-search-panel" aria-labelledby="search-title">
+      <section class="records-search-panel" aria-labelledby="search-title">
         <div class="records-panel-heading records-panel-heading-compact">
           <div>
             <p class="records-eyebrow">the record bin</p>
-            <h2 id="search-title">Find an album</h2>
+            <h2 id="search-title">Add an album</h2>
           </div>
-          <span id="list-count" class="records-count">0 / 10</span>
+          <span id="list-count" class="records-count">0 / 14</span>
         </div>
         <form id="album-search-form" class="album-search-form" role="search">
-          <label class="sr-only" for="album-search">Album, artist, or Spotify album link</label>
-          <input id="album-search" name="query" type="search" placeholder="Album, artist, or Spotify link" autocomplete="off" required>
-          <button type="submit">Search</button>
+          <label class="sr-only" for="album-search">Search for artist or album</label>
+          <input id="album-search" name="query" type="search" placeholder="search for artist or album" autocomplete="off" required>
         </form>
-        <p class="records-hint">Search Spotify's full catalog or paste an album link.</p>
         <div id="search-message" class="records-message" role="status" aria-live="polite"></div>
         <ol id="album-results" class="album-results" aria-label="Spotify album results"></ol>
       </section>
 
       <section class="records-list-section" aria-labelledby="list-title">
         <div class="records-list-heading">
-          <div>
-            <p class="records-eyebrow">your ballot</p>
-            <h2 id="list-title">Top ten</h2>
-          </div>
+          <h2 id="list-title"><strong id="list-owner-name">Your</strong> Top Albums</h2>
           <div class="records-save-group">
             <span id="save-status" class="records-save-status" role="status" aria-live="polite"></span>
             <button id="save-list-button" class="records-primary" type="button">Save draft</button>

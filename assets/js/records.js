@@ -1,4 +1,5 @@
 (() => {
+  const MAX_ALBUMS = 14;
   const MAX_FAVORITE_TRACKS_PER_ALBUM = 50;
 
   const elements = {
@@ -15,6 +16,7 @@
     passwordForm: document.getElementById("password-form"),
     passwordMessage: document.getElementById("password-message"),
     memberName: document.getElementById("member-name"),
+    listOwnerName: document.getElementById("list-owner-name"),
     gameLink: document.getElementById("record-game-link"),
     logoutButton: document.getElementById("logout-button"),
     searchForm: document.getElementById("album-search-form"),
@@ -93,6 +95,7 @@
     state.user = null;
     state.items = [];
     state.trackLists.clear();
+    document.body.classList.remove("records-app-active");
     elements.loading.hidden = true;
     elements.app.hidden = true;
     elements.auth.hidden = false;
@@ -103,7 +106,9 @@
   async function showApp(user) {
     state.user = user;
     elements.memberName.textContent = user.username;
+    elements.listOwnerName.textContent = `${user.username}’s`;
     elements.gameLink.hidden = user.username.toLowerCase() !== "ben";
+    document.body.classList.add("records-app-active");
     elements.loading.hidden = true;
     elements.auth.hidden = true;
     elements.app.hidden = false;
@@ -161,9 +166,12 @@
       addButton.type = "button";
       addButton.className = "album-add-button";
       const selected = isSelected(album.spotifyId);
-      addButton.disabled = selected || state.items.length >= 10;
-      addButton.textContent = selected ? "Added" : "Add";
-      addButton.setAttribute("aria-label", `Add ${album.name} to your list`);
+      addButton.disabled = selected || state.items.length >= MAX_ALBUMS;
+      addButton.textContent = selected ? "✓" : "+";
+      addButton.setAttribute(
+        "aria-label",
+        selected ? `${album.name} is already on your list` : `Add ${album.name} to your list`,
+      );
       addButton.addEventListener("click", () => addAlbum(album));
       item.append(albumImage(album), albumCopy(album), addButton);
       return item;
@@ -315,11 +323,10 @@
 
   function updateTrackSummary(summary, album) {
     const count = favoriteIds(album).length;
-    summary.querySelector(".ranked-tracks-heart").textContent = count ? "♥" : "♡";
     summary.querySelector(".ranked-tracks-count").textContent = count ? ` · ${count}` : "";
     summary.setAttribute(
       "aria-label",
-      `${count ? `${count} favorite track${count === 1 ? "" : "s"}. ` : ""}Choose favorite tracks from ${album.name}`,
+      `Tracklist for ${album.name}.${count ? ` ${count} favorite track${count === 1 ? "" : "s"} selected.` : ""}`,
     );
   }
 
@@ -330,7 +337,7 @@
       "aria-label",
       selected ? `Remove ${track.name} from favorite tracks` : `Add ${track.name} to favorite tracks`,
     );
-    button.querySelector("span").textContent = selected ? "♥" : "♡";
+    button.querySelector("span").textContent = "<3";
   }
 
   function toggleFavoriteTrack(albumId, track, button, summary) {
@@ -438,13 +445,7 @@
       list.append(item);
     }
 
-    const source = document.createElement("a");
-    source.className = "ranked-tracks-source";
-    source.href = album.spotifyUrl;
-    source.target = "_blank";
-    source.rel = "noopener";
-    source.textContent = "Track data via Spotify";
-    body.replaceChildren(list, source);
+    body.replaceChildren(list);
   }
 
   async function loadAlbumTracks(albumId) {
@@ -485,14 +486,11 @@
 
     const summary = document.createElement("summary");
     summary.className = "ranked-tracks-summary";
-    const heart = document.createElement("span");
-    heart.className = "ranked-tracks-heart";
-    heart.setAttribute("aria-hidden", "true");
     const label = document.createElement("span");
-    label.textContent = "favorite tracks";
+    label.textContent = "tracklist";
     const count = document.createElement("span");
     count.className = "ranked-tracks-count";
-    summary.append(heart, label, count);
+    summary.append(label, count);
     updateTrackSummary(summary, album);
 
     const body = document.createElement("div");
@@ -538,7 +536,7 @@
       review.id = `review-${album.spotifyId}`;
       review.className = "ranked-review";
       review.maxLength = 500;
-      review.placeholder = "A few words about this record…";
+      review.placeholder = "A few words on the album…";
       review.value = album.review || "";
       review.addEventListener("input", () => {
         state.items[index].review = review.value;
@@ -558,7 +556,7 @@
 
     elements.rankedList.replaceChildren(...nodes);
     elements.emptyList.hidden = state.items.length > 0;
-    elements.listCount.textContent = `${state.items.length} / 10`;
+    elements.listCount.textContent = `${state.items.length} / ${MAX_ALBUMS}`;
     elements.saveButton.disabled = state.saving || !state.dirty;
     renderResults();
   }
@@ -570,7 +568,7 @@
   }
 
   function addAlbum(album) {
-    if (state.items.length >= 10 || isSelected(album.spotifyId)) return;
+    if (state.items.length >= MAX_ALBUMS || isSelected(album.spotifyId)) return;
     state.items.push({ ...album, review: "", favoriteTrackIds: [] });
     markDirty();
     renderList();
@@ -642,21 +640,21 @@
     state.results = [];
     renderResults();
     setMessage(elements.searchMessage, "Searching Spotify…");
-    const submitButton = elements.searchForm.querySelector("button[type='submit']");
-    submitButton.disabled = true;
+    elements.searchInput.readOnly = true;
     try {
       const payload = await api(`/api/spotify/search?q=${encodeURIComponent(query)}`);
       state.results = payload.albums || [];
       setMessage(
         elements.searchMessage,
-        state.results.length ? `${state.results.length} result${state.results.length === 1 ? "" : "s"}` : "No albums found. Try the artist name or paste a Spotify link.",
+        state.results.length ? `${state.results.length} result${state.results.length === 1 ? "" : "s"}` : "No albums found. Try an artist or album name.",
       );
       renderResults();
     } catch (error) {
       setMessage(elements.searchMessage, error.message, true);
     } finally {
       state.searching = false;
-      submitButton.disabled = false;
+      elements.searchInput.readOnly = false;
+      elements.searchInput.focus();
     }
   }
 

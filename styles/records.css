@@ -1,5 +1,10 @@
 .records-page {
-  max-width: 1120px;
+  max-width: var(--content-width);
+}
+
+.records-page.records-app-active {
+  /* The list is a genuine two-column workspace and needs room for track names. */
+  max-width: 1240px;
 }
 
 .records-page main {
@@ -21,13 +26,13 @@
 
 .records-hero h1 {
   margin: 0.3rem 0 0.85rem;
-  font-size: clamp(2.5rem, 7vw, 5rem);
-  letter-spacing: -0.045em;
+}
+
+.records-hero h1 em {
+  color: inherit;
 }
 
 .records-hero > p:last-child {
-  max-width: 620px;
-  font-size: 1.08rem;
   color: var(--em-color);
 }
 
@@ -67,15 +72,12 @@
 
 #records-auth .records-panel-heading h2 {
   margin-top: 0.35rem;
-  font-size: clamp(2.35rem, 6vw, 3.2rem);
-  letter-spacing: -0.045em;
 }
 
 .records-panel-heading,
 .records-list-heading,
 .records-member-bar,
-.records-save-group,
-.records-member-actions {
+.records-save-group {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -129,10 +131,10 @@
 }
 
 #records-auth .records-form input {
+  max-width: 24rem;
   border-width: 0 0 1px;
   border-radius: 0;
   background: transparent;
-  font-size: 1.3rem;
 }
 
 #records-auth .records-form input::placeholder {
@@ -140,13 +142,25 @@
   opacity: 0.72;
 }
 
-#records-auth .records-form input:focus {
+.album-search-form input {
+  appearance: none;
+  border-width: 0 0 1px;
+  border-radius: 0;
+  background: transparent;
+}
+
+.album-search-form input::placeholder {
+  color: var(--em-color);
+  opacity: 0.72;
+}
+
+#records-auth .records-form input:focus,
+.album-search-form input:focus {
   outline: 0;
   border-bottom-color: var(--color-primary);
 }
 
 .records-form input:focus,
-.album-search-form input:focus,
 .ranked-review:focus {
   outline: 2px solid color-mix(in srgb, var(--color-primary) 68%, transparent);
   outline-offset: 2px;
@@ -158,7 +172,6 @@
 }
 
 .records-primary,
-.album-search-form button,
 .album-add-button,
 .ranked-action {
   min-height: 40px;
@@ -170,8 +183,7 @@
   cursor: pointer;
 }
 
-.records-primary,
-.album-search-form button {
+.records-primary {
   padding: 0.45rem 0.8rem;
 }
 
@@ -184,10 +196,9 @@
 
 .auth-secondary-action {
   justify-self: start;
-  margin-top: 5rem;
+  margin-top: 2rem;
   padding: 0;
   color: var(--link-internal);
-  font-size: 1.3rem;
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
@@ -200,7 +211,6 @@
   border-radius: 0;
   background: transparent;
   color: var(--color-primary);
-  font-size: 1.3rem;
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
@@ -222,7 +232,6 @@
 }
 
 .records-primary:hover,
-.album-search-form button:hover,
 .album-add-button:hover,
 .ranked-action:hover {
   filter: brightness(0.96);
@@ -247,6 +256,7 @@ button:disabled {
 }
 
 .records-member-bar {
+  align-items: flex-start;
   margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--records-line);
@@ -256,56 +266,41 @@ button:disabled {
   margin: 0;
 }
 
+.records-member-bar .records-text-button {
+  padding: 0;
+}
+
 .records-text-button {
   color: var(--link-internal);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
 
-.records-member-actions {
-  justify-content: flex-end;
-}
-
-.records-game-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  box-sizing: border-box;
-  padding: 0.45rem 0.8rem;
-  border: 1px solid var(--records-line);
-  border-radius: 999px;
-  color: inherit;
-  text-decoration: none;
-}
-
-.records-game-link:hover {
-  border-color: var(--link-internal);
-}
-
 .records-workspace {
   display: grid;
-  grid-template-columns: minmax(280px, 0.85fr) minmax(420px, 1.5fr);
-  gap: clamp(1.5rem, 4vw, 3rem);
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.6fr);
+  gap: clamp(1.5rem, 3vw, 2.5rem);
   align-items: start;
 }
 
 .records-search-panel {
   position: sticky;
   top: 1rem;
+  padding-top: 0.25rem;
+}
+
+.records-search-panel .records-panel-heading h2 {
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
 }
 
 .records-count {
-  padding: 0.25rem 0.55rem;
-  border: 1px solid var(--records-line);
-  border-radius: 999px;
   font-size: 0.85rem;
+  color: var(--em-color);
 }
 
 .album-search-form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.5rem;
-  margin-top: 1.25rem;
+  display: block;
+  margin-top: 0.75rem;
 }
 
 .album-results,
@@ -362,7 +357,16 @@ button:disabled {
 }
 
 .album-add-button {
-  padding: 0.35rem 0.6rem;
+  min-width: 2.25rem;
+  padding: 0.35rem 0.55rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+#list-owner-name {
+  color: var(--color-primary-strong);
+  font-weight: 700;
 }
 
 .records-list-heading {
@@ -424,7 +428,6 @@ button:disabled {
 
 .ranked-tracks {
   margin-top: 0.65rem;
-  border-top: 1px solid var(--records-line);
 }
 
 .ranked-tracks-summary {
@@ -440,12 +443,6 @@ button:disabled {
 
 .ranked-tracks[open] .ranked-tracks-summary {
   color: inherit;
-}
-
-.ranked-tracks-heart {
-  display: inline-block;
-  width: 1.15rem;
-  color: var(--color-secondary-strong);
 }
 
 .ranked-tracks-count {
@@ -484,7 +481,8 @@ button:disabled {
   background: transparent;
   color: var(--color-text-subtle);
   font: inherit;
-  font-size: 1.2rem;
+  font-weight: 700;
+  font-size: 0.9rem;
   line-height: 1;
   cursor: pointer;
   transition: color 140ms ease, transform 140ms ease;
@@ -551,13 +549,6 @@ button:disabled {
   text-decoration: underline;
   text-underline-offset: 0.2em;
   cursor: pointer;
-}
-
-.ranked-tracks-source {
-  display: inline-block;
-  margin-top: 0.45rem;
-  color: var(--em-color);
-  font-size: 0.7rem;
 }
 
 .ranked-actions {
@@ -1084,7 +1075,6 @@ button:disabled {
 
 @media (prefers-reduced-motion: reduce) {
   .records-primary,
-  .album-search-form button,
   .album-add-button,
   .ranked-action,
   .ranked-grabber,
@@ -1133,17 +1123,9 @@ button:disabled {
     justify-content: space-between;
   }
 
-  .records-member-bar,
-  .records-member-actions {
-    align-items: flex-start;
-  }
-
   .records-member-bar {
+    align-items: flex-start;
     flex-direction: column;
-  }
-
-  .records-member-actions {
-    width: 100%;
   }
 
   .ranked-item {
@@ -1171,5 +1153,11 @@ button:disabled {
 
   .game-choices {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .ranked-copy {
+    grid-column: 2 / -1;
   }
 }

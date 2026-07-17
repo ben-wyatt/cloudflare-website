@@ -1,0 +1,4 @@
+interface:
+  display_name: "Preserve Blog Style"
+  short_description: "Keep site changes dense, quiet, and monospace"
+  default_prompt: "Use $preserve-blog-style to make this site change without drifting from the blog’s dense monospace design."

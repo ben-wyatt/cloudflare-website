@@ -10,6 +10,7 @@ import {
 import { getSpotifyAlbum } from "../_shared/spotify.js";
 
 const SEASON = 2026;
+const MAX_ALBUMS = 14;
 const MAX_FAVORITE_TRACKS_PER_ALBUM = 50;
 
 export async function onRequestGet({ request, env }) {
@@ -66,8 +67,8 @@ export async function onRequestPut({ request, env }) {
     const user = await requireUser(env, request);
     const db = requireDb(env);
     const body = await readJson(request);
-    if (!Array.isArray(body.items) || body.items.length > 10) {
-      throw new HttpError("A draft can contain up to ten albums.", 400, "invalid_list");
+    if (!Array.isArray(body.items) || body.items.length > MAX_ALBUMS) {
+      throw new HttpError(`A draft can contain up to ${MAX_ALBUMS} albums.`, 400, "invalid_list");
     }
 
     const items = body.items.map((item, index) => {

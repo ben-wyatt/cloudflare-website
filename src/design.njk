@@ -35,9 +35,40 @@ bodyClass: "design-page"
   </div>
 </section>
 
+<section class="design-section" aria-labelledby="type-title">
+  <div class="design-section-heading">
+    <p class="design-kicker">02 / type ceiling</p>
+    <h2 id="type-title">Let the Blog set the ceiling.</h2>
+    <p>For normal page copy and interface text, the Blog is the reference scale and measure. Use <code>--content-width</code> for text-led pages; wider shells are reserved for multi-column workspace states. Larger type should be a deliberate exception documented here.</p>
+  </div>
+  <dl class="design-type-grid">
+    <div>
+      <dt>Text measure</dt>
+      <dd><code>--content-width / 720px</code> maximum</dd>
+    </div>
+    <div>
+      <dt>Body copy</dt>
+      <dd><code>1rem</code> maximum</dd>
+    </div>
+    <div>
+      <dt>H1</dt>
+      <dd><code>2.6rem</code> maximum</dd>
+    </div>
+    <div>
+      <dt>H2</dt>
+      <dd><code>2.1rem</code> maximum</dd>
+    </div>
+    <div>
+      <dt>H3</dt>
+      <dd><code>1.6rem</code> maximum</dd>
+    </div>
+  </dl>
+  <p class="design-type-note"><strong>Records rule:</strong> keep the Record Club on this Blog scale. The local guide’s oversized hero and the editorial Georgia masthead in “Who Picked It?” are intentional display exceptions, not defaults.</p>
+</section>
+
 <section class="design-section" aria-labelledby="principles-title">
   <div class="design-section-heading">
-    <p class="design-kicker">02 / principles</p>
+    <p class="design-kicker">03 / principles</p>
     <h2 id="principles-title">Quiet structure, deliberate signals.</h2>
   </div>
   <div class="design-principles">
@@ -61,12 +92,17 @@ bodyClass: "design-page"
       <h3>Play is optional.</h3>
       <p>Motion, game feedback, and the Easter egg can add delight, but all essential states remain legible without color or animation.</p>
     </article>
+    <article>
+      <span class="design-principle-number">05</span>
+      <h3>Markup stays simple.</h3>
+      <p>Prefer the simplest HTML possible unless it hinders the user experience. Add structure only when it improves meaning, access, or interaction.</p>
+    </article>
   </div>
 </section>
 
 <section class="design-section" aria-labelledby="tokens-title">
   <div class="design-section-heading">
-    <p class="design-kicker">03 / token map</p>
+    <p class="design-kicker">04 / token map</p>
     <h2 id="tokens-title">Use roles, not color names.</h2>
     <p>These are the stable contracts for future pages. A new game can swap palettes without rewriting its component logic.</p>
   </div>
@@ -109,7 +145,7 @@ bodyClass: "design-page"
 
 <section class="design-section" aria-labelledby="palette-index-title">
   <div class="design-section-heading">
-    <p class="design-kicker">04 / palette index</p>
+    <p class="design-kicker">05 / palette index</p>
     <h2 id="palette-index-title">Six ways to change the weather.</h2>
     <p>Every palette shares the same semantic roles and status colors. What changes is the emotional temperature: the primary/secondary pairing, the muted text, and the subtle tint in the surfaces.</p>
   </div>
@@ -167,7 +203,7 @@ bodyClass: "design-page"
 
 <section class="design-section" aria-labelledby="easter-title">
   <div class="design-section-heading">
-    <p class="design-kicker">05 / the hidden switch</p>
+    <p class="design-kicker">06 / the hidden switch</p>
     <h2 id="easter-title">Keep the Easter egg.</h2>
   </div>
   <div class="design-easter-grid">
@@ -183,7 +219,7 @@ bodyClass: "design-page"
 
 <section class="design-section design-implementation" aria-labelledby="implementation-title">
   <div class="design-section-heading">
-    <p class="design-kicker">06 / implementation</p>
+    <p class="design-kicker">07 / implementation</p>
     <h2 id="implementation-title">A component should read like this.</h2>
     <p>Prefer the tokens below in new CSS. If a component needs a new role, add it to the system instead of reaching for a raw hex value.</p>
   </div>
