@@ -10,7 +10,7 @@
   --records-line: rgba(127, 127, 127, 0.28);
   --records-soft: rgba(127, 127, 127, 0.09);
   --records-softer: rgba(127, 127, 127, 0.05);
-  --records-danger: #c75a5a;
+  --records-danger: var(--color-danger);
 }
 
 .records-hero {
@@ -97,8 +97,8 @@
 }
 
 .auth-switch button.is-active {
-  background: var(--link-internal);
-  color: #111;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 .records-form {
@@ -133,7 +133,7 @@
 .records-form input:focus,
 .album-search-form input:focus,
 .ranked-review:focus {
-  outline: 2px solid color-mix(in srgb, var(--link-internal) 68%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--color-primary) 68%, transparent);
   outline-offset: 2px;
 }
 
@@ -162,8 +162,8 @@
 }
 
 .records-primary {
-  background: var(--link-internal);
-  color: #111;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   border-color: transparent;
   font-weight: 700;
 }
@@ -460,8 +460,10 @@ button:disabled {
   --game-ink: currentColor;
   --game-rule: rgba(127, 127, 127, 0.32);
   --game-soft: rgba(127, 127, 127, 0.08);
-  --game-correct: #2f7d4a;
-  --game-wrong: #b4463d;
+  --game-primary: var(--color-primary);
+  --game-secondary: var(--color-secondary);
+  --game-correct: var(--color-success);
+  --game-wrong: var(--color-danger);
   max-width: 760px;
   margin: 0 auto;
 }
@@ -509,12 +511,67 @@ button:disabled {
   color: var(--em-color);
 }
 
+.game-scoreboard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 430px;
+  margin: 1.25rem auto 0;
+  border-top: 2px solid var(--game-secondary);
+  border-bottom: 1px solid var(--game-rule);
+}
+
+.game-score-stat {
+  display: grid;
+  gap: 0.08rem;
+  padding: 0.65rem 0.8rem 0.58rem;
+}
+
+.game-score-stat + .game-score-stat {
+  border-left: 1px solid var(--game-rule);
+}
+
+.game-score-stat strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--game-secondary);
+}
+
+.game-score-stat-primary strong {
+  color: var(--game-primary);
+}
+
+.game-score-stat span {
+  color: var(--em-color);
+  font-size: 0.68rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.game-score-stat.is-updating strong {
+  animation: game-score-tick 650ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.game-scoring-rule {
+  margin: 0.75rem auto 0;
+  color: var(--em-color);
+  font-size: 0.76rem;
+}
+
+.game-scoring-rule strong {
+  color: var(--game-secondary);
+}
+
 .game-round {
   display: grid;
   grid-template-columns: minmax(240px, 340px) minmax(0, 1fr);
   gap: clamp(1.5rem, 5vw, 3rem);
   align-items: start;
   padding: 1rem 0 2rem;
+}
+
+.game-round.is-entering {
+  animation: game-round-in 420ms ease-out both;
 }
 
 .game-cover-frame {
@@ -528,6 +585,13 @@ button:disabled {
   border-radius: 3px;
   background: var(--game-soft);
   box-shadow: 7px 7px 0 var(--game-rule);
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+}
+
+.game-round.is-solved .game-cover-wrap {
+  border-color: var(--game-correct);
+  box-shadow: 7px 7px 0 color-mix(in srgb, var(--game-correct) 42%, transparent);
+  animation: game-cover-solved 620ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .game-cover-wrap::after {
@@ -551,6 +615,31 @@ button:disabled {
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
+}
+
+.game-points-burst {
+  position: absolute;
+  z-index: 2;
+  top: 0.8rem;
+  left: 50%;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--game-correct) 55%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-color-light) 90%, transparent);
+  color: var(--game-correct);
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+  pointer-events: none;
+}
+
+[data-theme="dark"] .game-points-burst {
+  background: color-mix(in srgb, var(--bg-color-dark) 90%, transparent);
+}
+
+.game-points-burst.is-showing {
+  display: block !important;
+  animation: game-points-burst 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .game-progress {
@@ -594,7 +683,7 @@ button:disabled {
 .game-clue-label {
   display: block;
   margin-bottom: 0.2rem;
-  color: var(--em-color);
+  color: var(--game-secondary);
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -611,6 +700,14 @@ button:disabled {
   font-family: inherit;
   color: var(--em-color);
   font-size: 0.86rem;
+}
+
+.game-clue.is-revealing {
+  animation: game-clue-reveal 520ms ease-out both;
+}
+
+.game-clue.is-revealing .game-clue-value {
+  animation: game-clue-text 520ms ease-out both;
 }
 
 .game-choices-title {
@@ -636,10 +733,28 @@ button:disabled {
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
 }
 
 .game-choice:hover:not(:disabled) {
-  background: var(--game-soft);
+  border-color: var(--game-primary);
+  background: color-mix(in srgb, var(--game-primary) 9%, transparent);
+  transform: translateY(-1px);
+}
+
+.game-choice:focus-visible {
+  outline: 2px solid var(--game-primary);
+  outline-offset: 2px;
+}
+
+.game-choice.is-pending {
+  border-color: var(--game-primary);
+  background: color-mix(in srgb, var(--game-primary) 14%, transparent);
+  animation: game-choice-press 620ms ease-in-out infinite;
+}
+
+.game-choice.is-pending:disabled {
+  opacity: 1;
 }
 
 .game-choice.is-wrong {
@@ -657,10 +772,18 @@ button:disabled {
   text-decoration: none;
 }
 
+.game-choice.is-new-wrong {
+  animation: game-choice-wrong 380ms ease-out;
+}
+
 .game-choice.is-correct {
   border-color: var(--game-correct);
   background: color-mix(in srgb, var(--game-correct) 16%, transparent);
   font-weight: 700;
+}
+
+.game-choice.is-new-correct {
+  animation: game-choice-correct 560ms cubic-bezier(0.2, 0.9, 0.25, 1.25);
 }
 
 .game-choice:disabled {
@@ -690,6 +813,82 @@ button:disabled {
 
 .game-next {
   min-width: 180px;
+}
+
+@keyframes game-round-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes game-choice-press {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+  50% { transform: scale(0.985); box-shadow: 0 0 0 4px color-mix(in srgb, var(--game-primary) 14%, transparent); }
+}
+
+@keyframes game-choice-wrong {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  55% { transform: translateX(4px); }
+  78% { transform: translateX(-2px); }
+}
+
+@keyframes game-choice-correct {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.045); box-shadow: 0 0 0 5px color-mix(in srgb, var(--game-correct) 18%, transparent); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+}
+
+@keyframes game-clue-reveal {
+  from { background: color-mix(in srgb, var(--game-secondary) 18%, transparent); }
+  to { background: transparent; }
+}
+
+@keyframes game-clue-text {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes game-cover-solved {
+  0% { transform: rotate(0); }
+  45% { transform: rotate(-0.8deg) scale(1.015); }
+  100% { transform: rotate(0) scale(1); }
+}
+
+@keyframes game-points-burst {
+  0% { opacity: 0; transform: translate(-50%, 10px) scale(0.8); }
+  25% { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+  70% { opacity: 1; transform: translate(-50%, -5px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -14px) scale(0.96); }
+}
+
+@keyframes game-score-tick {
+  0% { transform: translateY(0); }
+  45% { color: var(--game-correct); transform: translateY(-3px) scale(1.08); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .records-primary,
+  .album-search-form button,
+  .album-add-button,
+  .ranked-action,
+  .ranked-grabber,
+  .game-choice,
+  .game-cover-wrap {
+    transition: none;
+  }
+
+  .game-round.is-entering,
+  .game-round.is-solved .game-cover-wrap,
+  .game-choice.is-pending,
+  .game-choice.is-new-wrong,
+  .game-choice.is-new-correct,
+  .game-clue.is-revealing,
+  .game-clue.is-revealing .game-clue-value,
+  .game-points-burst.is-showing,
+  .game-score-stat.is-updating strong {
+    animation: none;
+  }
 }
 
 @media (max-width: 820px) {

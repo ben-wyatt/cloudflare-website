@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Who Picked It? · Record Club
 permalink: "/records/game/"
-pageStyles: "/styles/records.css?v=record-game"
-pageScript: "/assets/js/record-game.js?v=record-game"
+pageStyles: "/styles/records.css?v=game-score"
+pageScript: "/assets/js/record-game.js?v=game-score"
 bodyClass: "records-page record-game-page"
 ---
 
@@ -29,6 +29,21 @@ bodyClass: "records-page record-game-page"
       <p class="records-eyebrow">a record club guessing game</p>
       <h1 id="game-title">Who Picked It?</h1>
       <p class="game-deck">Match the mystery record to the person who put it on their list. Every miss unlocks another clue.</p>
+      <div class="game-scoreboard" aria-label="Your game statistics">
+        <div class="game-score-stat game-score-stat-primary">
+          <strong id="game-total-points">0</strong>
+          <span>points</span>
+        </div>
+        <div class="game-score-stat">
+          <strong id="game-rounds-solved">0</strong>
+          <span>solved</span>
+        </div>
+        <div class="game-score-stat">
+          <strong id="game-perfect-rounds">0</strong>
+          <span>perfect</span>
+        </div>
+      </div>
+      <p class="game-scoring-rule"><strong>Accuracy pays:</strong> 1st guess 1,000 · 2nd 750 · 3rd 500 · 4th 300 · then −50 each (50 minimum)</p>
     </header>
 
     <section id="game-round" class="game-round" hidden aria-label="Current mystery record">
@@ -36,6 +51,7 @@ bodyClass: "records-page record-game-page"
         <figure class="game-cover-frame">
           <div class="game-cover-wrap">
             <img id="game-cover" class="game-cover" src="" alt="Mystery album cover">
+            <span id="game-points-burst" class="game-points-burst" hidden aria-hidden="true"></span>
           </div>
           <figcaption class="sr-only">A randomly selected cover from a Record Club member's list.</figcaption>
         </figure>

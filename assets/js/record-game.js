@@ -14,6 +14,10 @@
     artistClue: document.getElementById("game-artist-clue"),
     reviewClue: document.getElementById("game-review-clue"),
     progress: document.getElementById("game-progress"),
+    totalPoints: document.getElementById("game-total-points"),
+    roundsSolved: document.getElementById("game-rounds-solved"),
+    perfectRounds: document.getElementById("game-perfect-rounds"),
+    pointsBurst: document.getElementById("game-points-burst"),
   };
 
   if (!elements.loading) return;
@@ -25,7 +29,18 @@
     clueLevel: 0,
     guessing: false,
     solved: false,
+    pendingUserId: "",
+    feedbackUserId: "",
+    scoreboard: {
+      totalPoints: 0,
+      roundsSolved: 0,
+      perfectRounds: 0,
+    },
+    scoreFrame: 0,
   };
+
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || false;
+  const numberFormatter = new Intl.NumberFormat();
 
   class ApiError extends Error {
     constructor(message, status, code) {
@@ -73,16 +88,76 @@
     elements.status.classList.toggle("is-correct", kind === "correct");
   }
 
+  function restartAnimation(element, className) {
+    element.classList.remove(className);
+    void element.offsetWidth;
+    element.classList.add(className);
+  }
+
+  function renderScoreboard(scoreboard = {}, animate = false) {
+    const next = {
+      totalPoints: Number(scoreboard.totalPoints || 0),
+      roundsSolved: Number(scoreboard.roundsSolved || 0),
+      perfectRounds: Number(scoreboard.perfectRounds || 0),
+    };
+    const previous = state.scoreboard;
+    state.scoreboard = next;
+
+    cancelAnimationFrame(state.scoreFrame);
+    elements.roundsSolved.textContent = numberFormatter.format(next.roundsSolved);
+    elements.perfectRounds.textContent = numberFormatter.format(next.perfectRounds);
+
+    if (!animate || reducedMotion || previous.totalPoints === next.totalPoints) {
+      elements.totalPoints.textContent = numberFormatter.format(next.totalPoints);
+    } else {
+      const startedAt = performance.now();
+      const duration = 650;
+      const tick = (now) => {
+        const progress = Math.min((now - startedAt) / duration, 1);
+        const eased = 1 - ((1 - progress) ** 3);
+        const value = Math.round(previous.totalPoints + ((next.totalPoints - previous.totalPoints) * eased));
+        elements.totalPoints.textContent = numberFormatter.format(value);
+        if (progress < 1) state.scoreFrame = requestAnimationFrame(tick);
+      };
+      state.scoreFrame = requestAnimationFrame(tick);
+    }
+
+    if (animate) {
+      [
+        [elements.totalPoints, previous.totalPoints !== next.totalPoints],
+        [elements.roundsSolved, previous.roundsSolved !== next.roundsSolved],
+        [elements.perfectRounds, previous.perfectRounds !== next.perfectRounds],
+      ].forEach(([element, changed]) => {
+        if (!changed) return;
+        restartAnimation(element.closest(".game-score-stat"), "is-updating");
+      });
+    }
+  }
+
+  function showPointsBurst(points) {
+    elements.pointsBurst.textContent = `+${numberFormatter.format(points)}`;
+    elements.pointsBurst.hidden = false;
+    restartAnimation(elements.pointsBurst, "is-showing");
+    window.setTimeout(() => {
+      elements.pointsBurst.hidden = true;
+      elements.pointsBurst.classList.remove("is-showing");
+    }, 950);
+  }
+
   function setClue(element, value, fallback) {
     const revealed = typeof value === "string";
     element.textContent = revealed ? (value || fallback) : fallback;
     element.classList.toggle("is-locked", !revealed);
   }
 
-  function renderClues(clues = {}) {
+  function renderClues(clues = {}, revealedLevel = 0) {
     setClue(elements.albumClue, clues.albumName, "Unlocks after one miss");
     setClue(elements.artistClue, clues.artistName, "Unlocks after two misses");
     setClue(elements.reviewClue, clues.review, "Unlocks after three misses");
+
+    [elements.albumClue, elements.artistClue, elements.reviewClue].forEach((element, index) => {
+      element.parentElement.classList.toggle("is-revealing", revealedLevel === index + 1);
+    });
 
     const dots = [...elements.progress.children];
     dots.forEach((dot, index) => {
@@ -105,8 +180,14 @@
 
       const guessed = state.guessedUserIds.has(choice.userId);
       const correct = state.solved && choice.userId === correctUserId;
+      const pending = state.guessing && choice.userId === state.pendingUserId;
       button.classList.toggle("is-wrong", guessed && !correct);
       button.classList.toggle("is-correct", correct);
+      button.classList.toggle("is-pending", pending);
+      button.classList.toggle("is-new-wrong", guessed && !correct && choice.userId === state.feedbackUserId);
+      button.classList.toggle("is-new-correct", correct && choice.userId === state.feedbackUserId);
+      if (guessed && !correct) button.setAttribute("aria-label", `${choice.username}, incorrect guess`);
+      if (correct) button.setAttribute("aria-label", `${choice.username}, correct answer`);
       button.disabled = state.guessing || state.solved || guessed;
       button.addEventListener("click", () => makeGuess(choice));
       return button;
@@ -121,13 +202,21 @@
     state.clueLevel = 0;
     state.guessing = false;
     state.solved = false;
+    state.pendingUserId = "";
+    state.feedbackUserId = "";
+    elements.choices.setAttribute("aria-busy", "false");
     elements.cover.src = payload.coverUrl;
     elements.cover.alt = "Mystery album cover";
     elements.next.hidden = true;
     elements.round.hidden = false;
+    elements.round.classList.remove("is-solved", "is-entering");
+    void elements.round.offsetWidth;
+    elements.round.classList.add("is-entering");
+    elements.pointsBurst.hidden = true;
     setStatus();
     renderClues({});
     renderChoices();
+    renderScoreboard(payload.scoreboard);
   }
 
   async function startRound() {
@@ -152,6 +241,9 @@
   async function makeGuess(choice) {
     if (state.guessing || state.solved || state.guessedUserIds.has(choice.userId)) return;
     state.guessing = true;
+    state.pendingUserId = choice.userId;
+    state.feedbackUserId = "";
+    elements.choices.setAttribute("aria-busy", "true");
     renderChoices();
     setStatus("Checking…");
 
@@ -165,16 +257,26 @@
         },
       });
 
+      const previousClueLevel = state.clueLevel;
       state.guessedUserIds.add(choice.userId);
       state.clueLevel = payload.clueLevel;
       state.solved = payload.correct;
       state.guessing = false;
-      renderClues(payload.clues);
+      state.pendingUserId = "";
+      state.feedbackUserId = choice.userId;
+      elements.choices.setAttribute("aria-busy", "false");
+      const revealedLevel = !payload.correct && state.clueLevel > previousClueLevel
+        ? state.clueLevel
+        : 0;
+      renderClues(payload.clues, revealedLevel);
 
       if (payload.correct) {
         elements.cover.alt = `${payload.clues.albumName} album cover`;
+        elements.round.classList.add("is-solved");
         renderChoices(payload.answer.userId);
-        setStatus(`Correct — ${payload.answer.username} picked it. Solved in ${payload.guessCount} ${payload.guessCount === 1 ? "guess" : "guesses"}.`, "correct");
+        renderScoreboard(payload.scoreboard, true);
+        showPointsBurst(payload.pointsAwarded);
+        setStatus(`Correct — ${payload.answer.username} picked it. +${numberFormatter.format(payload.pointsAwarded)} points in ${payload.guessCount} ${payload.guessCount === 1 ? "guess" : "guesses"}.`, "correct");
         elements.next.hidden = false;
       } else {
         renderChoices();
@@ -185,13 +287,17 @@
       }
     } catch (error) {
       state.guessing = false;
-      renderChoices();
+      state.pendingUserId = "";
+      state.feedbackUserId = "";
+      elements.choices.setAttribute("aria-busy", "false");
       if (error.code === "round_expired" || error.code === "round_finished") {
+        state.solved = true;
         setStatus(`${error.message} Start another record.`, "wrong");
         elements.next.hidden = false;
       } else {
         setStatus(error.message, "wrong");
       }
+      renderChoices();
     }
   }
 

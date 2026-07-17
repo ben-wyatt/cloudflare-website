@@ -13,6 +13,29 @@ const SEASON = 2026;
 const ROUND_TTL_MS = 6 * 60 * 60 * 1000;
 const MAX_CLUE_LEVEL = 3;
 
+function pointsForGuessCount(guessCount) {
+  const awards = [1000, 750, 500, 300];
+  if (guessCount <= awards.length) return awards[guessCount - 1];
+  return Math.max(50, awards[awards.length - 1] - ((guessCount - awards.length) * 50));
+}
+
+async function getScoreboard(db, playerId) {
+  const score = await db.prepare(
+    `SELECT
+       COALESCE(SUM(points), 0) AS totalPoints,
+       COUNT(*) AS roundsSolved,
+       COALESCE(SUM(CASE WHEN guesses = 1 THEN 1 ELSE 0 END), 0) AS perfectRounds
+     FROM record_game_results
+     WHERE player_user_id = ?`,
+  ).bind(playerId).first();
+
+  return {
+    totalPoints: Number(score?.totalPoints || 0),
+    roundsSolved: Number(score?.roundsSolved || 0),
+    perfectRounds: Number(score?.perfectRounds || 0),
+  };
+}
+
 function requireGameAccess(user) {
   if (normalizeUsername(user.username) !== GAME_USERNAME) {
     throw new HttpError("This game is only available on ben's account.", 403, "game_forbidden");
@@ -28,7 +51,7 @@ function cluesFor(round, clueLevel) {
 }
 
 async function createRound(db, player) {
-  const [answer, users] = await Promise.all([
+  const [answer, users, scoreboard] = await Promise.all([
     db.prepare(
       `SELECT li.id AS listItemId, a.image_url AS coverUrl
        FROM record_list_items li
@@ -45,6 +68,7 @@ async function createRound(db, player) {
        FROM record_users
        ORDER BY username COLLATE NOCASE ASC`,
     ).all(),
+    getScoreboard(db, player.id),
   ]);
 
   if (!answer) {
@@ -73,6 +97,7 @@ async function createRound(db, player) {
     clueLevel: 0,
     clues: {},
     choices: users.results || [],
+    scoreboard,
   };
 }
 
@@ -140,11 +165,17 @@ async function guessRound(db, player, body) {
   ];
 
   if (correct) {
+    const pointsAwarded = pointsForGuessCount(guessCount);
     statements.push(db.prepare(
       `UPDATE record_game_rounds
        SET clue_level = ?, guess_count = ?, solved_at = ?
        WHERE id = ?`,
     ).bind(clueLevel, guessCount, now, roundId));
+    statements.push(db.prepare(
+      `INSERT INTO record_game_results
+         (round_id, player_user_id, points, guesses, clues_used, solved_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    ).bind(roundId, player.id, pointsAwarded, guessCount, Number(round.clueLevel), now));
   } else {
     statements.push(db.prepare(
       `UPDATE record_game_rounds
@@ -161,6 +192,8 @@ async function guessRound(db, player, body) {
     clues: cluesFor(round, clueLevel),
   };
   if (correct) {
+    response.pointsAwarded = pointsForGuessCount(guessCount);
+    response.scoreboard = await getScoreboard(db, player.id);
     response.answer = {
       userId: round.answerUserId,
       username: round.answerUsername,
