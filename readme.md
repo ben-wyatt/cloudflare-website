@@ -4,9 +4,11 @@ The private `/records/` app adds invite-only accounts, a saved top-ten draft,
 Spotify album search, ordering controls, and short reviews. It uses Cloudflare
 Pages Functions and D1 while keeping the rest of the Eleventy site static.
 
-The `ben` account also gets a private `/records/game/` screen. “Who Picked It?”
-chooses a reviewed album from the current 2026 lists and asks Ben to match it to
-a member. Misses reveal the album title, artist, and member note in that order.
+Each access code places an account in a private friend group. The unfinished
+`/records/game/` screen remains locked to the `ben` account; its data queries
+are group-scoped so it can be opened to other groups later. “Who Picked It?”
+chooses a reviewed album from the current 2026 lists and asks Ben to match it
+to a member. Misses reveal the album title, artist, and member note in that order.
 The answer and unrevealed clues stay in D1-backed game rounds rather than being
 sent to the browser.
 
@@ -17,7 +19,7 @@ sent to the browser.
    Development Mode rules. The app does not need a redirect URI because the
    site uses Client Credentials for public album metadata.
 2. Copy `.dev.vars.example` to `.dev.vars` and fill in the Spotify client ID,
-   Spotify client secret, and the signup access code you want to share.
+   Spotify client secret, and the group signup access codes you want to share.
 3. Initialize the local database and start the full app:
 
    ```bash
@@ -32,8 +34,9 @@ does not run the `/api/*` backend.
 
 The production `record-club` D1 database and Pages binding are declared in
 `wrangler.toml`. `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, and
-`SIGNUP_ACCESS_CODE` are encrypted Pages secrets. `MAX_RECORD_MEMBERS` is an
-optional environment variable and defaults to 25.
+`SIGNUP_ACCESS_CODE`, `DEV_ENVIRONMENT_ACCESS_CODE`, and
+`EY_MT_JUNIORS_ACCESS_CODE` are encrypted Pages secrets. `MAX_RECORD_MEMBERS`
+is an optional per-group limit and defaults to 25.
 
 When a future migration is added, apply it with:
 

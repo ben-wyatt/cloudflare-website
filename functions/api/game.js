@@ -55,19 +55,22 @@ async function createRound(db, player) {
     db.prepare(
       `SELECT li.id AS listItemId, a.image_url AS coverUrl
        FROM record_list_items li
+       JOIN record_users u ON u.id = li.user_id
        JOIN record_albums a ON a.spotify_id = li.spotify_album_id
        WHERE li.season = ?
+         AND u.group_id = ?
          AND a.image_url IS NOT NULL
          AND trim(a.image_url) <> ''
          AND trim(li.review) <> ''
        ORDER BY RANDOM()
        LIMIT 1`,
-    ).bind(SEASON).first(),
+    ).bind(SEASON, player.groupId).first(),
     db.prepare(
       `SELECT id AS userId, username
        FROM record_users
+       WHERE group_id = ?
        ORDER BY username COLLATE NOCASE ASC`,
-    ).all(),
+    ).bind(player.groupId).all(),
     getScoreboard(db, player.id),
   ]);
 
@@ -101,7 +104,7 @@ async function createRound(db, player) {
   };
 }
 
-async function getRound(db, roundId, playerId) {
+async function getRound(db, roundId, player) {
   const round = await db.prepare(
     `SELECT
        r.id,
@@ -118,8 +121,8 @@ async function getRound(db, roundId, playerId) {
      JOIN record_list_items li ON li.id = r.answer_list_item_id
      JOIN record_albums a ON a.spotify_id = li.spotify_album_id
      JOIN record_users u ON u.id = li.user_id
-     WHERE r.id = ? AND r.player_user_id = ?`,
-  ).bind(roundId, playerId).first();
+     WHERE r.id = ? AND r.player_user_id = ? AND u.group_id = ?`,
+  ).bind(roundId, player.id, player.groupId).first();
 
   if (!round || round.expiresAt <= new Date().toISOString()) {
     throw new HttpError("That round has expired.", 410, "round_expired");
@@ -137,9 +140,10 @@ async function guessRound(db, player, body) {
     throw new HttpError("Choose one of the listed members.", 400, "invalid_guess");
   }
 
-  const round = await getRound(db, roundId, player.id);
+  const round = await getRound(db, roundId, player);
   const [guessedUser, previousGuess] = await Promise.all([
-    db.prepare("SELECT id FROM record_users WHERE id = ?").bind(guessedUserId).first(),
+    db.prepare("SELECT id FROM record_users WHERE id = ? AND group_id = ?")
+      .bind(guessedUserId, player.groupId).first(),
     db.prepare(
       "SELECT 1 AS found FROM record_game_guesses WHERE round_id = ? AND guessed_user_id = ?",
     ).bind(roundId, guessedUserId).first(),

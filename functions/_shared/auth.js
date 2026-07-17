@@ -92,6 +92,25 @@ export async function verifyAccessCode(candidate, expected) {
   return constantTimeEqual(candidateHash, expectedHash);
 }
 
+export async function resolveAccessGroup(env, candidate) {
+  const configuredGroups = [
+    { groupId: "friends", accessCode: env.SIGNUP_ACCESS_CODE },
+    { groupId: "development", accessCode: env.DEV_ENVIRONMENT_ACCESS_CODE },
+    { groupId: "ey-mt-juniors", accessCode: env.EY_MT_JUNIORS_ACCESS_CODE },
+  ].filter((group) => group.accessCode);
+
+  if (!configuredGroups.length) return { configured: false, groupId: null };
+
+  const matches = await Promise.all(
+    configuredGroups.map((group) => verifyAccessCode(candidate, group.accessCode)),
+  );
+  const matchIndex = matches.findIndex(Boolean);
+  return {
+    configured: true,
+    groupId: matchIndex === -1 ? null : configuredGroups[matchIndex].groupId,
+  };
+}
+
 function getCookie(request, name) {
   const cookieHeader = request.headers.get("cookie") || "";
   for (const cookie of cookieHeader.split(";")) {
@@ -133,7 +152,7 @@ export async function getSessionUser(env, request) {
   const db = requireDb(env);
   const tokenHash = encodeBase64Url(await sha256(sessionToken));
   const user = await db.prepare(
-    `SELECT u.id, u.username
+    `SELECT u.id, u.username, u.group_id AS groupId
      FROM record_sessions s
      JOIN record_users u ON u.id = s.user_id
      WHERE s.token_hash = ? AND s.expires_at > ?`,

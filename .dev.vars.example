@@ -2,4 +2,6 @@
 SPOTIFY_CLIENT_ID="your-spotify-client-id"
 SPOTIFY_CLIENT_SECRET="your-spotify-client-secret"
 SIGNUP_ACCESS_CODE="the-code-you-will-share-with-friends"
+DEV_ENVIRONMENT_ACCESS_CODE="the-code-for-synthetic-development-users"
+EY_MT_JUNIORS_ACCESS_CODE="the-code-for-ey-mt-juniors"
 MAX_RECORD_MEMBERS="25"

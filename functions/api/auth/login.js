@@ -9,7 +9,7 @@ export async function onRequestPost({ request, env }) {
     const username = normalizeUsername(body.username);
     const password = String(body.password || "");
     const user = await db.prepare(
-      `SELECT id, username, password_hash, password_salt, password_iterations
+      `SELECT id, username, password_hash, password_salt, password_iterations, group_id AS groupId
        FROM record_users WHERE username = ?`,
     ).bind(username).first();
 
@@ -24,7 +24,9 @@ export async function onRequestPost({ request, env }) {
     }
 
     const cookie = await createSession(env, request, user.id);
-    return json({ user: { id: user.id, username: user.username } }, 200, { "set-cookie": cookie });
+    return json({
+      user: { id: user.id, username: user.username, groupId: user.groupId },
+    }, 200, { "set-cookie": cookie });
   } catch (error) {
     return handleApiError(error);
   }

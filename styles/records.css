@@ -1164,6 +1164,14 @@ button:disabled {
     row-gap: 0.5rem;
   }
 
+  .ranked-copy .album-title {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+  }
+
   .ranked-tracks-summary {
     font-size: 0.78rem;
     white-space: nowrap;
@@ -1184,11 +1192,5 @@ button:disabled {
 
   .game-choices {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .ranked-copy {
-    grid-column: 2 / -1;
   }
 }
