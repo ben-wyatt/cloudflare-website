@@ -5,15 +5,16 @@ CREATE TABLE IF NOT EXISTS record_groups (
 );
 
 INSERT OR IGNORE INTO record_groups (id, name, created_at) VALUES
-  ('friends', 'Friends', '2026-07-17T00:00:00.000Z'),
   ('development', 'Development', '2026-07-17T00:00:00.000Z'),
+  ('wyatt-fam', 'Wyatt Family', '2026-07-17T00:00:00.000Z'),
+  ('badabing', 'Badabing', '2026-07-17T00:00:00.000Z'),
   ('ey-mt-juniors', 'EY MT Juniors', '2026-07-17T00:00:00.000Z');
 
 ALTER TABLE record_users
   ADD COLUMN group_id TEXT REFERENCES record_groups(id);
 
 UPDATE record_users
-SET group_id = 'friends'
+SET group_id = 'badabing'
 WHERE group_id IS NULL;
 
 UPDATE record_users

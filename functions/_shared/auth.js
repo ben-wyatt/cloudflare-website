@@ -94,8 +94,10 @@ export async function verifyAccessCode(candidate, expected) {
 
 export async function resolveAccessGroup(env, candidate) {
   const configuredGroups = [
-    { groupId: "friends", accessCode: env.SIGNUP_ACCESS_CODE },
     { groupId: "development", accessCode: env.DEV_ENVIRONMENT_ACCESS_CODE },
+    { groupId: "wyatt-fam", accessCode: env.WYATT_FAM_ACCESS_CODE },
+    // Keep the original secret working while it is renamed in Cloudflare.
+    { groupId: "badabing", accessCode: env.BADABING_ACCESS_CODE || env.SIGNUP_ACCESS_CODE },
     { groupId: "ey-mt-juniors", accessCode: env.EY_MT_JUNIORS_ACCESS_CODE },
   ].filter((group) => group.accessCode);
 
