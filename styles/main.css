@@ -8,21 +8,59 @@
 }
 
 /* ====================================
-   Color System
-   - Design tokens (neutrals, links/emphasis)
-   - Code token palettes (Prism fallback)
-   - Theme and accent palette overrides
+   Ben Wyatt Design System
+   - Palette-independent foundation tokens
+   - Semantic roles shared by blog, tools, and games
+   - Accent values generated from src/_data/palettes.js
    ==================================== */
 
 :root {
-  /* Core surfaces and text (light/dark defaults) */
+  /* Foundation: restrained surfaces leave room for the accent to carry mood. */
   --bg-color-light: #fafafa;
   --text-color-light: #3a2a1f;
   --bg-color-dark: #1a1a1a;
   --text-color-dark: #f0e6dc;
+  --content-width: 720px;
+  --wide-content-width: 1120px;
 
-  /* Legacy link token (not referenced directly) */
-  --link-color: #7fb3ff; /* legacy */
+  /* Fallback accent values are replaced by the generated palette stylesheet. */
+  --palette-primary-light: #315fba;
+  --palette-primary-strong-light: #244a91;
+  --palette-secondary-light: #6f4aa8;
+  --palette-secondary-strong-light: #583783;
+  --palette-internal-light: #315fba;
+  --palette-external-light: #6f4aa8;
+  --palette-muted-light: #586f87;
+  --palette-subtle-light: #8392a4;
+  --palette-background-light: #fafafa;
+  --palette-surface-light: #ffffff;
+  --palette-surface-soft-light: #f4f5f8;
+  --palette-surface-sunken-light: #eceff4;
+  --palette-ink-light: #302b2a;
+  --palette-border-light: #d5dbe4;
+  --palette-border-strong-light: #9aa8bb;
+  --palette-on-primary-light: #ffffff;
+  --palette-on-secondary-light: #ffffff;
+  --palette-primary-dark: #8fb9ff;
+  --palette-primary-strong-dark: #b2ceff;
+  --palette-secondary-dark: #c5a3ff;
+  --palette-secondary-strong-dark: #ded2ff;
+  --palette-internal-dark: #8fb9ff;
+  --palette-external-dark: #c5a3ff;
+  --palette-muted-dark: #96a3b5;
+  --palette-subtle-dark: #6e7a8f;
+  --palette-background-dark: #1a1a1a;
+  --palette-surface-dark: #232323;
+  --palette-surface-soft-dark: #202329;
+  --palette-surface-sunken-dark: #111317;
+  --palette-ink-dark: #f0e6dc;
+  --palette-border-dark: #3a424f;
+  --palette-border-strong-dark: #68778c;
+  --palette-on-primary-dark: #111522;
+  --palette-on-secondary-dark: #16121f;
+
+  /* Legacy link token retained for small external integrations. */
+  --link-color: var(--palette-internal-light);
 
   /* Default accent tokens (overridden by theme/palette below) */
   --color-primary: #315fba;
@@ -67,196 +105,89 @@
 
 html { scroll-behavior: auto; }
 
-/* Theme base: maps tokens to concrete light colors */
+/* Light and dark modes map the same semantic roles to different values. */
 html.light, [data-theme="light"] {
-  background-color: var(--bg-color-light);
-  color: var(--text-color-light);
-  --color-primary: #315fba;
-  --color-secondary: #6f4aa8;
-  --color-on-primary: #ffffff;
-  --color-on-secondary: #ffffff;
-  --em-color: #627892;
-  --bold-color: #518adf;
-  --link-internal: #7fb3ff;
-  --link-external: #7fb3ff;
+  color-scheme: light;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  --color-bg: var(--palette-background-light);
+  --color-surface: var(--palette-surface-light);
+  --color-surface-soft: var(--palette-surface-soft-light);
+  --color-surface-sunken: var(--palette-surface-sunken-light);
+  --color-text: var(--palette-ink-light);
+  --color-text-muted: var(--palette-muted-light);
+  --color-text-subtle: var(--palette-subtle-light);
+  --color-border: color-mix(in srgb, var(--palette-border-light) 88%, transparent);
+  --color-border-strong: var(--palette-border-strong-light);
+  --color-primary: var(--palette-primary-light);
+  --color-primary-strong: var(--palette-primary-strong-light);
+  --color-secondary: var(--palette-secondary-light);
+  --color-secondary-strong: var(--palette-secondary-strong-light);
+  --color-on-primary: var(--palette-on-primary-light);
+  --color-on-secondary: var(--palette-on-secondary-light);
+  --color-focus: var(--palette-primary-light);
   --color-success: #2f7d4a;
+  --color-warning: #8a5a13;
   --color-danger: #a43d35;
+  --color-info: #315fba;
+  --link-internal: var(--palette-internal-light);
+  --link-external: var(--palette-external-light);
+  --em-color: var(--color-text-muted);
+  --bold-color: var(--color-primary-strong);
 }
 
-/* Theme base: maps tokens to concrete dark colors */
 html.dark, [data-theme="dark"] {
-  background-color: var(--bg-color-dark);
-  color: var(--text-color-dark);
-  --color-primary: #8fb9ff;
-  --color-secondary: #c5a3ff;
-  --color-on-primary: #111111;
-  --color-on-secondary: #111111;
-  --em-color: #96a3b5;
-  --bold-color: #518adf;
-  --link-internal: #7fb3ff;
-  --link-external: #7fb3ff;
-  --color-success: #6fcd8c;
+  color-scheme: dark;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  --color-bg: var(--palette-background-dark);
+  --color-surface: var(--palette-surface-dark);
+  --color-surface-soft: var(--palette-surface-soft-dark);
+  --color-surface-sunken: var(--palette-surface-sunken-dark);
+  --color-text: var(--palette-ink-dark);
+  --color-text-muted: var(--palette-muted-dark);
+  --color-text-subtle: var(--palette-subtle-dark);
+  --color-border: color-mix(in srgb, var(--palette-border-dark) 88%, transparent);
+  --color-border-strong: var(--palette-border-strong-dark);
+  --color-primary: var(--palette-primary-dark);
+  --color-primary-strong: var(--palette-primary-strong-dark);
+  --color-secondary: var(--palette-secondary-dark);
+  --color-secondary-strong: var(--palette-secondary-strong-dark);
+  --color-on-primary: var(--palette-on-primary-dark);
+  --color-on-secondary: var(--palette-on-secondary-dark);
+  --color-focus: var(--palette-primary-dark);
+  --color-success: #79d69a;
+  --color-warning: #f0c273;
   --color-danger: #ff8a80;
+  --color-info: #8fb9ff;
+  --link-internal: var(--palette-internal-dark);
+  --link-external: var(--palette-external-dark);
+  --em-color: var(--color-text-muted);
+  --bold-color: var(--color-primary-strong);
 }
 
-/* Auto apply dark mode if system prefers it */
+/* A no-JavaScript fallback; the layout's head script normally sets data-theme. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     background-color: var(--bg-color-dark);
     color: var(--text-color-dark);
   }
 }
 
-/* Accent palettes (work with both light/dark modes via data-theme + data-palette) */
-/* Default palette is indigo to match current design */
-[data-theme="light"][data-palette="indigo"],
-[data-palette="indigo"][data-theme="light"] {
-  --color-primary: #315fba;
-  --color-secondary: #6f4aa8;
-  --color-on-primary: #ffffff;
-  --color-on-secondary: #ffffff;
-  --link-internal: #7fb3ff;
-  --link-external: #7fb3ff;
-  --bold-color: #518adf;
-  --em-color: #627892;
-}
-[data-theme="dark"][data-palette="indigo"],
-[data-palette="indigo"][data-theme="dark"] {
-  --color-primary: #8fb9ff;
-  --color-secondary: #c5a3ff;
-  --color-on-primary: #111111;
-  --color-on-secondary: #111111;
-  --link-internal: #7fb3ff;
-  --link-external: #7fb3ff;
-  --bold-color: #518adf;
-  --em-color: #96a3b5;
-}
-
-/* Forest */
-[data-theme="light"][data-palette="forest"],
-[data-palette="forest"][data-theme="light"] {
-  --color-primary: #2e7d32;
-  --color-secondary: #8a5a13;
-  --color-on-primary: #ffffff;
-  --color-on-secondary: #ffffff;
-  --link-internal: #2e7d32;
-  --link-external: #2e7d32;
-  --bold-color: #1b5e20;
-  --em-color: #4d6350;
-}
-[data-theme="dark"][data-palette="forest"],
-[data-palette="forest"][data-theme="dark"] {
-  --color-primary: #9ecb70;
-  --color-secondary: #e5c07b;
-  --color-on-primary: #111111;
-  --color-on-secondary: #111111;
-  --link-internal: #9ecb70;
-  --link-external: #9ecb70;
-  --bold-color: #aed581;
-  --em-color: #7a9574;
-}
-
-/* Amber */
-[data-theme="light"][data-palette="amber"],
-[data-palette="amber"][data-theme="light"] {
-  --color-primary: #8a5a13;
-  --color-secondary: #943f35;
-  --color-on-primary: #ffffff;
-  --color-on-secondary: #ffffff;
-  --link-internal: #a36f00;
-  --link-external: #a36f00;
-  --bold-color: #7a4e00;
-  --em-color: #6d5644;
-}
-[data-theme="dark"][data-palette="amber"],
-[data-palette="amber"][data-theme="dark"] {
-  --color-primary: #e5c07b;
-  --color-secondary: #e58f6a;
-  --color-on-primary: #111111;
-  --color-on-secondary: #111111;
-  --link-internal: #e5c07b;
-  --link-external: #e5c07b;
-  --bold-color: #ecc89a;
-  --em-color: #a89472;
-}
-
-/* Rose */
-[data-theme="light"][data-palette="rose"],
-[data-palette="rose"][data-theme="light"] {
-  --color-primary: #a23b43;
-  --color-secondary: #6e4f9b;
-  --color-on-primary: #ffffff;
-  --color-on-secondary: #ffffff;
-  --link-internal: #b54745;
-  --link-external: #b54745;
-  --bold-color: #8a2c2a;
-  --em-color: #7d5758;
-}
-[data-theme="dark"][data-palette="rose"],
-[data-palette="rose"][data-theme="dark"] {
-  --color-primary: #e88991;
-  --color-secondary: #c7a8ee;
-  --color-on-primary: #111111;
-  --color-on-secondary: #111111;
-  --link-internal: #e06c75;
-  --link-external: #e06c75;
-  --bold-color: #f0808a;
-  --em-color: #b0888d;
-}
-
-/* Teal */
-[data-theme="light"][data-palette="teal"],
-[data-palette="teal"][data-theme="light"] {
-  --color-primary: #007a78;
-  --color-secondary: #4964a8;
-  --color-on-primary: #ffffff;
-  --color-on-secondary: #ffffff;
-  --link-internal: #007a78;
-  --link-external: #007a78;
-  --bold-color: #025554;
-  --em-color: #3a6866;
-}
-[data-theme="dark"][data-palette="teal"],
-[data-palette="teal"][data-theme="dark"] {
-  --color-primary: #64d3c8;
-  --color-secondary: #8fb9ff;
-  --color-on-primary: #111111;
-  --color-on-secondary: #111111;
-  --link-internal: #64d3c8;
-  --link-external: #64d3c8;
-  --bold-color: #7ae0d6;
-  --em-color: #5f948e;
-}
-
-/* Purple */
-[data-theme="light"][data-palette="purple"],
-[data-palette="purple"][data-theme="light"] {
-  --color-primary: #6f45b5;
-  --color-secondary: #a23b6a;
-  --color-on-primary: #ffffff;
-  --color-on-secondary: #ffffff;
-  --link-internal: #7e57c2;
-  --link-external: #7e57c2;
-  --bold-color: #5e35b1;
-  --em-color: #6e6288;
-}
-[data-theme="dark"][data-palette="purple"],
-[data-palette="purple"][data-theme="dark"] {
-  --color-primary: #c792ea;
-  --color-secondary: #ef9bc2;
-  --color-on-primary: #111111;
-  --color-on-secondary: #111111;
-  --link-internal: #c792ea;
-  --link-external: #c792ea;
-  --bold-color: #d7aaf5;
-  --em-color: #a894c4;
-}
-
 body {
-  max-width: 720px;
+  max-width: var(--content-width);
   margin: auto;
   padding: 1rem;
   line-height: 1.6;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
 }
 
 a {
@@ -267,6 +198,15 @@ a {
 }
 a:hover {
   text-decoration-color: color-mix(in srgb, currentColor 82%, transparent);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
 }
 
 /* Internal links */
@@ -295,20 +235,43 @@ header, footer {
   margin-bottom: 2rem;
 }
 
-nav a {
-  margin-right: 0.5rem;
+.site-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.site-nav a {
   text-decoration: none;
 }
-nav a:hover {
+
+.site-nav a:hover {
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 82%, transparent);
 }
 
+.site-nav-separator {
+  color: var(--color-text-subtle);
+  user-select: none;
+}
+
 button#theme-toggle {
-  background: none;
-  border: none;
+  min-width: 2.2rem;
+  min-height: 2.2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface-soft);
+  color: var(--color-text);
   cursor: pointer;
+  font: inherit;
   font-size: 1rem;
+}
+
+button#theme-toggle:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 /* Typography */
@@ -369,14 +332,16 @@ pre {
   border-radius: 8px;
   padding: 1rem;
   margin: 1rem 0;
-  border: 1px solid rgba(127,127,127,0.2);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-sunken);
+  font-family: var(--font-body);
   tab-size: 2;
   position: relative;
 }
 
 /* Keep inline code subtle and readable in both themes */
 code:not(pre code) {
-  background: rgba(127,127,127,0.12);
+  background: var(--color-surface-soft);
   padding: 0.15em 0.35em;
   border-radius: 4px;
   font-family: var(--font-body);
@@ -393,16 +358,17 @@ code:not(pre code) {
   line-height: 1;
   padding: 0.35rem 0.5rem;
   border-radius: 999px;
-  border: 1px solid rgba(127,127,127,0.35);
-  background: rgba(127,127,127,0.12);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface-soft);
   color: inherit;
   cursor: pointer;
   transition: background 120ms ease, border-color 120ms ease, transform 100ms ease;
 }
 
 .code-copy-button:hover { 
-  background: rgba(127,127,127,0.18);
-  border-color: rgba(127,127,127,0.45);
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .code-copy-button:active {
@@ -410,8 +376,9 @@ code:not(pre code) {
 }
 
 .code-copy-button.copied {
-  background: rgba(120, 200, 120, 0.18);
-  border-color: rgba(120, 200, 120, 0.45);
+  background: color-mix(in srgb, var(--color-success) 16%, transparent);
+  border-color: var(--color-success);
+  color: var(--color-success);
 }
 
 /* Optional line wrapping behavior for very long lines in code blocks */
@@ -491,7 +458,7 @@ code[class*="language-"] .token.italic { font-style: normal !important; }
 
 /* Post meta (dates) */
 .post-meta {
-  color: rgba(127,127,127,0.8);
+  color: var(--color-text-muted);
   font-size: 0.95rem;
 }
 
@@ -499,7 +466,7 @@ code[class*="language-"] .token.italic { font-style: normal !important; }
 
 .post-meta-sep {
   border: none;
-  border-top: 1px solid rgba(127,127,127,0.3);
+  border-top: 1px solid var(--color-border);
   margin: 1.5rem 0 0.75rem 0;
 }
 
@@ -529,7 +496,7 @@ code[class*="language-"] .token.italic { font-style: normal !important; }
 .related-table th, .related-table td {
   text-align: left;
   padding: 0.25rem 0.5rem;
-  border-top: 1px solid rgba(127,127,127,0.3);
+  border-top: 1px solid var(--color-border);
 }
 .related-table th:first-child, .related-table td:first-child {
   width: 2rem;

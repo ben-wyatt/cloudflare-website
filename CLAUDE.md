@@ -72,7 +72,7 @@ The build process has two phases:
 
 - `src/posts/` - Markdown blog posts (each becomes a page)
 - `src/_includes/` - Nunjucks layouts (`layout.njk` base, `post.njk` for posts)
-- `src/_data/` - Global data (e.g., `related.json` for post recommendations)
+- `src/_data/` - Global data (`related.json` plus the palette source of truth)
 - `scripts/` - Build scripts (embeddings generator)
 - `styles/main.css` - Theme, palettes, typography, code highlighting
 - `assets/` - Static files (images, icons) copied to output
@@ -121,6 +121,7 @@ The build process has two phases:
 
 **Accent palettes:**
 - Six palettes: indigo (default), forest, amber, rose, teal, purple
+- Full swatches and usage guidance are local-only; run `npm run serve:design` to open `/design/`
 - Hidden easter egg: click footer year 5× quickly to cycle palettes
 - Stored in `localStorage.palette`
 
@@ -183,8 +184,9 @@ tags: [tag1, tag2]
 ## Customization Notes
 
 **To add a new accent palette:**
-1. Define CSS custom properties in `styles/main.css` under `[data-palette="newcolor"]`
-2. Add to `palettes` array in `layout.njk` easter egg script
+1. Add its light/dark semantic values and swatch metadata to `src/_data/palettes.js`
+2. Build the site; `src/palettes.css.njk` generates the runtime palette token stylesheet
+3. The layout's Easter egg palette list is generated from the same data automatically
 
 **To adjust related posts count:**
 - Change `TOP_K` constant in `scripts/build-related.js`

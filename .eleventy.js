@@ -10,8 +10,16 @@ try {
 }
 
 module.exports = function(eleventyConfig) {
+  const designGuideEnabled = process.env.DESIGN_GUIDE === "1";
+
   // Add a global `now` variable
   eleventyConfig.addGlobalData("now", new Date());
+  eleventyConfig.addGlobalData("designGuideEnabled", designGuideEnabled);
+
+  // The visual design guide is a local design lab, not a public page.
+  if (!designGuideEnabled) {
+    eleventyConfig.ignores.add("src/design.njk");
+  }
 
   // Add a custom date filter
   eleventyConfig.addFilter("date", (dateObj, format) => {

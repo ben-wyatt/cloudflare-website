@@ -72,11 +72,14 @@ npm run serve #build and serve locally to review
 │  ├─ _includes/
 │  │  ├─ layout.njk        Base layout (nav, theme + palette, Prism fallback)
 │  │  └─ post.njk          Post layout (injects <h1> and published/updated dates)
+│  ├─ _data/palettes.js    Source of truth for all palette roles and swatches
 │  ├─ posts/               Markdown posts (each becomes /posts/<slug>/)
+│  ├─ design.njk           Local-only design guide (npm run serve:design)
 │  ├─ home.md              Home page (if present)
 │  └─ blog.md              Blog index at /blog/
 ├─ styles/
-│  └─ main.css             Theme, palettes, typography, code styles
+│  └─ main.css             Foundation tokens, typography, and code styles
+├─ src/palettes.css.njk    Generated palette token stylesheet
 ├─ _site/                  Build output (generated)
 ├─ export_post.sh          Helper to export/update a post from Obsidian
 ├─ package.json            Scripts and dependencies
@@ -137,8 +140,10 @@ What it does:
 
 ### Theming, Palettes, and UX
 - **Theme toggle**: light/dark, persisted in `localStorage` (`theme`). Defaults to system preference, falling back to dark.
-- **Accent palettes**: `indigo` (default), `forest`, `amber`, `rose`, `teal`, `purple`. Selected via the header picker; stored in `localStorage` (`palette`).
-- **Hidden palette cycler**: click the © year 5 times quickly to cycle palettes.
+- **Accent palettes**: `indigo` (default), `forest`, `amber`, `rose`, `teal`, `purple`. Each has light/dark surfaces, primary and secondary accents, muted text, rules, strong accents, and swatches. The full guide is local-only; run `npm run serve:design` and open `/design/`.
+- **Palette source of truth**: edit `src/_data/palettes.js`. Eleventy generates `src/palettes.css.njk` to `_site/styles/palettes.css`, so components consume semantic roles rather than raw hex values.
+- **Hidden palette cycler**: click the © year 5 times quickly to cycle palettes. The choice is persisted in `localStorage` (`palette`) and works across the blog and future interactive pages.
+- **Semantic roles**: use `--color-bg`, `--color-surface`, `--color-text`, `--color-primary`, `--color-secondary`, `--color-success`, `--color-warning`, `--color-danger`, and their companion `*-strong`, `*-soft`, `on-*`, and focus tokens.
 - **Typography**: Inconsolata for headings and body.
 - **Links**: internal and external colors tuned per theme/palette in `styles/main.css`.
 

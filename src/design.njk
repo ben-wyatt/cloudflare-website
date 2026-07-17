@@ -1,0 +1,213 @@
+---
+layout: layout.njk
+title: Design guide
+permalink: "/design/"
+pageStyles: "/styles/design.css"
+bodyClass: "design-page"
+---
+
+<section class="design-hero" aria-labelledby="design-title">
+  <p class="design-kicker">ben wyatt / design system 01</p>
+  <h1 id="design-title">A small system for curious things.</h1>
+  <p class="design-lede">This site is a notebook first: direct, text-led, and built to leave room for a sharp idea. The palette system adds a little weather to that notebook without turning every page into a different product.</p>
+  <div class="design-hero-meta" aria-label="Design system summary">
+    <span>6 palettes</span>
+    <span>2 fields</span>
+    <span>semantic tokens</span>
+    <span>blog → games</span>
+  </div>
+</section>
+
+<section class="design-section" aria-labelledby="read-title">
+  <div class="design-section-heading">
+    <p class="design-kicker">01 / the read</p>
+    <h2 id="read-title">The style already had a point of view.</h2>
+  </div>
+  <div class="design-reading-grid">
+    <div>
+      <p>The existing blog feels like a well-kept working notebook: monospace typography, a narrow reading measure, mostly quiet surfaces, and links that do the work of navigation. The five-click footer Easter egg is the right kind of mischief—discoverable by curiosity, never required to use the site.</p>
+      <p>The system keeps those traits and gives them names. The result should feel consistent across an essay, a record-ranking tool, or a small game while still allowing each experience to choose its own emotional register.</p>
+    </div>
+    <aside class="design-callout">
+      <p class="design-callout-label">North star</p>
+      <p>“A personal instrument panel with the manners of a book.”</p>
+    </aside>
+  </div>
+</section>
+
+<section class="design-section" aria-labelledby="principles-title">
+  <div class="design-section-heading">
+    <p class="design-kicker">02 / principles</p>
+    <h2 id="principles-title">Quiet structure, deliberate signals.</h2>
+  </div>
+  <div class="design-principles">
+    <article>
+      <span class="design-principle-number">01</span>
+      <h3>Text leads.</h3>
+      <p>Inconsolata and a narrow measure make reading the primary interaction. Decoration is allowed to support an idea, not compete with it.</p>
+    </article>
+    <article>
+      <span class="design-principle-number">02</span>
+      <h3>One accent speaks.</h3>
+      <p>Primary is for the thing a person should notice or do next. Secondary is for a counterpoint, not a second competing headline.</p>
+    </article>
+    <article>
+      <span class="design-principle-number">03</span>
+      <h3>Surfaces recede.</h3>
+      <p>Foundation neutrals stay shared across palettes. Cards, panels, and code blocks are separated by small shifts in surface and rule—not heavy chrome.</p>
+    </article>
+    <article>
+      <span class="design-principle-number">04</span>
+      <h3>Play is optional.</h3>
+      <p>Motion, game feedback, and the Easter egg can add delight, but all essential states remain legible without color or animation.</p>
+    </article>
+  </div>
+</section>
+
+<section class="design-section" aria-labelledby="tokens-title">
+  <div class="design-section-heading">
+    <p class="design-kicker">03 / token map</p>
+    <h2 id="tokens-title">Use roles, not color names.</h2>
+    <p>These are the stable contracts for future pages. A new game can swap palettes without rewriting its component logic.</p>
+  </div>
+  <div class="design-token-grid">
+    <article class="design-token-group">
+      <h3>Foundation</h3>
+      <dl>
+        <div><dt><code>--color-bg</code></dt><dd>Page canvas and full-bleed background.</dd></div>
+        <div><dt><code>--color-surface</code></dt><dd>Raised panels, cards, and controls.</dd></div>
+        <div><dt><code>--color-surface-soft</code></dt><dd>Quiet fills, inputs, and inline code.</dd></div>
+        <div><dt><code>--color-surface-sunken</code></dt><dd>Code blocks and recessed areas.</dd></div>
+        <div><dt><code>--color-text</code></dt><dd>Default readable ink.</dd></div>
+        <div><dt><code>--color-text-muted</code></dt><dd>Metadata, captions, and supporting copy.</dd></div>
+        <div><dt><code>--color-border</code></dt><dd>Rules, separators, and low-emphasis boundaries.</dd></div>
+      </dl>
+    </article>
+    <article class="design-token-group">
+      <h3>Accent &amp; interaction</h3>
+      <dl>
+        <div><dt><code>--color-primary</code></dt><dd>Main action, internal link, active state.</dd></div>
+        <div><dt><code>--color-primary-strong</code></dt><dd>Bold text and high-emphasis accent details.</dd></div>
+        <div><dt><code>--color-secondary</code></dt><dd>Outbound link, counterpoint, or secondary action.</dd></div>
+        <div><dt><code>--color-focus</code></dt><dd>Keyboard focus ring. Never remove it.</dd></div>
+        <div><dt><code>--color-on-primary</code></dt><dd>Text/icon color placed on primary.</dd></div>
+        <div><dt><code>--color-on-secondary</code></dt><dd>Text/icon color placed on secondary.</dd></div>
+      </dl>
+    </article>
+    <article class="design-token-group">
+      <h3>Status &amp; game state</h3>
+      <dl>
+        <div><dt><code>--color-success</code></dt><dd>Correct, complete, saved, or safe.</dd></div>
+        <div><dt><code>--color-warning</code></dt><dd>Needs attention without implying failure.</dd></div>
+        <div><dt><code>--color-danger</code></dt><dd>Wrong, destructive, or blocked.</dd></div>
+        <div><dt><code>--color-info</code></dt><dd>Neutral notice or explanatory highlight.</dd></div>
+        <div><dt><code>--color-text-subtle</code></dt><dd>Decorative rules and tertiary metadata.</dd></div>
+      </dl>
+    </article>
+  </div>
+</section>
+
+<section class="design-section" aria-labelledby="palette-index-title">
+  <div class="design-section-heading">
+    <p class="design-kicker">04 / palette index</p>
+    <h2 id="palette-index-title">Six ways to change the weather.</h2>
+    <p>Every palette shares the same semantic roles and status colors. What changes is the emotional temperature: the primary/secondary pairing, the muted text, and the subtle tint in the surfaces.</p>
+  </div>
+  <nav class="design-palette-index" aria-label="Palette index">
+    {% for palette in palettes %}
+      <a href="#palette-{{ palette.id }}" class="design-palette-index-item" style="--index-primary: {{ palette.light.primary }}; --index-secondary: {{ palette.light.secondary }};">
+        <span class="design-palette-index-dots" aria-hidden="true"><i></i><i></i></span>
+        <span><strong>{{ palette.shortName }}</strong><small>{{ palette.descriptor }}</small></span>
+      </a>
+    {% endfor %}
+  </nav>
+</section>
+
+{% for palette in palettes %}
+<article class="design-palette" id="palette-{{ palette.id }}" aria-labelledby="{{ palette.id }}-title">
+  <header class="design-palette-header">
+    <div>
+      <p class="design-kicker">palette {{ loop.index }}</p>
+      <h2 id="{{ palette.id }}-title">{{ palette.name }}</h2>
+      <p class="design-palette-descriptor">{{ palette.descriptor }}</p>
+    </div>
+    <div class="design-palette-mark" style="--mark-primary: {{ palette.light.primary }}; --mark-secondary: {{ palette.light.secondary }};" aria-hidden="true"><span></span><span></span></div>
+  </header>
+  <p class="design-palette-mood"><strong>Personality:</strong> {{ palette.mood }}</p>
+  <p class="design-palette-best"><strong>Best for:</strong> {{ palette.bestFor }}</p>
+
+  <div class="design-theme-grid">
+    {% for mode in palette.themes %}
+      <section class="design-theme" aria-labelledby="{{ palette.id }}-{{ mode.id }}-title">
+        <div class="design-theme-heading">
+          <div><p class="design-kicker">{{ mode.id }} mode</p><h3 id="{{ palette.id }}-{{ mode.id }}-title">{{ mode.label }}</h3></div>
+          <span>{{ mode.note }}</span>
+        </div>
+        <div class="design-swatch-grid">
+          {% for swatch in mode.values.swatches %}
+            <div class="design-swatch" style="--swatch: {{ swatch.hex }}; --swatch-ink: {{ swatch.ink }};">
+              <div class="design-swatch-color"><span>{{ swatch.label }}</span><code>{{ swatch.hex }}</code></div>
+              <div class="design-swatch-meta"><span>{{ swatch.role }}</span>{% if swatch.role == "primary" or swatch.role == "secondary" %}<span>action / link</span>{% endif %}</div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="design-role-demo" style="--demo-primary: {{ mode.values.primary }}; --demo-primary-strong: {{ mode.values.primaryStrong }}; --demo-secondary: {{ mode.values.secondary }}; --demo-secondary-strong: {{ mode.values.secondaryStrong }}; --demo-on-primary: {{ mode.values.onPrimary }}; --demo-on-secondary: {{ mode.values.onSecondary }}; --demo-bg: {{ mode.values.background }}; --demo-surface: {{ mode.values.surface }}; --demo-ink: {{ mode.values.ink }};">
+          <span class="design-demo-label">role sample</span>
+          <a href="#tokens-title" class="design-demo-link">Internal link</a>
+          <a href="#tokens-title" class="design-demo-link design-demo-link-secondary">Secondary link</a>
+          <button type="button" class="design-demo-button">Primary action</button>
+          <span class="design-demo-status design-demo-status-success">Saved</span>
+          <span class="design-demo-status design-demo-status-danger">Needs review</span>
+        </div>
+      </section>
+    {% endfor %}
+  </div>
+</article>
+{% endfor %}
+
+<section class="design-section" aria-labelledby="easter-title">
+  <div class="design-section-heading">
+    <p class="design-kicker">05 / the hidden switch</p>
+    <h2 id="easter-title">Keep the Easter egg.</h2>
+  </div>
+  <div class="design-easter-grid">
+    <div>
+      <p>The footer year is the palette switch: click it five times within about 1.2 seconds. Each successful sequence advances through Indigo, Forest, Amber, Rose, Teal, and Purple; the choice is saved locally and works in both light and dark modes.</p>
+      <p>That interaction is intentionally undocumented in the main navigation. This page documents it for the owner and for future collaborators without turning discovery into a requirement.</p>
+    </div>
+    <div class="design-easter-sequence" aria-label="Palette sequence">
+      {% for palette in palettes %}<span style="--sequence-primary: {{ palette.light.primary }}; --sequence-secondary: {{ palette.light.secondary }}">{{ loop.index }} {{ palette.shortName }}</span>{% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="design-section design-implementation" aria-labelledby="implementation-title">
+  <div class="design-section-heading">
+    <p class="design-kicker">06 / implementation</p>
+    <h2 id="implementation-title">A component should read like this.</h2>
+    <p>Prefer the tokens below in new CSS. If a component needs a new role, add it to the system instead of reaching for a raw hex value.</p>
+  </div>
+  <pre><code>.game-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.game-card__action {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.game-card.is-correct {
+  border-color: var(--color-success);
+}</code></pre>
+  <div class="design-checklist">
+    <p><strong>Before shipping a new screen:</strong></p>
+    <ul>
+      <li>Does the hierarchy still work in both light and dark fields?</li>
+      <li>Can success, warning, and danger be understood without color alone?</li>
+      <li>Are interactive targets keyboard-focusable and visibly focused?</li>
+      <li>Does the page still feel like the same instrument when its palette changes?</li>
+    </ul>
+  </div>
+</section>

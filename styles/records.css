@@ -7,9 +7,10 @@
 }
 
 .records-shell {
-  --records-line: rgba(127, 127, 127, 0.28);
-  --records-soft: rgba(127, 127, 127, 0.09);
-  --records-softer: rgba(127, 127, 127, 0.05);
+  --records-line: var(--color-border);
+  --records-line-strong: var(--color-border-strong);
+  --records-soft: var(--color-surface-soft);
+  --records-softer: var(--color-surface);
   --records-danger: var(--color-danger);
 }
 
@@ -119,7 +120,7 @@
   box-sizing: border-box;
   border: 1px solid var(--records-line);
   border-radius: 8px;
-  background: transparent;
+  background: var(--color-bg);
   color: inherit;
   font: inherit;
 }
@@ -458,8 +459,8 @@ button:disabled {
 
 .game-shell {
   --game-ink: currentColor;
-  --game-rule: rgba(127, 127, 127, 0.32);
-  --game-soft: rgba(127, 127, 127, 0.08);
+  --game-rule: var(--color-border);
+  --game-soft: var(--color-surface-soft);
   --game-primary: var(--color-primary);
   --game-secondary: var(--color-secondary);
   --game-correct: var(--color-success);
@@ -600,14 +601,10 @@ button:disabled {
   right: 0.6rem;
   bottom: 0.55rem;
   padding: 0.2rem 0.42rem;
-  background: rgba(250, 250, 250, 0.88);
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
   font-size: 0.68rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-}
-
-[data-theme="dark"] .game-cover-wrap::after {
-  background: rgba(26, 26, 26, 0.88);
 }
 
 .game-cover {
@@ -625,16 +622,12 @@ button:disabled {
   padding: 0.35rem 0.65rem;
   border: 1px solid color-mix(in srgb, var(--game-correct) 55%, transparent);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-color-light) 90%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
   color: var(--game-correct);
   font-weight: 700;
   font-size: 1.1rem;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
   pointer-events: none;
-}
-
-[data-theme="dark"] .game-points-burst {
-  background: color-mix(in srgb, var(--bg-color-dark) 90%, transparent);
 }
 
 .game-points-burst.is-showing {

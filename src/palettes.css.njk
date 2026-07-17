@@ -1,0 +1,80 @@
+---
+permalink: "/styles/palettes.css"
+---
+/* Generated from src/_data/palettes.js. Edit the data file, not this output. */
+
+:root {
+  --palette-primary-light: #315fba;
+  --palette-primary-strong-light: #244a91;
+  --palette-secondary-light: #6f4aa8;
+  --palette-secondary-strong-light: #583783;
+  --palette-internal-light: #315fba;
+  --palette-external-light: #6f4aa8;
+  --palette-muted-light: #586f87;
+  --palette-subtle-light: #8392a4;
+  --palette-background-light: #fafafa;
+  --palette-surface-light: #ffffff;
+  --palette-surface-soft-light: #f4f5f8;
+  --palette-surface-sunken-light: #eceff4;
+  --palette-ink-light: #302b2a;
+  --palette-border-light: #d5dbe4;
+  --palette-border-strong-light: #9aa8bb;
+  --palette-on-primary-light: #ffffff;
+  --palette-on-secondary-light: #ffffff;
+  --palette-primary-dark: #8fb9ff;
+  --palette-primary-strong-dark: #b2ceff;
+  --palette-secondary-dark: #c5a3ff;
+  --palette-secondary-strong-dark: #ded2ff;
+  --palette-internal-dark: #8fb9ff;
+  --palette-external-dark: #c5a3ff;
+  --palette-muted-dark: #96a3b5;
+  --palette-subtle-dark: #6e7a8f;
+  --palette-background-dark: #1a1a1a;
+  --palette-surface-dark: #232323;
+  --palette-surface-soft-dark: #202329;
+  --palette-surface-sunken-dark: #111317;
+  --palette-ink-dark: #f0e6dc;
+  --palette-border-dark: #3a424f;
+  --palette-border-strong-dark: #68778c;
+  --palette-on-primary-dark: #111522;
+  --palette-on-secondary-dark: #16121f;
+}
+
+{% for palette in palettes %}
+[data-palette="{{ palette.id }}"] {
+  --palette-primary-light: {{ palette.light.primary }};
+  --palette-primary-strong-light: {{ palette.light.primaryStrong }};
+  --palette-secondary-light: {{ palette.light.secondary }};
+  --palette-secondary-strong-light: {{ palette.light.secondaryStrong }};
+  --palette-internal-light: {{ palette.light.internal }};
+  --palette-external-light: {{ palette.light.external }};
+  --palette-muted-light: {{ palette.light.muted }};
+  --palette-subtle-light: {{ palette.light.subtle }};
+  --palette-background-light: {{ palette.light.background }};
+  --palette-surface-light: {{ palette.light.surface }};
+  --palette-surface-soft-light: {{ palette.light.surfaceSoft }};
+  --palette-surface-sunken-light: {{ palette.light.surfaceSunken }};
+  --palette-ink-light: {{ palette.light.ink }};
+  --palette-border-light: {{ palette.light.border }};
+  --palette-border-strong-light: {{ palette.light.borderStrong }};
+  --palette-on-primary-light: {{ palette.light.onPrimary }};
+  --palette-on-secondary-light: {{ palette.light.onSecondary }};
+  --palette-primary-dark: {{ palette.dark.primary }};
+  --palette-primary-strong-dark: {{ palette.dark.primaryStrong }};
+  --palette-secondary-dark: {{ palette.dark.secondary }};
+  --palette-secondary-strong-dark: {{ palette.dark.secondaryStrong }};
+  --palette-internal-dark: {{ palette.dark.internal }};
+  --palette-external-dark: {{ palette.dark.external }};
+  --palette-muted-dark: {{ palette.dark.muted }};
+  --palette-subtle-dark: {{ palette.dark.subtle }};
+  --palette-background-dark: {{ palette.dark.background }};
+  --palette-surface-dark: {{ palette.dark.surface }};
+  --palette-surface-soft-dark: {{ palette.dark.surfaceSoft }};
+  --palette-surface-sunken-dark: {{ palette.dark.surfaceSunken }};
+  --palette-ink-dark: {{ palette.dark.ink }};
+  --palette-border-dark: {{ palette.dark.border }};
+  --palette-border-strong-dark: {{ palette.dark.borderStrong }};
+  --palette-on-primary-dark: {{ palette.dark.onPrimary }};
+  --palette-on-secondary-dark: {{ palette.dark.onSecondary }};
+}
+{% endfor %}

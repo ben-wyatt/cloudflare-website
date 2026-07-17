@@ -9,6 +9,7 @@
     "build": "eleventy",
     "preserve": "node scripts/build-related.js",
     "serve": "eleventy --serve",
+    "serve:design": "DESIGN_GUIDE=1 npm run serve -- --output=_design-site",
     "serve:app": "npm run build && WRANGLER_WRITE_LOGS=false wrangler pages dev _site",
     "db:migrate:local": "WRANGLER_WRITE_LOGS=false wrangler d1 migrations apply record-club --local",
     "db:migrate:remote": "WRANGLER_WRITE_LOGS=false wrangler d1 migrations apply record-club --remote",
