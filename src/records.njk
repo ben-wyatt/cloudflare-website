@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Record Club 2026
 permalink: "/records/"
-pageStyles: "/styles/records.css?v=game-score"
-pageScript: "/assets/js/records.js?v=record-game"
+pageStyles: "/styles/records.css?v=track-favorites"
+pageScript: "/assets/js/records.js?v=track-favorites"
 bodyClass: "records-page"
 ---
 
@@ -24,39 +24,27 @@ bodyClass: "records-page"
         <p class="records-eyebrow">members only</p>
         <h2 id="auth-title">Sign in</h2>
       </div>
-      <div class="auth-switch" role="group" aria-label="Choose an account action">
-        <button type="button" class="is-active" data-auth-mode="login">Sign in</button>
-        <button type="button" data-auth-mode="register">Create account</button>
-      </div>
     </div>
 
     <form id="login-form" class="records-form">
-      <label>
-        Username
-        <input name="username" autocomplete="username" required minlength="3" maxlength="24">
-      </label>
-      <label>
-        Password
-        <input name="password" type="password" autocomplete="current-password" required minlength="8">
-      </label>
-      <button class="records-primary" type="submit">Enter the room</button>
+      <label class="sr-only" for="login-username">Username</label>
+      <input id="login-username" name="username" placeholder="username" autocomplete="username" required minlength="3" maxlength="24">
+      <label class="sr-only" for="login-password">Password</label>
+      <input id="login-password" name="password" type="password" placeholder="password" autocomplete="current-password" required minlength="8">
+      <button class="records-primary auth-submit" type="submit">Enter the room →</button>
+      <button class="records-text-button auth-secondary-action" type="button" data-auth-mode="register">Create Account</button>
     </form>
 
     <form id="register-form" class="records-form" hidden>
-      <label>
-        Choose a username
-        <input name="username" autocomplete="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_-]+">
-        <span class="records-hint">Letters, numbers, hyphens, and underscores.</span>
-      </label>
-      <label>
-        Choose a password
-        <input name="password" type="password" autocomplete="new-password" required minlength="8">
-      </label>
-      <label>
-        Group access code
-        <input name="accessCode" type="password" autocomplete="off" required>
-      </label>
-      <button class="records-primary" type="submit">Create account</button>
+      <label class="sr-only" for="register-username">Username</label>
+      <input id="register-username" name="username" placeholder="username" autocomplete="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_-]+">
+      <span class="records-hint">Letters, numbers, hyphens, and underscores.</span>
+      <label class="sr-only" for="register-password">Password</label>
+      <input id="register-password" name="password" type="password" placeholder="password" autocomplete="new-password" required minlength="8">
+      <label class="sr-only" for="register-access-code">Group access code</label>
+      <input id="register-access-code" name="accessCode" type="password" placeholder="group access code" autocomplete="off" required>
+      <button class="records-primary auth-submit" type="submit">Create Account</button>
+      <button class="records-text-button auth-secondary-action" type="button" data-auth-mode="login">Sign In</button>
     </form>
     <p id="auth-message" class="records-message" role="status" aria-live="polite"></p>
   </section>
@@ -66,9 +54,36 @@ bodyClass: "records-page"
       <p>Signed in as <strong id="member-name"></strong></p>
       <div class="records-member-actions">
         <a id="record-game-link" class="records-game-link" href="/records/game/" hidden>Play Who Picked It?</a>
+        <button id="change-password-button" class="records-text-button" type="button">Change password</button>
         <button id="logout-button" class="records-text-button" type="button">Sign out</button>
       </div>
     </div>
+
+    <section id="password-panel" class="records-panel records-password-panel" hidden aria-labelledby="password-title">
+      <div class="records-panel-heading records-panel-heading-compact">
+        <div>
+          <p class="records-eyebrow">account</p>
+          <h2 id="password-title">Change password</h2>
+        </div>
+        <button id="cancel-password-button" class="records-text-button" type="button">Cancel</button>
+      </div>
+      <form id="password-form" class="records-form">
+        <label>
+          Current password
+          <input name="currentPassword" type="password" autocomplete="current-password" required>
+        </label>
+        <label>
+          New password
+          <input name="newPassword" type="password" autocomplete="new-password" required minlength="8">
+        </label>
+        <label>
+          Confirm new password
+          <input name="confirmPassword" type="password" autocomplete="new-password" required minlength="8">
+        </label>
+        <button class="records-primary" type="submit">Update password</button>
+      </form>
+      <p id="password-message" class="records-message" role="status" aria-live="polite"></p>
+    </section>
 
     <div class="records-workspace">
       <section class="records-panel records-search-panel" aria-labelledby="search-title">

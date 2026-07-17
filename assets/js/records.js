@@ -1,4 +1,6 @@
 (() => {
+  const MAX_FAVORITE_TRACKS_PER_ALBUM = 50;
+
   const elements = {
     loading: document.getElementById("records-loading"),
     auth: document.getElementById("records-auth"),
@@ -7,6 +9,11 @@
     authMessage: document.getElementById("auth-message"),
     loginForm: document.getElementById("login-form"),
     registerForm: document.getElementById("register-form"),
+    changePasswordButton: document.getElementById("change-password-button"),
+    cancelPasswordButton: document.getElementById("cancel-password-button"),
+    passwordPanel: document.getElementById("password-panel"),
+    passwordForm: document.getElementById("password-form"),
+    passwordMessage: document.getElementById("password-message"),
     memberName: document.getElementById("member-name"),
     gameLink: document.getElementById("record-game-link"),
     logoutButton: document.getElementById("logout-button"),
@@ -31,6 +38,7 @@
     searching: false,
     saving: false,
     dragging: null,
+    trackLists: new Map(),
   };
 
   class ApiError extends Error {
@@ -77,9 +85,6 @@
     elements.loginForm.hidden = registering;
     elements.registerForm.hidden = !registering;
     setMessage(elements.authMessage);
-    for (const button of document.querySelectorAll("[data-auth-mode]")) {
-      button.classList.toggle("is-active", button.dataset.authMode === mode);
-    }
     const form = registering ? elements.registerForm : elements.loginForm;
     form.querySelector("input")?.focus();
   }
@@ -87,9 +92,11 @@
   function showAuth(message = "", isError = false) {
     state.user = null;
     state.items = [];
+    state.trackLists.clear();
     elements.loading.hidden = true;
     elements.app.hidden = true;
     elements.auth.hidden = false;
+    setAuthMode("login");
     setMessage(elements.authMessage, message, isError);
   }
 
@@ -100,6 +107,9 @@
     elements.loading.hidden = true;
     elements.auth.hidden = true;
     elements.app.hidden = false;
+    elements.passwordPanel.hidden = true;
+    elements.passwordForm.reset();
+    setMessage(elements.passwordMessage);
     await loadList();
   }
 
@@ -253,7 +263,7 @@
     const grip = document.createElement("span");
     grip.className = "ranked-grip-dots";
     grip.setAttribute("aria-hidden", "true");
-    grip.textContent = "⠿";
+    grip.append(...Array.from({ length: 6 }, () => document.createElement("span")));
     button.append(grip);
 
     button.addEventListener("keydown", (event) => {
@@ -285,11 +295,232 @@
     return button;
   }
 
+  function getTrackListState(spotifyId) {
+    if (!state.trackLists.has(spotifyId)) {
+      state.trackLists.set(spotifyId, { status: "idle", tracks: [], error: "", open: false });
+    }
+    return state.trackLists.get(spotifyId);
+  }
+
+  function formatTrackDuration(durationMs) {
+    const totalSeconds = Math.max(0, Math.round(Number(durationMs || 0) / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    return `${minutes}:${String(totalSeconds % 60).padStart(2, "0")}`;
+  }
+
+  function favoriteIds(album) {
+    if (!Array.isArray(album.favoriteTrackIds)) album.favoriteTrackIds = [];
+    return album.favoriteTrackIds;
+  }
+
+  function updateTrackSummary(summary, album) {
+    const count = favoriteIds(album).length;
+    summary.querySelector(".ranked-tracks-heart").textContent = count ? "♥" : "♡";
+    summary.querySelector(".ranked-tracks-count").textContent = count ? ` · ${count}` : "";
+    summary.setAttribute(
+      "aria-label",
+      `${count ? `${count} favorite track${count === 1 ? "" : "s"}. ` : ""}Choose favorite tracks from ${album.name}`,
+    );
+  }
+
+  function setTrackHeartState(button, track, selected) {
+    button.classList.toggle("is-favorite", selected);
+    button.setAttribute("aria-pressed", String(selected));
+    button.setAttribute(
+      "aria-label",
+      selected ? `Remove ${track.name} from favorite tracks` : `Add ${track.name} to favorite tracks`,
+    );
+    button.querySelector("span").textContent = selected ? "♥" : "♡";
+  }
+
+  function toggleFavoriteTrack(albumId, track, button, summary) {
+    const album = state.items.find((item) => item.spotifyId === albumId);
+    if (!album) return;
+
+    const selectedIds = favoriteIds(album);
+    const selected = selectedIds.includes(track.spotifyId);
+    if (!selected && selectedIds.length >= MAX_FAVORITE_TRACKS_PER_ALBUM) {
+      setMessage(
+        elements.saveStatus,
+        `Choose up to ${MAX_FAVORITE_TRACKS_PER_ALBUM} favorite tracks per album.`,
+        true,
+      );
+      return;
+    }
+    album.favoriteTrackIds = selected
+      ? selectedIds.filter((trackId) => trackId !== track.spotifyId)
+      : [...selectedIds, track.spotifyId];
+    setTrackHeartState(button, track, !selected);
+    updateTrackSummary(summary, album);
+    markDirty();
+  }
+
+  function renderTrackListBody(album, body, summary) {
+    const trackList = getTrackListState(album.spotifyId);
+    if (trackList.status === "idle") {
+      const message = document.createElement("p");
+      message.className = "ranked-tracks-message";
+      message.textContent = "Open to load this album’s track list.";
+      body.replaceChildren(message);
+      return;
+    }
+    if (trackList.status === "loading") {
+      const message = document.createElement("p");
+      message.className = "ranked-tracks-message";
+      message.setAttribute("role", "status");
+      message.textContent = "Loading tracks from Spotify…";
+      body.replaceChildren(message);
+      return;
+    }
+    if (trackList.status === "error") {
+      const message = document.createElement("p");
+      message.className = "ranked-tracks-message is-error";
+      message.textContent = trackList.error;
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "ranked-tracks-retry";
+      retry.textContent = "Try again";
+      retry.addEventListener("click", () => {
+        void loadAlbumTracks(album.spotifyId);
+      });
+      body.replaceChildren(message, retry);
+      return;
+    }
+    if (!trackList.tracks.length) {
+      const message = document.createElement("p");
+      message.className = "ranked-tracks-message";
+      message.textContent = "Spotify did not return any tracks for this album.";
+      body.replaceChildren(message);
+      return;
+    }
+
+    const list = document.createElement("ol");
+    list.className = "track-list";
+    const selectedIds = new Set(favoriteIds(album));
+    for (const track of trackList.tracks) {
+      const item = document.createElement("li");
+      item.className = "track-row";
+
+      const heart = document.createElement("button");
+      heart.type = "button";
+      heart.className = "track-heart";
+      const heartGlyph = document.createElement("span");
+      heartGlyph.setAttribute("aria-hidden", "true");
+      heart.append(heartGlyph);
+      setTrackHeartState(heart, track, selectedIds.has(track.spotifyId));
+      heart.addEventListener("click", () => {
+        toggleFavoriteTrack(album.spotifyId, track, heart, summary);
+      });
+
+      const number = document.createElement("span");
+      number.className = "track-number";
+      number.textContent = track.discNumber > 1
+        ? `${track.discNumber}.${track.trackNumber}`
+        : String(track.trackNumber).padStart(2, "0");
+
+      const copy = document.createElement("div");
+      copy.className = "track-copy";
+      const link = document.createElement("a");
+      link.className = "track-link";
+      link.href = track.spotifyUrl;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = track.name;
+      const meta = document.createElement("span");
+      meta.className = "track-meta";
+      meta.textContent = `${track.artistName}${track.explicit ? " · explicit" : ""}`;
+      copy.append(link, meta);
+
+      const duration = document.createElement("span");
+      duration.className = "track-duration";
+      duration.textContent = formatTrackDuration(track.durationMs);
+      item.append(heart, number, copy, duration);
+      list.append(item);
+    }
+
+    const source = document.createElement("a");
+    source.className = "ranked-tracks-source";
+    source.href = album.spotifyUrl;
+    source.target = "_blank";
+    source.rel = "noopener";
+    source.textContent = "Track data via Spotify";
+    body.replaceChildren(list, source);
+  }
+
+  async function loadAlbumTracks(albumId) {
+    const trackList = getTrackListState(albumId);
+    if (trackList.status === "loading" || trackList.status === "ready") return;
+    trackList.status = "loading";
+    trackList.error = "";
+
+    const album = state.items.find((item) => item.spotifyId === albumId);
+    const row = [...elements.rankedList.children].find((item) => item.dataset.spotifyId === albumId);
+    const body = row?.querySelector(".ranked-tracks-body");
+    const summary = row?.querySelector(".ranked-tracks-summary");
+    if (album && body && summary) renderTrackListBody(album, body, summary);
+
+    try {
+      const payload = await api(`/api/spotify/tracks?album=${encodeURIComponent(albumId)}`);
+      trackList.tracks = Array.isArray(payload.tracks) ? payload.tracks : [];
+      trackList.status = "ready";
+    } catch (error) {
+      trackList.status = "error";
+      trackList.error = error.message;
+    }
+
+    const currentAlbum = state.items.find((item) => item.spotifyId === albumId);
+    const currentRow = [...elements.rankedList.children].find((item) => item.dataset.spotifyId === albumId);
+    const currentBody = currentRow?.querySelector(".ranked-tracks-body");
+    const currentSummary = currentRow?.querySelector(".ranked-tracks-summary");
+    if (currentAlbum && currentBody && currentSummary) {
+      renderTrackListBody(currentAlbum, currentBody, currentSummary);
+    }
+  }
+
+  function trackPicker(album) {
+    const trackList = getTrackListState(album.spotifyId);
+    const details = document.createElement("details");
+    details.className = "ranked-tracks";
+    details.open = trackList.open;
+
+    const summary = document.createElement("summary");
+    summary.className = "ranked-tracks-summary";
+    const heart = document.createElement("span");
+    heart.className = "ranked-tracks-heart";
+    heart.setAttribute("aria-hidden", "true");
+    const label = document.createElement("span");
+    label.textContent = "favorite tracks";
+    const count = document.createElement("span");
+    count.className = "ranked-tracks-count";
+    summary.append(heart, label, count);
+    updateTrackSummary(summary, album);
+
+    const body = document.createElement("div");
+    body.className = "ranked-tracks-body";
+    renderTrackListBody(album, body, summary);
+    details.append(summary, body);
+    details.addEventListener("toggle", () => {
+      trackList.open = details.open;
+      if (details.open && trackList.status === "idle") {
+        void loadAlbumTracks(album.spotifyId);
+      }
+    });
+    return details;
+  }
+
   function renderList() {
     const nodes = state.items.map((album, index) => {
       const item = document.createElement("li");
       item.className = "ranked-item";
       item.dataset.spotifyId = album.spotifyId;
+
+      const rank = document.createElement("div");
+      rank.className = "ranked-rank";
+      const number = document.createElement("span");
+      number.className = "ranked-number";
+      number.setAttribute("aria-hidden", "true");
+      number.textContent = String(index + 1).padStart(2, "0");
+      rank.append(number, grabberButton(album, index, item));
 
       const copy = document.createElement("div");
       copy.className = "ranked-copy";
@@ -313,16 +544,15 @@
         state.items[index].review = review.value;
         markDirty();
       });
-      copy.append(title, meta, reviewLabel, review);
+      copy.append(title, meta, reviewLabel, review, trackPicker(album));
 
       const actions = document.createElement("div");
       actions.className = "ranked-actions";
       actions.append(
-        grabberButton(album, index, item),
-        actionButton(`Remove ${album.name}`, "Remove", () => removeAlbum(index), "ranked-remove"),
+        actionButton(`Remove ${album.name}`, "×", () => removeAlbum(index), "ranked-remove"),
       );
 
-      item.append(albumImage(album, "ranked-cover"), copy, actions);
+      item.append(rank, albumImage(album, "ranked-cover"), copy, actions);
       return item;
     });
 
@@ -341,9 +571,10 @@
 
   function addAlbum(album) {
     if (state.items.length >= 10 || isSelected(album.spotifyId)) return;
-    state.items.push({ ...album, review: "" });
+    state.items.push({ ...album, review: "", favoriteTrackIds: [] });
     markDirty();
     renderList();
+    void loadAlbumTracks(album.spotifyId);
   }
 
   function removeAlbum(index) {
@@ -366,7 +597,10 @@
     setMessage(elements.saveStatus, "Loading…");
     try {
       const payload = await api("/api/list");
-      state.items = payload.items || [];
+      state.items = (payload.items || []).map((item) => ({
+        ...item,
+        favoriteTrackIds: Array.isArray(item.favoriteTrackIds) ? item.favoriteTrackIds : [],
+      }));
       state.dirty = false;
       setMessage(elements.saveStatus, state.items.length ? "Draft loaded" : "");
       renderList();
@@ -387,6 +621,7 @@
           items: state.items.map((item) => ({
             spotifyId: item.spotifyId,
             review: item.review || "",
+            favoriteTrackIds: favoriteIds(item),
           })),
         },
       });
@@ -441,9 +676,6 @@
     }
   }
 
-  for (const button of document.querySelectorAll("[data-auth-mode]")) {
-    button.addEventListener("click", () => setAuthMode(button.dataset.authMode));
-  }
   elements.loginForm.addEventListener("submit", (event) => {
     event.preventDefault();
     submitAuth(elements.loginForm, "/api/auth/login");
@@ -451,6 +683,38 @@
   elements.registerForm.addEventListener("submit", (event) => {
     event.preventDefault();
     submitAuth(elements.registerForm, "/api/auth/register");
+  });
+  for (const button of document.querySelectorAll("[data-auth-mode]")) {
+    button.addEventListener("click", () => setAuthMode(button.dataset.authMode));
+  }
+  elements.changePasswordButton.addEventListener("click", () => {
+    elements.passwordPanel.hidden = false;
+    elements.passwordForm.querySelector("input")?.focus();
+  });
+  elements.cancelPasswordButton.addEventListener("click", () => {
+    elements.passwordPanel.hidden = true;
+    elements.passwordForm.reset();
+    setMessage(elements.passwordMessage);
+  });
+  elements.passwordForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = elements.passwordForm.querySelector("button[type='submit']");
+    const data = Object.fromEntries(new FormData(elements.passwordForm));
+    if (data.newPassword !== data.confirmPassword) {
+      setMessage(elements.passwordMessage, "The new passwords do not match.", true);
+      return;
+    }
+    button.disabled = true;
+    setMessage(elements.passwordMessage, "Updating password…");
+    try {
+      await api("/api/auth/password", { method: "POST", body: data });
+      elements.passwordForm.reset();
+      setMessage(elements.passwordMessage, "Password updated.");
+    } catch (error) {
+      setMessage(elements.passwordMessage, error.message, true);
+    } finally {
+      button.disabled = false;
+    }
   });
   elements.logoutButton.addEventListener("click", async () => {
     try {

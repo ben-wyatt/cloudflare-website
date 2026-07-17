@@ -52,7 +52,23 @@
 }
 
 #records-auth {
-  max-width: 620px;
+  width: min(100%, 720px);
+  box-sizing: border-box;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+#records-auth .records-panel-heading {
+  justify-content: flex-start;
+}
+
+#records-auth .records-panel-heading h2 {
+  margin-top: 0.35rem;
+  font-size: clamp(2.35rem, 6vw, 3.2rem);
+  letter-spacing: -0.045em;
 }
 
 .records-panel-heading,
@@ -75,15 +91,6 @@
   align-items: flex-start;
 }
 
-.auth-switch {
-  display: flex;
-  gap: 0.25rem;
-  padding: 0.2rem;
-  border: 1px solid var(--records-line);
-  border-radius: 999px;
-}
-
-.auth-switch button,
 .records-text-button {
   border: 0;
   background: transparent;
@@ -92,25 +99,15 @@
   cursor: pointer;
 }
 
-.auth-switch button {
-  padding: 0.4rem 0.75rem;
-  border-radius: 999px;
-}
-
-.auth-switch button.is-active {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
 .records-form {
   display: grid;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  gap: 1.15rem;
+  margin-top: 2rem;
 }
 
 .records-form label {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }
 
 .records-form input,
@@ -127,8 +124,25 @@
 
 .records-form input,
 .album-search-form input {
-  min-height: 44px;
-  padding: 0.65rem 0.75rem;
+  min-height: 0;
+  padding: 0.55rem 0.1rem 0.65rem;
+}
+
+#records-auth .records-form input {
+  border-width: 0 0 1px;
+  border-radius: 0;
+  background: transparent;
+  font-size: 1.3rem;
+}
+
+#records-auth .records-form input::placeholder {
+  color: var(--em-color);
+  opacity: 0.72;
+}
+
+#records-auth .records-form input:focus {
+  outline: 0;
+  border-bottom-color: var(--color-primary);
 }
 
 .records-form input:focus,
@@ -146,8 +160,7 @@
 .records-primary,
 .album-search-form button,
 .album-add-button,
-.ranked-action,
-.ranked-grabber {
+.ranked-action {
   min-height: 40px;
   border: 1px solid var(--records-line);
   border-radius: 8px;
@@ -159,7 +172,7 @@
 
 .records-primary,
 .album-search-form button {
-  padding: 0.55rem 0.9rem;
+  padding: 0.45rem 0.8rem;
 }
 
 .records-primary {
@@ -169,11 +182,49 @@
   font-weight: 700;
 }
 
+.auth-secondary-action {
+  justify-self: start;
+  margin-top: 5rem;
+  padding: 0;
+  color: var(--link-internal);
+  font-size: 1.3rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+#records-auth .auth-submit {
+  justify-self: start;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 1.3rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+#records-auth .auth-submit:hover {
+  filter: none;
+  transform: none;
+  opacity: 0.78;
+}
+
+#records-auth .records-hint {
+  margin-top: -0.85rem;
+}
+
+.records-password-panel {
+  max-width: 440px;
+  margin-bottom: 1.25rem;
+  padding: 1.15rem 1.35rem;
+}
+
 .records-primary:hover,
 .album-search-form button:hover,
 .album-add-button:hover,
-.ranked-action:hover,
-.ranked-grabber:hover {
+.ranked-action:hover {
   filter: brightness(0.96);
   transform: translateY(-1px);
 }
@@ -328,23 +379,28 @@ button:disabled {
 }
 
 .ranked-list {
-  counter-reset: records-rank;
   display: grid;
   gap: 0.85rem;
 }
 
 .ranked-item {
-  counter-increment: records-rank;
+  position: relative;
   display: grid;
-  grid-template-columns: 2.3rem 88px minmax(0, 1fr) auto;
+  grid-template-columns: 2.3rem 88px minmax(0, 1fr);
   gap: 0.9rem;
   align-items: start;
-  padding: 0.85rem 0;
+  padding: 0.85rem 2.35rem 0.85rem 0;
   border-top: 1px solid var(--records-line);
 }
 
-.ranked-item::before {
-  content: counter(records-rank, decimal-leading-zero);
+.ranked-rank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ranked-number {
   padding-top: 0.15rem;
   color: var(--link-internal);
   font-weight: 700;
@@ -366,17 +422,160 @@ button:disabled {
   line-height: 1.35;
 }
 
-.ranked-actions {
+.ranked-tracks {
+  margin-top: 0.65rem;
+  border-top: 1px solid var(--records-line);
+}
+
+.ranked-tracks-summary {
+  padding: 0.5rem 0 0.15rem;
+  color: var(--em-color);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.ranked-tracks-summary::marker {
+  color: var(--color-text-subtle);
+}
+
+.ranked-tracks[open] .ranked-tracks-summary {
+  color: inherit;
+}
+
+.ranked-tracks-heart {
+  display: inline-block;
+  width: 1.15rem;
+  color: var(--color-secondary-strong);
+}
+
+.ranked-tracks-count {
+  color: var(--color-secondary-strong);
+  font-weight: 700;
+}
+
+.ranked-tracks-body {
+  padding-top: 0.35rem;
+}
+
+.track-list {
   display: grid;
-  gap: 0.35rem;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.track-row {
+  display: grid;
+  grid-template-columns: 2rem 2.2rem minmax(0, 1fr) auto;
+  gap: 0.4rem;
+  align-items: center;
+  min-height: 2.65rem;
+  border-top: 1px solid color-mix(in srgb, var(--records-line) 72%, transparent);
+}
+
+.track-heart {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-subtle);
+  font: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 140ms ease, transform 140ms ease;
+}
+
+.track-heart:hover {
+  color: var(--color-secondary);
+  transform: scale(1.08);
+}
+
+.track-heart.is-favorite {
+  color: var(--color-secondary-strong);
+}
+
+.track-number,
+.track-duration {
+  color: var(--color-text-subtle);
+  font-size: 0.74rem;
+}
+
+.track-copy {
+  display: grid;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.track-link,
+.track-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track-link {
+  font-size: 0.86rem;
+}
+
+.track-meta {
+  color: var(--em-color);
+  font-size: 0.72rem;
+}
+
+.track-duration {
+  padding-right: 0.15rem;
+}
+
+.ranked-tracks-message {
+  margin: 0.35rem 0 0.25rem;
+  color: var(--em-color);
+  font-size: 0.8rem;
+}
+
+.ranked-tracks-message.is-error {
+  color: var(--records-danger);
+}
+
+.ranked-tracks-retry {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--link-internal);
+  font: inherit;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.ranked-tracks-source {
+  display: inline-block;
+  margin-top: 0.45rem;
+  color: var(--em-color);
+  font-size: 0.7rem;
+}
+
+.ranked-actions {
+  position: absolute;
+  top: 0.65rem;
+  right: 0;
 }
 
 .ranked-grabber {
   display: grid;
   place-items: center;
-  min-width: 4.5rem;
-  min-height: 3rem;
+  width: 2.3rem;
+  height: 2rem;
   padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--em-color);
+  font: inherit;
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -389,10 +588,16 @@ button:disabled {
 }
 
 .ranked-grip-dots {
-  color: var(--em-color);
-  font-size: 1.55rem;
-  line-height: 1;
-  transform: rotate(90deg);
+  display: grid;
+  grid-template-columns: repeat(2, 3px);
+  gap: 3px;
+}
+
+.ranked-grip-dots span {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .ranked-action {
@@ -400,7 +605,24 @@ button:disabled {
 }
 
 .ranked-remove {
-  color: var(--records-danger);
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-warning);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.ranked-remove:hover {
+  filter: none;
+  opacity: 0.72;
+  transform: none;
 }
 
 .ranked-item.is-dragging {
@@ -866,6 +1088,7 @@ button:disabled {
   .album-add-button,
   .ranked-action,
   .ranked-grabber,
+  .track-heart,
   .game-choice,
   .game-cover-wrap {
     transition: none;
@@ -906,10 +1129,6 @@ button:disabled {
     flex-direction: column;
   }
 
-  .auth-switch {
-    align-self: flex-start;
-  }
-
   .records-save-group {
     justify-content: space-between;
   }
@@ -932,18 +1151,18 @@ button:disabled {
     gap: 0.65rem;
   }
 
-  .ranked-actions {
-    grid-column: 2 / -1;
-    display: flex;
+  .ranked-tracks-summary {
+    font-size: 0.78rem;
+    white-space: nowrap;
   }
 
-  .ranked-grabber {
-    min-width: 4.5rem;
+  .track-row {
+    grid-template-columns: 2rem 1.8rem minmax(0, 1fr);
+    gap: 0.35rem;
   }
 
-  .ranked-remove {
-    width: auto;
-    padding: 0 0.6rem;
+  .track-duration {
+    display: none;
   }
 
   .game-masthead {

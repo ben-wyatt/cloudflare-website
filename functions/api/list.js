@@ -10,29 +10,51 @@ import {
 import { getSpotifyAlbum } from "../_shared/spotify.js";
 
 const SEASON = 2026;
+const MAX_FAVORITE_TRACKS_PER_ALBUM = 50;
 
 export async function onRequestGet({ request, env }) {
   try {
     const user = await requireUser(env, request);
     const db = requireDb(env);
-    const result = await db.prepare(
-      `SELECT
-         li.rank,
-         li.review,
-         a.spotify_id AS spotifyId,
-         a.name,
-         a.artist_name AS artistName,
-         a.image_url AS imageUrl,
-         a.spotify_url AS spotifyUrl,
-         a.release_date AS releaseDate,
-         a.total_tracks AS totalTracks
-       FROM record_list_items li
-       JOIN record_albums a ON a.spotify_id = li.spotify_album_id
-       WHERE li.user_id = ? AND li.season = ?
-       ORDER BY li.rank ASC`,
-    ).bind(user.id, SEASON).all();
+    const [listResult, favoritesResult] = await db.batch([
+      db.prepare(
+        `SELECT
+           li.rank,
+           li.review,
+           a.spotify_id AS spotifyId,
+           a.name,
+           a.artist_name AS artistName,
+           a.image_url AS imageUrl,
+           a.spotify_url AS spotifyUrl,
+           a.release_date AS releaseDate,
+           a.total_tracks AS totalTracks
+         FROM record_list_items li
+         JOIN record_albums a ON a.spotify_id = li.spotify_album_id
+         WHERE li.user_id = ? AND li.season = ?
+         ORDER BY li.rank ASC`,
+      ).bind(user.id, SEASON),
+      db.prepare(
+        `SELECT
+           spotify_album_id AS spotifyAlbumId,
+           spotify_track_id AS spotifyTrackId
+         FROM record_track_favorites
+         WHERE user_id = ? AND season = ?
+         ORDER BY created_at ASC`,
+      ).bind(user.id, SEASON),
+    ]);
 
-    return json({ season: SEASON, items: result.results || [] });
+    const favoriteIdsByAlbum = new Map();
+    for (const favorite of favoritesResult.results || []) {
+      const albumFavorites = favoriteIdsByAlbum.get(favorite.spotifyAlbumId) || [];
+      albumFavorites.push(favorite.spotifyTrackId);
+      favoriteIdsByAlbum.set(favorite.spotifyAlbumId, albumFavorites);
+    }
+    const items = (listResult.results || []).map((item) => ({
+      ...item,
+      favoriteTrackIds: favoriteIdsByAlbum.get(item.spotifyId) || [],
+    }));
+
+    return json({ season: SEASON, items });
   } catch (error) {
     return handleApiError(error);
   }
@@ -48,11 +70,31 @@ export async function onRequestPut({ request, env }) {
       throw new HttpError("A draft can contain up to ten albums.", 400, "invalid_list");
     }
 
-    const items = body.items.map((item, index) => ({
-      spotifyId: String(item.spotifyId || "").trim(),
-      review: String(item.review || "").trim(),
-      rank: index + 1,
-    }));
+    const items = body.items.map((item, index) => {
+      const value = item && typeof item === "object" ? item : {};
+      if (value.favoriteTrackIds !== undefined && !Array.isArray(value.favoriteTrackIds)) {
+        throw new HttpError("Favorite tracks must be a list of Spotify track IDs.", 400, "invalid_tracks");
+      }
+      const favoriteTrackIds = [...new Set(
+        (value.favoriteTrackIds || []).map((trackId) => String(trackId || "").trim()),
+      )];
+      if (favoriteTrackIds.length > MAX_FAVORITE_TRACKS_PER_ALBUM) {
+        throw new HttpError(
+          `Choose up to ${MAX_FAVORITE_TRACKS_PER_ALBUM} favorite tracks per album.`,
+          400,
+          "too_many_tracks",
+        );
+      }
+      if (favoriteTrackIds.some((trackId) => !/^[A-Za-z0-9]+$/.test(trackId))) {
+        throw new HttpError("Each favorite track must have a valid Spotify track ID.", 400, "invalid_tracks");
+      }
+      return {
+        spotifyId: String(value.spotifyId || "").trim(),
+        review: String(value.review || "").trim(),
+        favoriteTrackIds,
+        rank: index + 1,
+      };
+    });
     const uniqueIds = new Set(items.map((item) => item.spotifyId));
     if (uniqueIds.size !== items.length || items.some((item) => !/^[A-Za-z0-9]+$/.test(item.spotifyId))) {
       throw new HttpError("Each list entry must be a different Spotify album.", 400, "invalid_albums");
@@ -78,6 +120,7 @@ export async function onRequestPut({ request, env }) {
 
     const now = new Date().toISOString();
     const statements = [
+      db.prepare("DELETE FROM record_track_favorites WHERE user_id = ? AND season = ?").bind(user.id, SEASON),
       db.prepare("DELETE FROM record_list_items WHERE user_id = ? AND season = ?").bind(user.id, SEASON),
     ];
 
@@ -113,6 +156,16 @@ export async function onRequestPut({ request, env }) {
            (user_id, season, rank, spotify_album_id, review, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
       ).bind(user.id, SEASON, item.rank, item.spotifyId, item.review, now, now));
+    }
+
+    for (const item of items) {
+      for (const trackId of item.favoriteTrackIds) {
+        statements.push(db.prepare(
+          `INSERT INTO record_track_favorites
+             (user_id, season, spotify_album_id, spotify_track_id, created_at)
+           VALUES (?, ?, ?, ?, ?)`,
+        ).bind(user.id, SEASON, item.spotifyId, trackId, now));
+      }
     }
 
     await db.batch(statements);

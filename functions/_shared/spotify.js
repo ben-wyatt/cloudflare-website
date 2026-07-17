@@ -92,6 +92,43 @@ export async function getSpotifyAlbum(env, albumId) {
   return normalizeSpotifyAlbum(album);
 }
 
+function normalizeSpotifyTrack(track) {
+  return {
+    spotifyId: String(track.id || ""),
+    name: String(track.name || ""),
+    artistName: (track.artists || []).map((artist) => artist.name).filter(Boolean).join(", "),
+    spotifyUrl: track.external_urls?.spotify || `https://open.spotify.com/track/${track.id}`,
+    discNumber: Math.max(1, Number(track.disc_number || 1)),
+    trackNumber: Math.max(1, Number(track.track_number || 1)),
+    durationMs: Math.max(0, Number(track.duration_ms || 0)),
+    explicit: Boolean(track.explicit),
+  };
+}
+
+export async function getSpotifyAlbumTracks(env, albumId) {
+  const tracks = [];
+  let offset = 0;
+
+  // Spotify returns at most 50 tracks per page. Ten pages keeps this request
+  // bounded while still covering unusually large box sets.
+  for (let page = 0; page < 10; page += 1) {
+    const payload = await spotifyFetch(
+      env,
+      `/albums/${encodeURIComponent(albumId)}/tracks?market=US&limit=50&offset=${offset}`,
+    );
+    const items = Array.isArray(payload.items) ? payload.items.filter(Boolean) : [];
+    tracks.push(
+      ...items
+        .map(normalizeSpotifyTrack)
+        .filter((track) => /^[A-Za-z0-9]+$/.test(track.spotifyId) && track.name),
+    );
+    offset += items.length;
+    if (!payload.next || items.length === 0) break;
+  }
+
+  return tracks;
+}
+
 export async function searchSpotifyAlbums(env, query) {
   const pastedId = parseSpotifyAlbumId(query);
   if (pastedId) return [await getSpotifyAlbum(env, pastedId)];
