@@ -260,9 +260,8 @@ header, footer {
 button#theme-toggle {
   min-width: 2.2rem;
   min-height: 2.2rem;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: var(--color-surface-soft);
+  border: 0;
+  background: transparent;
   color: var(--color-text);
   cursor: pointer;
   font: inherit;
@@ -270,7 +269,6 @@ button#theme-toggle {
 }
 
 button#theme-toggle:hover {
-  border-color: var(--color-primary);
   color: var(--color-primary);
 }
 

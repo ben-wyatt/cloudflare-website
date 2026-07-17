@@ -10,7 +10,7 @@ import {
 import { getSpotifyAlbum, getSpotifyTrack } from "../_shared/spotify.js";
 
 const SEASON = 2026;
-const MAX_ALBUMS = 14;
+const MAX_ALBUMS = 15;
 const MAX_FAVORITE_TRACKS_PER_ALBUM = 50;
 
 export async function onRequestGet({ request, env }) {

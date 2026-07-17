@@ -1,5 +1,5 @@
 (() => {
-  const MAX_ALBUMS = 14;
+  const MAX_ALBUMS = 15;
   const MAX_FAVORITE_TRACKS_PER_ALBUM = 50;
 
   const elements = {
@@ -116,8 +116,8 @@
   async function showApp(user) {
     state.user = user;
     elements.memberName.textContent = user.username;
-    elements.listOwnerName.textContent = `${user.username}’s`;
-    elements.standoutOwnerName.textContent = `${user.username}’s`;
+    elements.listOwnerName.textContent = user.username;
+    elements.standoutOwnerName.textContent = user.username;
     elements.gameLink.hidden = user.username.toLowerCase() !== "ben";
     document.body.classList.add("records-app-active");
     elements.loading.hidden = true;
