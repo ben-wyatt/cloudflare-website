@@ -763,6 +763,13 @@
     }
   }
 
+  function clearSearchResultsWhenEmpty() {
+    if (elements.searchInput.value.trim()) return;
+    state.results = [];
+    renderResults();
+    setMessage(elements.searchMessage);
+  }
+
   async function submitAuth(form, path) {
     const button = form.querySelector("button[type='submit']");
     const data = Object.fromEntries(new FormData(form));
@@ -831,6 +838,8 @@
     event.preventDefault();
     searchRecords();
   });
+  elements.searchInput.addEventListener("input", clearSearchResultsWhenEmpty);
+  elements.searchInput.addEventListener("search", clearSearchResultsWhenEmpty);
   elements.saveButton.addEventListener("click", saveList);
   window.addEventListener("beforeunload", (event) => {
     if (!state.dirty) return;
