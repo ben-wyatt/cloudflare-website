@@ -48,7 +48,7 @@ async function spotifyFetch(env, path) {
     throw new HttpError("Spotify is busy. Please wait a moment and try again.", 429, "spotify_rate_limited");
   }
   if (response.status === 404) {
-    throw new HttpError("That Spotify album could not be found.", 404, "album_not_found");
+    throw new HttpError("That Spotify item could not be found.", 404, "spotify_item_not_found");
   }
   if (!response.ok) {
     throw new HttpError("Spotify could not complete that request.", 502, "spotify_request_failed");
@@ -77,6 +77,7 @@ export function parseSpotifyAlbumId(value) {
 
 export function normalizeSpotifyAlbum(album) {
   return {
+    type: "album",
     spotifyId: album.id,
     name: album.name,
     artistName: (album.artists || []).map((artist) => artist.name).join(", "),
@@ -92,17 +93,44 @@ export async function getSpotifyAlbum(env, albumId) {
   return normalizeSpotifyAlbum(album);
 }
 
-function normalizeSpotifyTrack(track) {
+export function parseSpotifyTrackId(value) {
+  const input = String(value || "").trim();
+  const uriMatch = input.match(/^spotify:track:([A-Za-z0-9]+)$/i);
+  if (uriMatch) return uriMatch[1];
+
+  try {
+    const url = new URL(input);
+    if (url.hostname !== "open.spotify.com") return null;
+    const parts = url.pathname.split("/").filter(Boolean);
+    const trackIndex = parts.indexOf("track");
+    if (trackIndex !== -1 && parts[trackIndex + 1]) return parts[trackIndex + 1];
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+export function normalizeSpotifyTrack(track) {
   return {
+    type: "track",
     spotifyId: String(track.id || ""),
     name: String(track.name || ""),
     artistName: (track.artists || []).map((artist) => artist.name).filter(Boolean).join(", "),
+    albumName: String(track.album?.name || ""),
+    albumSpotifyId: String(track.album?.id || ""),
+    imageUrl: track.album?.images?.[0]?.url || null,
     spotifyUrl: track.external_urls?.spotify || `https://open.spotify.com/track/${track.id}`,
     discNumber: Math.max(1, Number(track.disc_number || 1)),
     trackNumber: Math.max(1, Number(track.track_number || 1)),
     durationMs: Math.max(0, Number(track.duration_ms || 0)),
     explicit: Boolean(track.explicit),
   };
+}
+
+export async function getSpotifyTrack(env, trackId) {
+  const track = await spotifyFetch(env, `/tracks/${encodeURIComponent(trackId)}?market=US`);
+  return normalizeSpotifyTrack(track);
 }
 
 export async function getSpotifyAlbumTracks(env, albumId) {
@@ -129,20 +157,31 @@ export async function getSpotifyAlbumTracks(env, albumId) {
   return tracks;
 }
 
-export async function searchSpotifyAlbums(env, query) {
-  const pastedId = parseSpotifyAlbumId(query);
-  if (pastedId) return [await getSpotifyAlbum(env, pastedId)];
+function interleave(left, right) {
+  const results = [];
+  for (let index = 0; index < Math.max(left.length, right.length); index += 1) {
+    if (left[index]) results.push(left[index]);
+    if (right[index]) results.push(right[index]);
+  }
+  return results;
+}
+
+export async function searchSpotifyRecords(env, query) {
+  const pastedAlbumId = parseSpotifyAlbumId(query);
+  if (pastedAlbumId) return [await getSpotifyAlbum(env, pastedAlbumId)];
+  const pastedTrackId = parseSpotifyTrackId(query);
+  if (pastedTrackId) return [await getSpotifyTrack(env, pastedTrackId)];
 
   const trimmed = String(query || "").trim();
   if (trimmed.length < 2 || trimmed.length > 100) {
     throw new HttpError("Search with at least two characters.", 400, "invalid_search");
   }
 
-  const search = async (value) => spotifyFetch(
+  const payload = await spotifyFetch(
     env,
-    `/search?type=album&market=US&limit=8&q=${encodeURIComponent(value)}`,
+    `/search?type=album,track&market=US&limit=8&q=${encodeURIComponent(trimmed)}`,
   );
-
-  const payload = await search(trimmed);
-  return (payload.albums?.items || []).filter(Boolean).map(normalizeSpotifyAlbum);
+  const albums = (payload.albums?.items || []).filter(Boolean).map(normalizeSpotifyAlbum);
+  const tracks = (payload.tracks?.items || []).filter(Boolean).map(normalizeSpotifyTrack);
+  return interleave(albums, tracks);
 }

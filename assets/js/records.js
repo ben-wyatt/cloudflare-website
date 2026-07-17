@@ -17,6 +17,7 @@
     passwordMessage: document.getElementById("password-message"),
     memberName: document.getElementById("member-name"),
     listOwnerName: document.getElementById("list-owner-name"),
+    standoutOwnerName: document.getElementById("standout-owner-name"),
     gameLink: document.getElementById("record-game-link"),
     logoutButton: document.getElementById("logout-button"),
     searchForm: document.getElementById("album-search-form"),
@@ -24,8 +25,11 @@
     searchMessage: document.getElementById("search-message"),
     results: document.getElementById("album-results"),
     rankedList: document.getElementById("ranked-list"),
+    standoutList: document.getElementById("standout-list"),
     emptyList: document.getElementById("empty-list"),
+    emptyStandouts: document.getElementById("empty-standouts"),
     listCount: document.getElementById("list-count"),
+    standoutCount: document.getElementById("standout-count"),
     saveButton: document.getElementById("save-list-button"),
     saveStatus: document.getElementById("save-status"),
   };
@@ -35,6 +39,7 @@
   const state = {
     user: null,
     items: [],
+    standouts: [],
     results: [],
     dirty: false,
     searching: false,
@@ -94,6 +99,9 @@
   function showAuth(message = "", isError = false) {
     state.user = null;
     state.items = [];
+    state.standouts = [];
+    state.results = [];
+    state.dragging = null;
     state.trackLists.clear();
     document.body.classList.remove("records-app-active");
     elements.loading.hidden = true;
@@ -107,6 +115,7 @@
     state.user = user;
     elements.memberName.textContent = user.username;
     elements.listOwnerName.textContent = `${user.username}’s`;
+    elements.standoutOwnerName.textContent = `${user.username}’s`;
     elements.gameLink.hidden = user.username.toLowerCase() !== "ben";
     document.body.classList.add("records-app-active");
     elements.loading.hidden = true;
@@ -118,18 +127,20 @@
     await loadList();
   }
 
-  function albumImage(album, className = "") {
+  function recordImage(record, className = "", type = "album") {
     const link = document.createElement("a");
     link.className = className;
-    link.href = album.spotifyUrl;
+    link.href = record.spotifyUrl;
     link.target = "_blank";
     link.rel = "noopener";
-    link.setAttribute("aria-label", `Open ${album.name} by ${album.artistName} in Spotify`);
+    link.setAttribute("aria-label", `Open ${record.name} by ${record.artistName} in Spotify`);
 
-    if (album.imageUrl) {
+    if (record.imageUrl) {
       const image = document.createElement("img");
-      image.src = album.imageUrl;
-      image.alt = `${album.name} album cover`;
+      image.src = record.imageUrl;
+      image.alt = type === "track" && record.albumName
+        ? `${record.albumName} album cover`
+        : `${record.name} album cover`;
       image.loading = "lazy";
       link.append(image);
     } else {
@@ -140,40 +151,44 @@
     return link;
   }
 
-  function albumCopy(album) {
+  function resultCopy(record) {
     const wrapper = document.createElement("div");
     wrapper.className = "album-result-copy";
     const title = document.createElement("p");
     title.className = "album-title";
-    title.textContent = album.name;
+    title.textContent = record.name;
     const meta = document.createElement("p");
     meta.className = "album-meta";
-    const year = album.releaseDate ? ` · ${album.releaseDate.slice(0, 4)}` : "";
-    meta.textContent = `${album.artistName}${year}`;
+    const type = record.type === "track" ? "Track" : "Album";
+    const year = record.releaseDate ? ` · ${record.releaseDate.slice(0, 4)}` : "";
+    const album = record.type === "track" && record.albumName ? ` · ${record.albumName}` : "";
+    meta.textContent = `${type} · ${record.artistName}${album}${year}`;
     wrapper.append(title, meta);
     return wrapper;
   }
 
-  function isSelected(spotifyId) {
-    return state.items.some((item) => item.spotifyId === spotifyId);
+  function isSelected(record) {
+    const list = record.type === "track" ? state.standouts : state.items;
+    return list.some((item) => item.spotifyId === record.spotifyId);
   }
 
   function renderResults() {
-    const nodes = state.results.map((album) => {
+    const nodes = state.results.map((record) => {
       const item = document.createElement("li");
       item.className = "album-result";
       const addButton = document.createElement("button");
       addButton.type = "button";
       addButton.className = "album-add-button";
-      const selected = isSelected(album.spotifyId);
-      addButton.disabled = selected || state.items.length >= MAX_ALBUMS;
+      const selected = isSelected(record);
+      const albumLimitReached = record.type !== "track" && state.items.length >= MAX_ALBUMS;
+      addButton.disabled = selected || albumLimitReached;
       addButton.textContent = selected ? "✓" : "+";
       addButton.setAttribute(
         "aria-label",
-        selected ? `${album.name} is already on your list` : `Add ${album.name} to your list`,
+        selected ? `${record.name} is already on your list` : `Add ${record.name} to your list`,
       );
-      addButton.addEventListener("click", () => addAlbum(album));
-      item.append(albumImage(album), albumCopy(album), addButton);
+      addButton.addEventListener("click", () => addRecord(record));
+      item.append(recordImage(record, "", record.type), resultCopy(record), addButton);
       return item;
     });
     elements.results.replaceChildren(...nodes);
@@ -189,35 +204,44 @@
     return button;
   }
 
-  function clearDropIndicators() {
-    for (const item of elements.rankedList.querySelectorAll(".ranked-item")) {
+  function listFor(type) {
+    return type === "track" ? state.standouts : state.items;
+  }
+
+  function listElementFor(type) {
+    return type === "track" ? elements.standoutList : elements.rankedList;
+  }
+
+  function clearDropIndicators(type) {
+    for (const item of listElementFor(type).querySelectorAll(".ranked-item")) {
       item.classList.remove("is-drop-before", "is-drop-after");
     }
   }
 
-  function focusGrabber(spotifyId) {
+  function focusGrabber(spotifyId, type = "album") {
     requestAnimationFrame(() => {
-      const grabber = [...elements.rankedList.querySelectorAll(".ranked-grabber")]
+      const grabber = [...listElementFor(type).querySelectorAll(".ranked-grabber")]
         .find((button) => button.dataset.spotifyId === spotifyId);
       grabber?.focus();
     });
   }
 
-  function reorderAlbum(sourceId, targetId, placeAfter) {
-    const sourceIndex = state.items.findIndex((album) => album.spotifyId === sourceId);
+  function reorderRecord(sourceId, targetId, placeAfter, type) {
+    const records = listFor(type);
+    const sourceIndex = records.findIndex((record) => record.spotifyId === sourceId);
     if (sourceIndex < 0 || sourceId === targetId) return;
 
-    const [movedAlbum] = state.items.splice(sourceIndex, 1);
-    const targetIndex = state.items.findIndex((album) => album.spotifyId === targetId);
+    const [movedRecord] = records.splice(sourceIndex, 1);
+    const targetIndex = records.findIndex((record) => record.spotifyId === targetId);
     if (targetIndex < 0) {
-      state.items.splice(sourceIndex, 0, movedAlbum);
+      records.splice(sourceIndex, 0, movedRecord);
       return;
     }
 
-    state.items.splice(targetIndex + (placeAfter ? 1 : 0), 0, movedAlbum);
+    records.splice(targetIndex + (placeAfter ? 1 : 0), 0, movedRecord);
     markDirty();
-    renderList();
-    focusGrabber(sourceId);
+    renderLists();
+    focusGrabber(sourceId, type);
   }
 
   function updatePointerDrag(event) {
@@ -225,8 +249,9 @@
     if (!dragging || event.pointerId !== dragging.pointerId) return;
 
     const target = document.elementFromPoint(event.clientX, event.clientY)?.closest(".ranked-item");
-    clearDropIndicators();
-    if (!target || !elements.rankedList.contains(target)) {
+    const listElement = listElementFor(dragging.type);
+    clearDropIndicators(dragging.type);
+    if (!target || !listElement.contains(target)) {
       dragging.targetId = dragging.sourceId;
       return;
     }
@@ -251,22 +276,22 @@
       dragging.handle.releasePointerCapture(event.pointerId);
     }
     dragging.item.classList.remove("is-dragging");
-    elements.rankedList.classList.remove("is-reordering");
-    clearDropIndicators();
+    listElementFor(dragging.type).classList.remove("is-reordering");
+    clearDropIndicators(dragging.type);
     state.dragging = null;
 
     if (!canceled && dragging.targetId !== dragging.sourceId) {
-      reorderAlbum(dragging.sourceId, dragging.targetId, dragging.placeAfter);
+      reorderRecord(dragging.sourceId, dragging.targetId, dragging.placeAfter, dragging.type);
     }
   }
 
-  function grabberButton(album, index, item) {
+  function grabberButton(record, index, item, type = "album") {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "ranked-grabber";
-    button.dataset.spotifyId = album.spotifyId;
+    button.dataset.spotifyId = record.spotifyId;
     button.title = "Drag to reorder, or use the up and down arrow keys";
-    button.setAttribute("aria-label", `Reorder ${album.name}. Drag, or use the up and down arrow keys.`);
+    button.setAttribute("aria-label", `Reorder ${record.name}. Drag, or use the up and down arrow keys.`);
 
     const grip = document.createElement("span");
     grip.className = "ranked-grip-dots";
@@ -277,7 +302,7 @@
     button.addEventListener("keydown", (event) => {
       if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
       event.preventDefault();
-      moveAlbum(index, event.key === "ArrowUp" ? -1 : 1, album.spotifyId);
+      moveRecord(index, event.key === "ArrowUp" ? -1 : 1, record.spotifyId, type);
     });
 
     button.addEventListener("pointerdown", (event) => {
@@ -286,15 +311,16 @@
       button.focus();
       state.dragging = {
         pointerId: event.pointerId,
-        sourceId: album.spotifyId,
-        targetId: album.spotifyId,
+        sourceId: record.spotifyId,
+        targetId: record.spotifyId,
+        type,
         placeAfter: false,
         handle: button,
         item,
       };
       button.setPointerCapture?.(event.pointerId);
       item.classList.add("is-dragging");
-      elements.rankedList.classList.add("is-reordering");
+      listElementFor(type).classList.add("is-reordering");
     });
     button.addEventListener("pointermove", updatePointerDrag);
     button.addEventListener("pointerup", (event) => finishPointerDrag(event));
@@ -506,7 +532,7 @@
     return details;
   }
 
-  function renderList() {
+  function renderAlbumList() {
     const nodes = state.items.map((album, index) => {
       const item = document.createElement("li");
       item.className = "ranked-item";
@@ -518,7 +544,7 @@
       number.className = "ranked-number";
       number.setAttribute("aria-hidden", "true");
       number.textContent = String(index + 1).padStart(2, "0");
-      rank.append(number, grabberButton(album, index, item));
+      rank.append(number, grabberButton(album, index, item, "album"));
 
       const copy = document.createElement("div");
       copy.className = "ranked-copy";
@@ -530,10 +556,10 @@
       meta.textContent = album.artistName;
       const reviewLabel = document.createElement("label");
       reviewLabel.className = "sr-only";
-      reviewLabel.htmlFor = `review-${album.spotifyId}`;
+      reviewLabel.htmlFor = `album-review-${album.spotifyId}`;
       reviewLabel.textContent = `Short review for ${album.name}`;
       const review = document.createElement("textarea");
-      review.id = `review-${album.spotifyId}`;
+      review.id = `album-review-${album.spotifyId}`;
       review.className = "ranked-review";
       review.maxLength = 500;
       review.placeholder = "A few words on the album…";
@@ -550,13 +576,72 @@
         actionButton(`Remove ${album.name}`, "×", () => removeAlbum(index), "ranked-remove"),
       );
 
-      item.append(rank, albumImage(album, "ranked-cover"), copy, actions);
+      item.append(rank, recordImage(album, "ranked-cover"), copy, actions);
       return item;
     });
 
     elements.rankedList.replaceChildren(...nodes);
     elements.emptyList.hidden = state.items.length > 0;
-    elements.listCount.textContent = `${state.items.length} / ${MAX_ALBUMS}`;
+    elements.listCount.textContent = `${state.items.length} / ${MAX_ALBUMS} albums`;
+  }
+
+  function renderStandoutList() {
+    const nodes = state.standouts.map((track, index) => {
+      const item = document.createElement("li");
+      item.className = "ranked-item standout-item";
+      item.dataset.spotifyId = track.spotifyId;
+
+      const rank = document.createElement("div");
+      rank.className = "ranked-rank";
+      const number = document.createElement("span");
+      number.className = "ranked-number";
+      number.setAttribute("aria-hidden", "true");
+      number.textContent = String(index + 1).padStart(2, "0");
+      rank.append(number, grabberButton(track, index, item, "track"));
+
+      const copy = document.createElement("div");
+      copy.className = "ranked-copy";
+      const title = document.createElement("p");
+      title.className = "album-title";
+      title.textContent = track.name;
+      const meta = document.createElement("p");
+      meta.className = "album-meta";
+      const album = track.albumName ? ` · ${track.albumName}` : "";
+      meta.textContent = `${track.artistName}${album}${track.explicit ? " · explicit" : ""}`;
+      const reviewLabel = document.createElement("label");
+      reviewLabel.className = "sr-only";
+      reviewLabel.htmlFor = `track-review-${track.spotifyId}`;
+      reviewLabel.textContent = `Note for ${track.name}`;
+      const review = document.createElement("textarea");
+      review.id = `track-review-${track.spotifyId}`;
+      review.className = "ranked-review";
+      review.maxLength = 500;
+      review.placeholder = "A few words on the track…";
+      review.value = track.review || "";
+      review.addEventListener("input", () => {
+        state.standouts[index].review = review.value;
+        markDirty();
+      });
+      copy.append(title, meta, reviewLabel, review);
+
+      const actions = document.createElement("div");
+      actions.className = "ranked-actions";
+      actions.append(
+        actionButton(`Remove ${track.name}`, "×", () => removeRecord(index, "track"), "ranked-remove"),
+      );
+
+      item.append(rank, recordImage(track, "ranked-cover", "track"), copy, actions);
+      return item;
+    });
+
+    elements.standoutList.replaceChildren(...nodes);
+    elements.emptyStandouts.hidden = state.standouts.length > 0;
+    elements.standoutCount.textContent = `${state.standouts.length} track${state.standouts.length === 1 ? "" : "s"}`;
+  }
+
+  function renderLists() {
+    renderAlbumList();
+    renderStandoutList();
     elements.saveButton.disabled = state.saving || !state.dirty;
     renderResults();
   }
@@ -567,27 +652,39 @@
     setMessage(elements.saveStatus, "Unsaved changes");
   }
 
-  function addAlbum(album) {
-    if (state.items.length >= MAX_ALBUMS || isSelected(album.spotifyId)) return;
-    state.items.push({ ...album, review: "", favoriteTrackIds: [] });
+  function addRecord(record) {
+    if (isSelected(record)) return;
+    if (record.type === "track") {
+      state.standouts.push({ ...record, review: "" });
+    } else {
+      if (state.items.length >= MAX_ALBUMS) return;
+      state.items.push({ ...record, review: "", favoriteTrackIds: [] });
+    }
     markDirty();
-    renderList();
-    void loadAlbumTracks(album.spotifyId);
+    renderLists();
+    if (record.type !== "track") void loadAlbumTracks(record.spotifyId);
   }
 
   function removeAlbum(index) {
     state.items.splice(index, 1);
     markDirty();
-    renderList();
+    renderLists();
   }
 
-  function moveAlbum(index, direction, focusId = "") {
-    const destination = index + direction;
-    if (destination < 0 || destination >= state.items.length) return;
-    [state.items[index], state.items[destination]] = [state.items[destination], state.items[index]];
+  function removeRecord(index, type) {
+    listFor(type).splice(index, 1);
     markDirty();
-    renderList();
-    if (focusId) focusGrabber(focusId);
+    renderLists();
+  }
+
+  function moveRecord(index, direction, focusId = "", type = "album") {
+    const records = listFor(type);
+    const destination = index + direction;
+    if (destination < 0 || destination >= records.length) return;
+    [records[index], records[destination]] = [records[destination], records[index]];
+    markDirty();
+    renderLists();
+    if (focusId) focusGrabber(focusId, type);
   }
 
   async function loadList() {
@@ -599,9 +696,10 @@
         ...item,
         favoriteTrackIds: Array.isArray(item.favoriteTrackIds) ? item.favoriteTrackIds : [],
       }));
+      state.standouts = (payload.standouts || []).map((track) => ({ ...track, type: "track" }));
       state.dirty = false;
-      setMessage(elements.saveStatus, state.items.length ? "Draft loaded" : "");
-      renderList();
+      setMessage(elements.saveStatus, state.items.length || state.standouts.length ? "Draft loaded" : "");
+      renderLists();
     } catch (error) {
       setMessage(elements.saveStatus, error.message, true);
     }
@@ -621,6 +719,10 @@
             review: item.review || "",
             favoriteTrackIds: favoriteIds(item),
           })),
+          standouts: state.standouts.map((track) => ({
+            spotifyId: track.spotifyId,
+            review: track.review || "",
+          })),
         },
       });
       state.dirty = false;
@@ -633,7 +735,7 @@
     }
   }
 
-  async function searchAlbums() {
+  async function searchRecords() {
     const query = elements.searchInput.value.trim();
     if (!query || state.searching) return;
     state.searching = true;
@@ -643,10 +745,10 @@
     elements.searchInput.readOnly = true;
     try {
       const payload = await api(`/api/spotify/search?q=${encodeURIComponent(query)}`);
-      state.results = payload.albums || [];
+      state.results = payload.results || [];
       setMessage(
         elements.searchMessage,
-        state.results.length ? `${state.results.length} result${state.results.length === 1 ? "" : "s"}` : "No albums found. Try an artist or album name.",
+        state.results.length ? `${state.results.length} result${state.results.length === 1 ? "" : "s"}` : "No albums or tracks found. Try another title or artist.",
       );
       renderResults();
     } catch (error) {
@@ -724,7 +826,7 @@
   });
   elements.searchForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    searchAlbums();
+    searchRecords();
   });
   elements.saveButton.addEventListener("click", saveList);
   window.addEventListener("beforeunload", (event) => {

@@ -133,9 +133,9 @@
 #records-auth .records-form input {
   max-width: 24rem;
   border: 0;
-  border-bottom: 1px solid var(--records-line-strong);
   border-radius: 0;
   background: transparent;
+  box-shadow: inset 0 -1px 0 var(--records-line-strong);
 }
 
 #records-auth .records-form input::placeholder {
@@ -147,9 +147,9 @@
   -webkit-appearance: none;
   appearance: none;
   border: 0;
-  border-bottom: 1px solid var(--records-line-strong);
   border-radius: 0;
   background: transparent;
+  box-shadow: inset 0 -1px 0 var(--records-line-strong);
 }
 
 .album-search-form input::placeholder {
@@ -160,7 +160,7 @@
 #records-auth .records-form input:focus,
 .album-search-form input:focus {
   outline: 0;
-  border-bottom-color: var(--color-primary);
+  box-shadow: inset 0 -2px 0 var(--color-primary);
 }
 
 .records-form input:focus,
@@ -378,13 +378,30 @@ button:disabled {
   opacity: 0.72;
 }
 
-#list-owner-name {
+#list-owner-name,
+#standout-owner-name {
   color: var(--color-primary-strong);
   font-weight: 700;
 }
 
 .records-list-heading {
   margin-bottom: 1rem;
+}
+
+.standout-section {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--records-line-strong);
+}
+
+.standout-heading {
+  margin-bottom: 0.35rem;
+}
+
+.standout-intro {
+  max-width: 62ch;
+  margin: 0 0 1rem;
+  color: var(--em-color);
 }
 
 .records-save-group {
