@@ -115,7 +115,7 @@
 
   async function showApp(user) {
     state.user = user;
-    const ownerName = user.username.replace(/[’']s$/i, "");
+    const ownerName = user.username.replace(/[’']s?$/i, "");
     elements.memberName.textContent = user.username;
     elements.listOwnerName.textContent = ownerName;
     elements.standoutOwnerName.textContent = ownerName;
