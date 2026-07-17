@@ -115,10 +115,9 @@
 
   async function showApp(user) {
     state.user = user;
-    const ownerName = user.username.replace(/[’']s?$/i, "");
     elements.memberName.textContent = user.username;
-    elements.listOwnerName.textContent = ownerName;
-    elements.standoutOwnerName.textContent = ownerName;
+    elements.listOwnerName.textContent = user.username;
+    elements.standoutOwnerName.textContent = user.username;
     elements.gameLink.hidden = user.username.toLowerCase() !== "ben";
     document.body.classList.add("records-app-active");
     elements.loading.hidden = true;
