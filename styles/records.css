@@ -453,7 +453,8 @@ button:disabled {
   min-height: 3.5rem;
   margin-top: 0.4rem;
   padding: 0.45rem 0.65rem;
-  resize: vertical;
+  overflow-y: hidden;
+  resize: none;
   line-height: 1.35;
 }
 

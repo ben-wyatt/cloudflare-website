@@ -8,7 +8,7 @@ import {
   requireDb,
 } from "../_shared/http.js";
 
-const GAME_USERNAME = "ben";
+const GAME_USERNAMES = new Set(["ben", "ben_dev"]);
 const SEASON = 2026;
 const ROUND_TTL_MS = 6 * 60 * 60 * 1000;
 const MAX_CLUE_LEVEL = 3;
@@ -37,8 +37,8 @@ async function getScoreboard(db, playerId) {
 }
 
 function requireGameAccess(user) {
-  if (normalizeUsername(user.username) !== GAME_USERNAME) {
-    throw new HttpError("This game is only available on ben's account.", 403, "game_forbidden");
+  if (!GAME_USERNAMES.has(normalizeUsername(user.username))) {
+    throw new HttpError("This game is not available on this account.", 403, "game_forbidden");
   }
 }
 

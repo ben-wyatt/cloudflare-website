@@ -1,4 +1,6 @@
 (() => {
+  const gameUsernames = new Set(["ben", "ben_dev"]);
+
   const elements = {
     loading: document.getElementById("game-loading"),
     gate: document.getElementById("game-gate"),
@@ -306,11 +308,11 @@
   api("/api/auth/me")
     .then(async (payload) => {
       if (!payload.authenticated) {
-        showGate("Sign in as ben to play.");
+        showGate("Sign in to play.");
         return;
       }
-      if (payload.user.username.toLowerCase() !== "ben") {
-        showGate("This game is only available on ben's account.");
+      if (!gameUsernames.has(payload.user.username.toLowerCase())) {
+        showGate("This game is not available on this account.");
         return;
       }
 

@@ -1,6 +1,7 @@
 (() => {
   const MAX_ALBUMS = 15;
   const MAX_FAVORITE_TRACKS_PER_ALBUM = 50;
+  const gameUsernames = new Set(["ben", "ben_dev"]);
 
   const elements = {
     loading: document.getElementById("records-loading"),
@@ -113,12 +114,21 @@
     setMessage(elements.authMessage, message, isError);
   }
 
+  function resizeReview(review) {
+    review.style.height = "auto";
+    review.style.height = `${review.scrollHeight}px`;
+  }
+
+  function resizeReviews() {
+    document.querySelectorAll(".ranked-review").forEach(resizeReview);
+  }
+
   async function showApp(user) {
     state.user = user;
     elements.memberName.textContent = user.username;
     elements.listOwnerName.textContent = user.username;
     elements.standoutOwnerName.textContent = user.username;
-    elements.gameLink.hidden = user.username.toLowerCase() !== "ben";
+    elements.gameLink.hidden = !gameUsernames.has(user.username.toLowerCase());
     document.body.classList.add("records-app-active");
     elements.loading.hidden = true;
     elements.intro.hidden = false;
@@ -568,6 +578,7 @@
       review.placeholder = "A few words on the album…";
       review.value = album.review || "";
       review.addEventListener("input", () => {
+        resizeReview(review);
         state.items[index].review = review.value;
         markDirty();
       });
@@ -584,6 +595,7 @@
     });
 
     elements.rankedList.replaceChildren(...nodes);
+    resizeReviews();
     elements.emptyList.hidden = state.items.length > 0;
     elements.listCount.textContent = `${state.items.length} / ${MAX_ALBUMS} albums`;
   }
@@ -622,6 +634,7 @@
       review.placeholder = "A few words on the track…";
       review.value = track.review || "";
       review.addEventListener("input", () => {
+        resizeReview(review);
         state.standouts[index].review = review.value;
         markDirty();
       });
@@ -638,6 +651,7 @@
     });
 
     elements.standoutList.replaceChildren(...nodes);
+    resizeReviews();
     elements.emptyStandouts.hidden = state.standouts.length > 0;
     elements.standoutCount.textContent = `${state.standouts.length} track${state.standouts.length === 1 ? "" : "s"}`;
   }
@@ -841,6 +855,7 @@
   elements.searchInput.addEventListener("input", clearSearchResultsWhenEmpty);
   elements.searchInput.addEventListener("search", clearSearchResultsWhenEmpty);
   elements.saveButton.addEventListener("click", saveList);
+  window.addEventListener("resize", resizeReviews);
   window.addEventListener("beforeunload", (event) => {
     if (!state.dirty) return;
     event.preventDefault();
