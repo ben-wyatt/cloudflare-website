@@ -7,6 +7,7 @@
   <title>{{ title or "Ben Wyatt" }}</title>
   <link rel="preload" href="/assets/fonts/inconsolata.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/styles/main.css">
+  {% if pageStyles %}<link rel="stylesheet" href="{{ pageStyles }}">{% endif %}
   {% if "<pre" in content %}
   <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism.css">
   <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism-okaidia.css" media="(prefers-color-scheme: dark)">
@@ -14,12 +15,14 @@
   <script defer src="https://unpkg.com/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js" data-autoloader-path="https://unpkg.com/prismjs@1.29.0/components/"></script>
   {% endif %}
 </head>
-<body data-theme="">
+<body data-theme=""{% if bodyClass %} class="{{ bodyClass }}"{% endif %}>
   <header>
     <nav style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.25rem;">
       <a href="/" style="margin-right: 0.5rem;">Home</a>
       <span style="margin: 0 0.5rem;">|</span>
       <a href="/blog/" style="margin-left: 0.5rem;">Blog</a>
+      <span style="margin: 0 0.5rem;">|</span>
+      <a href="/records/" style="margin-left: 0.5rem;">Records</a>
       <span style="margin: 0 0.5rem;">|</span>
       <button id="theme-toggle" aria-label="Toggle Theme" style="margin-left: 0.5rem;">🌓</button>
     </nav>
@@ -308,5 +311,6 @@
       }
     })();
   </script>
+  {% if pageScript %}<script src="{{ pageScript }}" defer></script>{% endif %}
 </body>
 </html>

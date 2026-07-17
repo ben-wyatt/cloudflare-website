@@ -1,4 +1,10 @@
 # wrangler.toml
-name = "personal-website"
+name = "cloudflare-website"
 pages_build_output_dir = "./_site"
-# compatibility_date = "2025-08-16"  # optional; useful if you later add Pages Functions
+compatibility_date = "2026-07-16"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "record-club"
+database_id = "784d83b4-d0d4-49d2-97bc-18838b81e02b"
+migrations_dir = "migrations"

@@ -1,3 +1,49 @@
+## Record Club 2026
+
+The private `/records/` app adds invite-only accounts, a saved top-ten draft,
+Spotify album search, ordering controls, and short reviews. It uses Cloudflare
+Pages Functions and D1 while keeping the rest of the Eleventy site static.
+
+The `ben` account also gets a private `/records/game/` screen. “Who Picked It?”
+chooses a reviewed album from the current 2026 lists and asks Ben to match it to
+a member. Misses reveal the album title, artist, and member note in that order.
+The answer and unrevealed clues stay in D1-backed game rounds rather than being
+sent to the browser.
+
+### One-time local setup
+
+1. Create an app in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
+   The app owner's Spotify account must have Premium under Spotify's current
+   Development Mode rules. The app does not need a redirect URI because the
+   site uses Client Credentials for public album metadata.
+2. Copy `.dev.vars.example` to `.dev.vars` and fill in the Spotify client ID,
+   Spotify client secret, and the signup access code you want to share.
+3. Initialize the local database and start the full app:
+
+   ```bash
+   npm run db:migrate:local
+   npm run serve:app
+   ```
+
+The normal `npm run serve` command still serves the static Eleventy site, but
+does not run the `/api/*` backend.
+
+### Cloudflare deployment setup
+
+The production `record-club` D1 database and Pages binding are declared in
+`wrangler.toml`. `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, and
+`SIGNUP_ACCESS_CODE` are encrypted Pages secrets. `MAX_RECORD_MEMBERS` is an
+optional environment variable and defaults to 25.
+
+When a future migration is added, apply it with:
+
+```bash
+npm run db:migrate:remote
+```
+
+The Spotify secret and signup code must never be added directly to committed
+source files.
+
 ## Usage
 
 Need to add this

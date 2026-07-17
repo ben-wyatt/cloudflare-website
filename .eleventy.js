@@ -63,6 +63,9 @@ module.exports = function(eleventyConfig) {
   // Copy static assets like icons if needed
   eleventyConfig.addPassthroughCopy("assets");
 
+  // Copy the Cloudflare Pages routing manifest when present.
+  eleventyConfig.addPassthroughCopy({ "src/_routes.json": "_routes.json" });
+
   // IDE-quality code highlighting with Shiki (light/dark themes), if available
   if (pluginShiki) {
     eleventyConfig.addPlugin(pluginShiki, {

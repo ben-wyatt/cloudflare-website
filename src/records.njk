@@ -1,0 +1,112 @@
+---
+layout: layout.njk
+title: Record Club 2026
+permalink: "/records/"
+pageStyles: "/styles/records.css?v=record-game"
+pageScript: "/assets/js/records.js?v=record-game"
+bodyClass: "records-page"
+---
+
+<section class="records-shell" aria-labelledby="records-title">
+  <div class="records-hero">
+    <p class="records-kicker">private listening room · 2026</p>
+    <h1 id="records-title">Your records of the year</h1>
+    <p>Build a ranked top ten, add a few words, and keep changing your mind. Your draft is private for now.</p>
+  </div>
+
+  <div id="records-loading" class="records-panel records-loading" role="status">
+    Opening the listening room…
+  </div>
+
+  <section id="records-auth" class="records-panel" hidden aria-labelledby="auth-title">
+    <div class="records-panel-heading">
+      <div>
+        <p class="records-eyebrow">members only</p>
+        <h2 id="auth-title">Sign in</h2>
+      </div>
+      <div class="auth-switch" role="group" aria-label="Choose an account action">
+        <button type="button" class="is-active" data-auth-mode="login">Sign in</button>
+        <button type="button" data-auth-mode="register">Create account</button>
+      </div>
+    </div>
+
+    <form id="login-form" class="records-form">
+      <label>
+        Username
+        <input name="username" autocomplete="username" required minlength="3" maxlength="24">
+      </label>
+      <label>
+        Password
+        <input name="password" type="password" autocomplete="current-password" required minlength="8">
+      </label>
+      <button class="records-primary" type="submit">Enter the room</button>
+    </form>
+
+    <form id="register-form" class="records-form" hidden>
+      <label>
+        Choose a username
+        <input name="username" autocomplete="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_-]+">
+        <span class="records-hint">Letters, numbers, hyphens, and underscores.</span>
+      </label>
+      <label>
+        Choose a password
+        <input name="password" type="password" autocomplete="new-password" required minlength="8">
+      </label>
+      <label>
+        Group access code
+        <input name="accessCode" type="password" autocomplete="off" required>
+      </label>
+      <button class="records-primary" type="submit">Create account</button>
+    </form>
+    <p id="auth-message" class="records-message" role="status" aria-live="polite"></p>
+  </section>
+
+  <section id="records-app" hidden>
+    <div class="records-member-bar">
+      <p>Signed in as <strong id="member-name"></strong></p>
+      <div class="records-member-actions">
+        <a id="record-game-link" class="records-game-link" href="/records/game/" hidden>Play Who Picked It?</a>
+        <button id="logout-button" class="records-text-button" type="button">Sign out</button>
+      </div>
+    </div>
+
+    <div class="records-workspace">
+      <section class="records-panel records-search-panel" aria-labelledby="search-title">
+        <div class="records-panel-heading records-panel-heading-compact">
+          <div>
+            <p class="records-eyebrow">the record bin</p>
+            <h2 id="search-title">Find an album</h2>
+          </div>
+          <span id="list-count" class="records-count">0 / 10</span>
+        </div>
+        <form id="album-search-form" class="album-search-form" role="search">
+          <label class="sr-only" for="album-search">Album, artist, or Spotify album link</label>
+          <input id="album-search" name="query" type="search" placeholder="Album, artist, or Spotify link" autocomplete="off" required>
+          <button type="submit">Search</button>
+        </form>
+        <p class="records-hint">Search Spotify's full catalog or paste an album link.</p>
+        <div id="search-message" class="records-message" role="status" aria-live="polite"></div>
+        <ol id="album-results" class="album-results" aria-label="Spotify album results"></ol>
+      </section>
+
+      <section class="records-list-section" aria-labelledby="list-title">
+        <div class="records-list-heading">
+          <div>
+            <p class="records-eyebrow">your ballot</p>
+            <h2 id="list-title">Top ten</h2>
+          </div>
+          <div class="records-save-group">
+            <span id="save-status" class="records-save-status" role="status" aria-live="polite"></span>
+            <button id="save-list-button" class="records-primary" type="button">Save draft</button>
+          </div>
+        </div>
+
+        <ol id="ranked-list" class="ranked-list" aria-label="Your ranked albums"></ol>
+        <div id="empty-list" class="records-empty">
+          <span aria-hidden="true">01</span>
+          <p>Your list is empty. Search above and add the first record you loved this year.</p>
+        </div>
+      </section>
+    </div>
+  </section>
+</section>

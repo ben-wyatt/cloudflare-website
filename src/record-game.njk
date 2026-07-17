@@ -1,0 +1,75 @@
+---
+layout: layout.njk
+title: Who Picked It? · Record Club
+permalink: "/records/game/"
+pageStyles: "/styles/records.css?v=record-game"
+pageScript: "/assets/js/record-game.js?v=record-game"
+bodyClass: "records-page record-game-page"
+---
+
+<section class="game-shell" aria-labelledby="game-title">
+  <div id="game-loading" class="records-panel game-loading" role="status">
+    Shuffling the record bin…
+  </div>
+
+  <section id="game-gate" class="records-panel game-gate" hidden aria-labelledby="game-gate-title">
+    <p class="records-eyebrow">private game</p>
+    <h1 id="game-gate-title">This room is locked</h1>
+    <p id="game-gate-message">Sign in as ben to play.</p>
+    <a class="records-primary game-back-link" href="/records/">Go to Record Club</a>
+  </section>
+
+  <div id="game-app" hidden>
+    <div class="records-member-bar game-member-bar">
+      <p>Playing as <strong id="game-member-name"></strong></p>
+      <a class="game-back-link" href="/records/">Back to your ballot</a>
+    </div>
+
+    <header class="game-masthead">
+      <p class="records-eyebrow">a record club guessing game</p>
+      <h1 id="game-title">Who Picked It?</h1>
+      <p class="game-deck">Match the mystery record to the person who put it on their list. Every miss unlocks another clue.</p>
+    </header>
+
+    <section id="game-round" class="game-round" hidden aria-label="Current mystery record">
+      <div>
+        <figure class="game-cover-frame">
+          <div class="game-cover-wrap">
+            <img id="game-cover" class="game-cover" src="" alt="Mystery album cover">
+          </div>
+          <figcaption class="sr-only">A randomly selected cover from a Record Club member's list.</figcaption>
+        </figure>
+        <div id="game-progress" class="game-progress" aria-label="Clues revealed">
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </div>
+      </div>
+
+      <div>
+        <div class="game-clue-list" aria-label="Unlocked clues">
+          <div class="game-clue">
+            <span class="game-clue-label">Album</span>
+            <span id="game-album-clue" class="game-clue-value is-locked">Unlocks after one miss</span>
+          </div>
+          <div class="game-clue">
+            <span class="game-clue-label">Artist</span>
+            <span id="game-artist-clue" class="game-clue-value is-locked">Unlocks after two misses</span>
+          </div>
+          <div class="game-clue">
+            <span class="game-clue-label">Their note</span>
+            <span id="game-review-clue" class="game-clue-value is-locked">Unlocks after three misses</span>
+          </div>
+        </div>
+
+        <h2 class="game-choices-title">Choose a listener</h2>
+        <div id="game-choices" class="game-choices" role="group" aria-label="Record Club members"></div>
+        <p id="game-status" class="game-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <div class="game-footer">
+      <button id="game-next" class="records-primary game-next" type="button" hidden>Next record</button>
+    </div>
+  </div>
+</section>

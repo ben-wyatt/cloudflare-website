@@ -9,6 +9,9 @@
     "build": "eleventy",
     "preserve": "node scripts/build-related.js",
     "serve": "eleventy --serve",
+    "serve:app": "npm run build && WRANGLER_WRITE_LOGS=false wrangler pages dev _site",
+    "db:migrate:local": "WRANGLER_WRITE_LOGS=false wrangler d1 migrations apply record-club --local",
+    "db:migrate:remote": "WRANGLER_WRITE_LOGS=false wrangler d1 migrations apply record-club --remote",
     "clean": "rm -rf _site"
   },
   "repository": {
@@ -23,9 +26,10 @@
     "luxon": "^3.7.1"
   },
   "devDependencies": {
+    "@xenova/transformers": "^2.17.2",
+    "gray-matter": "^4.0.3",
     "markdown-it": "^14.1.0",
     "markdown-it-anchor": "^9.2.0",
-    "@xenova/transformers": "^2.17.2",
-    "gray-matter": "^4.0.3"
+    "wrangler": "^4.111.0"
   }
 }
