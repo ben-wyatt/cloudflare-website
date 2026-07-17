@@ -4,6 +4,7 @@
 
   const elements = {
     loading: document.getElementById("records-loading"),
+    intro: document.getElementById("records-intro"),
     auth: document.getElementById("records-auth"),
     app: document.getElementById("records-app"),
     authTitle: document.getElementById("auth-title"),
@@ -105,6 +106,7 @@
     state.trackLists.clear();
     document.body.classList.remove("records-app-active");
     elements.loading.hidden = true;
+    elements.intro.hidden = true;
     elements.app.hidden = true;
     elements.auth.hidden = false;
     setAuthMode("login");
@@ -119,6 +121,7 @@
     elements.gameLink.hidden = user.username.toLowerCase() !== "ben";
     document.body.classList.add("records-app-active");
     elements.loading.hidden = true;
+    elements.intro.hidden = false;
     elements.auth.hidden = true;
     elements.app.hidden = false;
     elements.passwordPanel.hidden = true;

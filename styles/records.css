@@ -32,7 +32,7 @@
   color: inherit;
 }
 
-.records-hero > p:not(.records-kicker) {
+.records-intro p {
   color: var(--em-color);
 }
 

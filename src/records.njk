@@ -3,7 +3,7 @@ layout: layout.njk
 title: Record Club 2026
 permalink: "/records/"
 pageStyles: "/styles/records.css?v=standout-tracks-mobile-underline"
-pageScript: "/assets/js/records.js?v=standout-tracks"
+pageScript: "/assets/js/records.js?v=member-intro"
 bodyClass: "records-page"
 ---
 
@@ -11,11 +11,13 @@ bodyClass: "records-page"
   <div class="records-hero">
     <p class="records-kicker">private listening room · 2026</p>
     <h1 id="records-title"><em>Our</em> albums of the year</h1>
-    <p>I'm sharing this with a few friends. Add the albums that you found this year and a few words on how you connected to it if you'd like.</p>
-    <p>Your list doesn't need to be albums that <em>came out</em> this year, just ones that you especially jammed to or connected with! I need at least 5; no more than 15. Feel free to revisit over the course of the year.</p>
-    <p>You can also keep a ranked list of standout tracks—songs from albums you were generally meh on, or tracks you want to call out because they stayed in rotation. If an album is already in your Top Albums, use its tracklist hearts instead of adding one of its tracks as a standout.</p>
-    <p>I'll lock ballots on <strong>December 1st</strong> and then we'll play some NYTimes-style games with the album data.</p>
-    <p>For questions, comments, suggestions, feature requests feel free to text me.</p>
+    <div id="records-intro" class="records-intro" hidden>
+      <p>I'm sharing this with a few friends. Add the albums that you found this year and a few words on how you connected to it if you'd like.</p>
+      <p>Your list doesn't need to be albums that <em>came out</em> this year, just ones that you especially jammed to or connected with! I need at least 5; no more than 15. Feel free to revisit over the course of the year.</p>
+      <p>You can also keep a ranked list of standout tracks—songs from albums you were generally meh on, or tracks you want to call out because they stayed in rotation. If an album is already in your Top Albums, use its tracklist hearts instead of adding one of its tracks as a standout.</p>
+      <p>I'll lock ballots on <strong>December 1st</strong> and then we'll play some NYTimes-style games with the album data.</p>
+      <p>For questions, comments, suggestions, feature requests feel free to text me.</p>
+    </div>
   </div>
 
   <div id="records-loading" class="records-panel records-loading" role="status">
