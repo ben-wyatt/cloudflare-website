@@ -744,7 +744,7 @@ button:disabled {
 
 .game-masthead h1 {
   margin: 0.2rem 0 0.35rem;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading);
   font-size: clamp(2.6rem, 9vw, 5.4rem);
   font-weight: 700;
   line-height: 0.96;
@@ -777,7 +777,7 @@ button:disabled {
 }
 
 .game-score-stat strong {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading);
   font-size: 1.35rem;
   line-height: 1;
   color: var(--game-secondary);
@@ -929,7 +929,7 @@ button:disabled {
 
 .game-clue-value {
   display: block;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-body);
   font-size: 1.08rem;
   line-height: 1.35;
 }
@@ -950,7 +950,7 @@ button:disabled {
 
 .game-choices-title {
   margin: 0 0 0.7rem;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading);
   font-size: 1.35rem;
 }
 

@@ -40,7 +40,7 @@ Use the Blog as the ceiling for normal page copy and interface text.
 - Keep controls, labels, code, navigation, and headings in the same monospace family.
 - Keep body copy at `1rem` on mobile. Allow the heading clamps to reduce hierarchy naturally.
 - Reserve oversized display type for a documented exception. Do not copy the local design guide's large hero sizing into production pages.
-- Preserve the existing Georgia display treatment in selected “Who Picked It?” masthead, clue, score, and choice copy. Treat it as a deliberate game-specific exception; do not remove it casually or extend it to ordinary site UI.
+- Keep every visible text role in Inconsolata, including Record Club games. Do not introduce an editorial serif exception.
 
 ## Preserve the reading measure and spacing
 
@@ -94,7 +94,7 @@ Use the Blog as the ceiling for normal page copy and interface text.
 ## Respect the exception ledger
 
 - Keep `src/design.njk` local-only behind `DESIGN_GUIDE=1`. Its oversized hero and showcase layout document the system; they do not redefine production defaults.
-- Keep Georgia only in the established Record game editorial selectors unless a request intentionally changes that exception.
+- Keep Record game typography on the same Inconsolata system as the rest of the site.
 - Allow `--wide-content-width` only when multi-column work truly needs it; return reading content to the 720px measure.
 - Document any new intentional exception close to its CSS and keep its scope narrow.
 
@@ -112,7 +112,7 @@ Use the Blog as the ceiling for normal page copy and interface text.
 
 Confirm all of the following:
 
-- Use Inconsolata for every ordinary visible text role.
+- Use Inconsolata for every visible text role, including games.
 - Keep normal copy at 1rem with 1.6 line-height.
 - Keep prose at or below 720px and retain 16px mobile gutters.
 - Preserve density without crowding or cardifying the page.
