@@ -1,0 +1,81 @@
+---
+layout: layout.njk
+title: Use Your Free Will
+permalink: "/free-will/"
+pageStyles: "/styles/free-will.css?v=4"
+pageScript: "/assets/js/free-will.js?v=4"
+bodyClass: "free-will-page"
+---
+
+<article class="free-will-shell" aria-labelledby="free-will-title">
+  <header class="free-will-header">
+    <h1 id="free-will-title">Use your free will</h1>
+    <p id="free-will-intro">Press <kbd>D</kbd> or <kbd>F</kbd> as randomly as you can. <a href="https://github.com/elsehow/aaronson-oracle">Scott Aaronson</a> reported 70–80% accuracy against most people; one student held it to chance: <em>“I just used my free will.”</em></p>
+  </header>
+
+  <section class="free-will-instrument" aria-label="Free will experiment">
+    <div class="free-will-setting">
+      <label for="free-will-order">memory</label>
+      <span aria-hidden="true">3</span>
+      <input id="free-will-order" type="range" min="3" max="15" step="1" value="5" aria-describedby="free-will-order-note">
+      <span aria-hidden="true">15</span>
+      <output id="free-will-order-value" for="free-will-order" aria-live="polite">5-gram</output>
+      <p class="free-will-sr-only" id="free-will-order-note">Longer memory can catch longer habits, but needs more repeats. Changing it replays and rescores this sequence.</p>
+    </div>
+
+    <div class="free-will-keys" role="group" aria-describedby="free-will-intro free-will-order-note">
+      <button class="free-will-key" id="free-will-key-d" type="button" data-key="d" aria-label="D, left" aria-keyshortcuts="d">
+        <span class="free-will-key-letter" aria-hidden="true">D</span>
+        <span class="free-will-key-label">left</span>
+      </button>
+      <button class="free-will-key" id="free-will-key-f" type="button" data-key="f" aria-label="F, right" aria-keyshortcuts="f">
+        <span class="free-will-key-letter" aria-hidden="true">F</span>
+        <span class="free-will-key-label">right</span>
+      </button>
+    </div>
+
+    <div class="free-will-readout">
+      <section class="free-will-scoreboard" aria-label="Prediction score">
+        <p>predictor accuracy</p>
+        <output class="free-will-accuracy" id="free-will-accuracy" aria-live="off">—</output>
+        <p class="free-will-counts">
+          <span><output id="free-will-correct" aria-live="off">0</output> correct</span>
+          <span aria-hidden="true">·</span>
+          <span><output id="free-will-predictions" aria-live="off">0</output> predictions</span>
+        </p>
+      </section>
+      <div class="free-will-feedback">
+        <p class="free-will-result" id="free-will-result" role="status" aria-live="polite">5 warm-up presses.</p>
+        <p class="free-will-sequence">
+          <span>sequence</span>
+          <output id="free-will-sequence" aria-live="off">—</output>
+          <button class="free-will-reset" id="free-will-reset" type="button">reset</button>
+        </p>
+      </div>
+    </div>
+
+    <figure class="free-will-chart">
+      <figcaption>
+        <span>Cumulative accuracy <small>50 chance · 70 typical</small></span>
+        <span id="free-will-chart-summary">waiting for data</span>
+      </figcaption>
+      <svg id="free-will-graph" viewBox="0 0 640 88" role="img" aria-labelledby="free-will-graph-title free-will-graph-description">
+        <title id="free-will-graph-title">Cumulative prediction accuracy</title>
+        <desc id="free-will-graph-description">No scored predictions yet.</desc>
+        <line class="free-will-chart-rule free-will-chart-rule-target" x1="2" y1="27" x2="638" y2="27"></line>
+        <line class="free-will-chart-rule" x1="2" y1="44" x2="638" y2="44"></line>
+        <line class="free-will-chart-axis" x1="2" y1="86" x2="638" y2="86"></line>
+        <path class="free-will-chart-line" id="free-will-chart-line" d=""></path>
+        <circle class="free-will-chart-point" id="free-will-chart-point" cx="2" cy="44" r="4" hidden></circle>
+      </svg>
+    </figure>
+  </section>
+
+  <details class="free-will-method">
+    <summary>How the n-gram works · learn more</summary>
+    <div>
+      <p>An n-gram is a sequence of <em>n</em> recent inputs. Here, n is <span id="free-will-method-order">5</span>: the predictor counts whether D or F followed each matching sequence before, then guesses the more common result. New patterns back off to shorter ones.</p>
+      <p class="free-will-method-links"><a href="https://web.stanford.edu/~jurafsky/slp3/3.pdf">N-gram chapter</a> · <a href="https://github.com/elsehow/aaronson-oracle">Aaronson Oracle source</a> · guesses are made before each press and stay in this tab.</p>
+    </div>
+  </details>
+</article>
