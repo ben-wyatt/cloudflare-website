@@ -1064,7 +1064,15 @@ button:disabled {
 }
 
 .game-next {
-  min-width: 180px;
+  padding: 0;
+  color: var(--link-internal);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 42%, transparent);
+  text-underline-offset: 0.2em;
+}
+
+.game-next:hover {
+  text-decoration-color: color-mix(in srgb, currentColor 82%, transparent);
 }
 
 @keyframes game-round-in {
