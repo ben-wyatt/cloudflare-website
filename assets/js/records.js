@@ -26,7 +26,7 @@
     searchInput: document.getElementById("album-search"),
     searchMessage: document.getElementById("search-message"),
     results: document.getElementById("album-results"),
-    rankedList: document.getElementById("ranked-list"),
+    albumList: document.getElementById("album-list"),
     standoutList: document.getElementById("standout-list"),
     emptyList: document.getElementById("empty-list"),
     emptyStandouts: document.getElementById("empty-standouts"),
@@ -46,7 +46,6 @@
     dirty: false,
     searching: false,
     saving: false,
-    dragging: null,
     trackLists: new Map(),
   };
 
@@ -103,7 +102,6 @@
     state.items = [];
     state.standouts = [];
     state.results = [];
-    state.dragging = null;
     state.trackLists.clear();
     document.body.classList.remove("records-app-active");
     elements.loading.hidden = true;
@@ -120,7 +118,7 @@
   }
 
   function resizeReviews() {
-    document.querySelectorAll(".ranked-review").forEach(resizeReview);
+    document.querySelectorAll(".record-note").forEach(resizeReview);
   }
 
   async function showApp(user) {
@@ -198,7 +196,7 @@
       addButton.textContent = selected ? "✓" : "+";
       addButton.setAttribute(
         "aria-label",
-        selected ? `${record.name} is already on your list` : `Add ${record.name} to your list`,
+        selected ? `${record.name} is already among your picks` : `Add ${record.name} to your picks`,
       );
       addButton.addEventListener("click", () => addRecord(record));
       item.append(recordImage(record, "", record.type), resultCopy(record), addButton);
@@ -210,136 +208,21 @@
   function actionButton(label, text, onClick, className = "") {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `ranked-action ${className}`.trim();
+    button.className = `pick-action ${className}`.trim();
     button.textContent = text;
     button.setAttribute("aria-label", label);
     button.addEventListener("click", onClick);
     return button;
   }
 
-  function listFor(type) {
-    return type === "track" ? state.standouts : state.items;
-  }
-
-  function listElementFor(type) {
-    return type === "track" ? elements.standoutList : elements.rankedList;
-  }
-
-  function clearDropIndicators(type) {
-    for (const item of listElementFor(type).querySelectorAll(".ranked-item")) {
-      item.classList.remove("is-drop-before", "is-drop-after");
-    }
-  }
-
-  function focusGrabber(spotifyId, type = "album") {
-    requestAnimationFrame(() => {
-      const grabber = [...listElementFor(type).querySelectorAll(".ranked-grabber")]
-        .find((button) => button.dataset.spotifyId === spotifyId);
-      grabber?.focus();
-    });
-  }
-
-  function reorderRecord(sourceId, targetId, placeAfter, type) {
-    const records = listFor(type);
-    const sourceIndex = records.findIndex((record) => record.spotifyId === sourceId);
-    if (sourceIndex < 0 || sourceId === targetId) return;
-
-    const [movedRecord] = records.splice(sourceIndex, 1);
-    const targetIndex = records.findIndex((record) => record.spotifyId === targetId);
-    if (targetIndex < 0) {
-      records.splice(sourceIndex, 0, movedRecord);
-      return;
-    }
-
-    records.splice(targetIndex + (placeAfter ? 1 : 0), 0, movedRecord);
-    markDirty();
-    renderLists();
-    focusGrabber(sourceId, type);
-  }
-
-  function updatePointerDrag(event) {
-    const dragging = state.dragging;
-    if (!dragging || event.pointerId !== dragging.pointerId) return;
-
-    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest(".ranked-item");
-    const listElement = listElementFor(dragging.type);
-    clearDropIndicators(dragging.type);
-    if (!target || !listElement.contains(target)) {
-      dragging.targetId = dragging.sourceId;
-      return;
-    }
-
-    const targetId = target.dataset.spotifyId;
-    if (!targetId || targetId === dragging.sourceId) {
-      dragging.targetId = dragging.sourceId;
-      return;
-    }
-
-    const bounds = target.getBoundingClientRect();
-    dragging.targetId = targetId;
-    dragging.placeAfter = event.clientY > bounds.top + bounds.height / 2;
-    target.classList.add(dragging.placeAfter ? "is-drop-after" : "is-drop-before");
-  }
-
-  function finishPointerDrag(event, canceled = false) {
-    const dragging = state.dragging;
-    if (!dragging || event.pointerId !== dragging.pointerId) return;
-
-    if (dragging.handle.hasPointerCapture?.(event.pointerId)) {
-      dragging.handle.releasePointerCapture(event.pointerId);
-    }
-    dragging.item.classList.remove("is-dragging");
-    listElementFor(dragging.type).classList.remove("is-reordering");
-    clearDropIndicators(dragging.type);
-    state.dragging = null;
-
-    if (!canceled && dragging.targetId !== dragging.sourceId) {
-      reorderRecord(dragging.sourceId, dragging.targetId, dragging.placeAfter, dragging.type);
-    }
-  }
-
-  function grabberButton(record, index, item, type = "album") {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "ranked-grabber";
-    button.dataset.spotifyId = record.spotifyId;
-    button.title = "Drag to reorder, or use the up and down arrow keys";
-    button.setAttribute("aria-label", `Reorder ${record.name}. Drag, or use the up and down arrow keys.`);
-
-    const grip = document.createElement("span");
-    grip.className = "ranked-grip-dots";
-    grip.setAttribute("aria-hidden", "true");
-    grip.append(...Array.from({ length: 6 }, () => document.createElement("span")));
-    button.append(grip);
-
-    button.addEventListener("keydown", (event) => {
-      if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
-      event.preventDefault();
-      moveRecord(index, event.key === "ArrowUp" ? -1 : 1, record.spotifyId, type);
-    });
-
-    button.addEventListener("pointerdown", (event) => {
-      if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
-      event.preventDefault();
-      button.focus();
-      state.dragging = {
-        pointerId: event.pointerId,
-        sourceId: record.spotifyId,
-        targetId: record.spotifyId,
-        type,
-        placeAfter: false,
-        handle: button,
-        item,
-      };
-      button.setPointerCapture?.(event.pointerId);
-      item.classList.add("is-dragging");
-      listElementFor(type).classList.add("is-reordering");
-    });
-    button.addEventListener("pointermove", updatePointerDrag);
-    button.addEventListener("pointerup", (event) => finishPointerDrag(event));
-    button.addEventListener("pointercancel", (event) => finishPointerDrag(event, true));
-
-    return button;
+  function compareRecords(left, right) {
+    return (
+      String(left.artistName || "").localeCompare(String(right.artistName || ""), "en", {
+        sensitivity: "base",
+      })
+      || String(left.name || "").localeCompare(String(right.name || ""), "en", { sensitivity: "base" })
+      || String(left.spotifyId || "").localeCompare(String(right.spotifyId || ""))
+    );
   }
 
   function getTrackListState(spotifyId) {
@@ -362,7 +245,7 @@
 
   function updateTrackSummary(summary, album) {
     const count = favoriteIds(album).length;
-    summary.querySelector(".ranked-tracks-count").textContent = count ? ` · ${count}` : "";
+    summary.querySelector(".pick-tracks-count").textContent = count ? ` · ${count}` : "";
     summary.setAttribute(
       "aria-label",
       `Tracklist for ${album.name}.${count ? ` ${count} favorite track${count === 1 ? "" : "s"} selected.` : ""}`,
@@ -405,14 +288,14 @@
     const trackList = getTrackListState(album.spotifyId);
     if (trackList.status === "idle") {
       const message = document.createElement("p");
-      message.className = "ranked-tracks-message";
+      message.className = "pick-tracks-message";
       message.textContent = "Open to load this album’s track list.";
       body.replaceChildren(message);
       return;
     }
     if (trackList.status === "loading") {
       const message = document.createElement("p");
-      message.className = "ranked-tracks-message";
+      message.className = "pick-tracks-message";
       message.setAttribute("role", "status");
       message.textContent = "Loading tracks from Spotify…";
       body.replaceChildren(message);
@@ -420,11 +303,11 @@
     }
     if (trackList.status === "error") {
       const message = document.createElement("p");
-      message.className = "ranked-tracks-message is-error";
+      message.className = "pick-tracks-message is-error";
       message.textContent = trackList.error;
       const retry = document.createElement("button");
       retry.type = "button";
-      retry.className = "ranked-tracks-retry";
+      retry.className = "pick-tracks-retry";
       retry.textContent = "Try again";
       retry.addEventListener("click", () => {
         void loadAlbumTracks(album.spotifyId);
@@ -434,7 +317,7 @@
     }
     if (!trackList.tracks.length) {
       const message = document.createElement("p");
-      message.className = "ranked-tracks-message";
+      message.className = "pick-tracks-message";
       message.textContent = "Spotify did not return any tracks for this album.";
       body.replaceChildren(message);
       return;
@@ -494,9 +377,9 @@
     trackList.error = "";
 
     const album = state.items.find((item) => item.spotifyId === albumId);
-    const row = [...elements.rankedList.children].find((item) => item.dataset.spotifyId === albumId);
-    const body = row?.querySelector(".ranked-tracks-body");
-    const summary = row?.querySelector(".ranked-tracks-summary");
+    const row = [...elements.albumList.children].find((item) => item.dataset.spotifyId === albumId);
+    const body = row?.querySelector(".pick-tracks-body");
+    const summary = row?.querySelector(".pick-tracks-summary");
     if (album && body && summary) renderTrackListBody(album, body, summary);
 
     try {
@@ -509,9 +392,9 @@
     }
 
     const currentAlbum = state.items.find((item) => item.spotifyId === albumId);
-    const currentRow = [...elements.rankedList.children].find((item) => item.dataset.spotifyId === albumId);
-    const currentBody = currentRow?.querySelector(".ranked-tracks-body");
-    const currentSummary = currentRow?.querySelector(".ranked-tracks-summary");
+    const currentRow = [...elements.albumList.children].find((item) => item.dataset.spotifyId === albumId);
+    const currentBody = currentRow?.querySelector(".pick-tracks-body");
+    const currentSummary = currentRow?.querySelector(".pick-tracks-summary");
     if (currentAlbum && currentBody && currentSummary) {
       renderTrackListBody(currentAlbum, currentBody, currentSummary);
     }
@@ -520,20 +403,20 @@
   function trackPicker(album) {
     const trackList = getTrackListState(album.spotifyId);
     const details = document.createElement("details");
-    details.className = "ranked-tracks";
+    details.className = "pick-tracks";
     details.open = trackList.open;
 
     const summary = document.createElement("summary");
-    summary.className = "ranked-tracks-summary";
+    summary.className = "pick-tracks-summary";
     const label = document.createElement("span");
     label.textContent = "tracklist";
     const count = document.createElement("span");
-    count.className = "ranked-tracks-count";
+    count.className = "pick-tracks-count";
     summary.append(label, count);
     updateTrackSummary(summary, album);
 
     const body = document.createElement("div");
-    body.className = "ranked-tracks-body";
+    body.className = "pick-tracks-body";
     renderTrackListBody(album, body, summary);
     details.append(summary, body);
     details.addEventListener("toggle", () => {
@@ -546,21 +429,13 @@
   }
 
   function renderAlbumList() {
-    const nodes = state.items.map((album, index) => {
+    const nodes = [...state.items].sort(compareRecords).map((album) => {
       const item = document.createElement("li");
-      item.className = "ranked-item";
+      item.className = "pick-item";
       item.dataset.spotifyId = album.spotifyId;
 
-      const rank = document.createElement("div");
-      rank.className = "ranked-rank";
-      const number = document.createElement("span");
-      number.className = "ranked-number";
-      number.setAttribute("aria-hidden", "true");
-      number.textContent = String(index + 1).padStart(2, "0");
-      rank.append(number, grabberButton(album, index, item, "album"));
-
       const copy = document.createElement("div");
-      copy.className = "ranked-copy";
+      copy.className = "pick-copy";
       const title = document.createElement("p");
       title.className = "album-title";
       title.textContent = album.name;
@@ -573,49 +448,42 @@
       reviewLabel.textContent = `Short review for ${album.name}`;
       const review = document.createElement("textarea");
       review.id = `album-review-${album.spotifyId}`;
-      review.className = "ranked-review";
+      review.className = "record-note";
       review.maxLength = 500;
       review.placeholder = "A few words on the album…";
       review.value = album.review || "";
       review.addEventListener("input", () => {
         resizeReview(review);
-        state.items[index].review = review.value;
+        const storedAlbum = state.items.find((entry) => entry.spotifyId === album.spotifyId);
+        if (storedAlbum) storedAlbum.review = review.value;
         markDirty();
       });
       copy.append(title, meta, reviewLabel, review, trackPicker(album));
 
       const actions = document.createElement("div");
-      actions.className = "ranked-actions";
+      actions.className = "pick-actions";
       actions.append(
-        actionButton(`Remove ${album.name}`, "×", () => removeAlbum(index), "ranked-remove"),
+        actionButton(`Remove ${album.name}`, "×", () => removeAlbum(album.spotifyId), "pick-remove"),
       );
 
-      item.append(rank, recordImage(album, "ranked-cover"), copy, actions);
+      item.append(recordImage(album, "pick-cover"), copy, actions);
       return item;
     });
 
-    elements.rankedList.replaceChildren(...nodes);
+    elements.albumList.replaceChildren(...nodes);
     resizeReviews();
     elements.emptyList.hidden = state.items.length > 0;
     elements.listCount.textContent = `${state.items.length} / ${MAX_ALBUMS} albums`;
   }
 
   function renderStandoutList() {
-    const nodes = state.standouts.map((track, index) => {
+    const nodes = [...state.standouts].sort(compareRecords).map((track) => {
       const item = document.createElement("li");
-      item.className = "ranked-item standout-item";
+      item.className = "pick-item standout-item";
       item.dataset.spotifyId = track.spotifyId;
 
-      const rank = document.createElement("div");
-      rank.className = "ranked-rank";
-      const number = document.createElement("span");
-      number.className = "ranked-number";
-      number.setAttribute("aria-hidden", "true");
-      number.textContent = String(index + 1).padStart(2, "0");
-      rank.append(number, grabberButton(track, index, item, "track"));
-
       const copy = document.createElement("div");
-      copy.className = "ranked-copy";
+      copy.className = "pick-copy";
       const title = document.createElement("p");
       title.className = "album-title";
       title.textContent = track.name;
@@ -629,24 +497,30 @@
       reviewLabel.textContent = `Note for ${track.name}`;
       const review = document.createElement("textarea");
       review.id = `track-review-${track.spotifyId}`;
-      review.className = "ranked-review";
+      review.className = "record-note";
       review.maxLength = 500;
       review.placeholder = "A few words on the track…";
       review.value = track.review || "";
       review.addEventListener("input", () => {
         resizeReview(review);
-        state.standouts[index].review = review.value;
+        const storedTrack = state.standouts.find((entry) => entry.spotifyId === track.spotifyId);
+        if (storedTrack) storedTrack.review = review.value;
         markDirty();
       });
       copy.append(title, meta, reviewLabel, review);
 
       const actions = document.createElement("div");
-      actions.className = "ranked-actions";
+      actions.className = "pick-actions";
       actions.append(
-        actionButton(`Remove ${track.name}`, "×", () => removeRecord(index, "track"), "ranked-remove"),
+        actionButton(
+          `Remove ${track.name}`,
+          "×",
+          () => removeRecord(track.spotifyId, "track"),
+          "pick-remove",
+        ),
       );
 
-      item.append(rank, recordImage(track, "ranked-cover", "track"), copy, actions);
+      item.append(recordImage(track, "pick-cover", "track"), copy, actions);
       return item;
     });
 
@@ -682,26 +556,20 @@
     if (record.type !== "track") void loadAlbumTracks(record.spotifyId);
   }
 
-  function removeAlbum(index) {
-    state.items.splice(index, 1);
+  function removeAlbum(spotifyId) {
+    state.items = state.items.filter((item) => item.spotifyId !== spotifyId);
     markDirty();
     renderLists();
   }
 
-  function removeRecord(index, type) {
-    listFor(type).splice(index, 1);
+  function removeRecord(spotifyId, type) {
+    if (type === "track") {
+      state.standouts = state.standouts.filter((item) => item.spotifyId !== spotifyId);
+    } else {
+      state.items = state.items.filter((item) => item.spotifyId !== spotifyId);
+    }
     markDirty();
     renderLists();
-  }
-
-  function moveRecord(index, direction, focusId = "", type = "album") {
-    const records = listFor(type);
-    const destination = index + direction;
-    if (destination < 0 || destination >= records.length) return;
-    [records[index], records[destination]] = [records[destination], records[index]];
-    markDirty();
-    renderLists();
-    if (focusId) focusGrabber(focusId, type);
   }
 
   async function loadList() {

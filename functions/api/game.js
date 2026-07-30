@@ -8,12 +8,12 @@ import {
   requireDb,
 } from "../_shared/http.js";
 import { getListenerClueVisibility } from "../_shared/record-game-clues.js";
+import { RECORD_SEASON } from "../_shared/records-config.js";
 import { getSpotifyAlbumTracks } from "../_shared/spotify.js";
 
 const GAME_USERNAMES = new Set(["ben", "ben_dev"]);
 const DEVELOPER_GAME_USERNAME = "ben_dev";
 const DEVELOPMENT_GROUP_ID = "development";
-const SEASON = 2026;
 const ROUND_TTL_MS = 6 * 60 * 60 * 1000;
 const MAX_CLUE_LEVEL = 2;
 const MAX_MISSES = 3;
@@ -80,7 +80,7 @@ async function getDeveloperSources(db, player) {
        )
      ORDER BY source_user.username COLLATE NOCASE ASC`,
   ).bind(
-    SEASON,
+    RECORD_SEASON,
     player.groupId,
     player.id,
     player.groupId,
@@ -103,7 +103,7 @@ async function getAnswerUsers(db, round, player) {
        AND u.group_id = ?
        AND li.user_id <> ?
      ORDER BY u.username COLLATE NOCASE ASC, u.id ASC`,
-  ).bind(SEASON, round.spotifyAlbumId, player.groupId, player.id).all();
+  ).bind(RECORD_SEASON, round.spotifyAlbumId, player.groupId, player.id).all();
 
   return answers.results || [];
 }
@@ -126,7 +126,7 @@ async function cluesFor(db, env, round, answers, clueLevel, foundUserIds) {
        WHERE season = ?
          AND spotify_album_id = ?
          AND user_id IN (${placeholders})`,
-    ).bind(SEASON, round.spotifyAlbumId, ...favoriteAnswerIds).all();
+    ).bind(RECORD_SEASON, round.spotifyAlbumId, ...favoriteAnswerIds).all();
     for (const favorite of favorites.results || []) {
       if (!favoriteIdsByUser.has(favorite.userId)) {
         favoriteIdsByUser.set(favorite.userId, new Set());
@@ -210,8 +210,8 @@ async function createRound(db, player, body) {
      LIMIT 1`,
   );
   const boundAnswer = sourceUser
-    ? answerStatement.bind(SEASON, player.groupId, player.id, sourceUser.id)
-    : answerStatement.bind(SEASON, player.groupId, player.id);
+    ? answerStatement.bind(RECORD_SEASON, player.groupId, player.id, sourceUser.id)
+    : answerStatement.bind(RECORD_SEASON, player.groupId, player.id);
 
   const [answer, users, scoreboard, developerSources] = await Promise.all([
     boundAnswer.first(),

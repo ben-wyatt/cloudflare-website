@@ -13,9 +13,9 @@ import {
   normalizeMatchGuesses,
   scoreMatchGuesses,
 } from "../_shared/match-record-game.js";
+import { RECORD_SEASON } from "../_shared/records-config.js";
 
 const GAME_USERNAMES = new Set(["ben", "ben_dev"]);
-const SEASON = 2026;
 const ROUND_TTL_MS = 6 * 60 * 60 * 1000;
 const DECOY_COUNT = MATCH_RECORD_CHOICE_COUNT - MATCH_RECORD_ANSWER_COUNT;
 
@@ -91,9 +91,9 @@ async function getRandomTarget(db, player) {
   ).bind(
     player.groupId,
     player.id,
-    SEASON,
+    RECORD_SEASON,
     MATCH_RECORD_ANSWER_COUNT,
-    SEASON,
+    RECORD_SEASON,
     player.groupId,
     DECOY_COUNT,
   ).first();
@@ -122,7 +122,7 @@ async function createRound(db, player) {
          AND trim(album.image_url) <> ''
        ORDER BY RANDOM()
        LIMIT ?`,
-    ).bind(target.userId, SEASON, MATCH_RECORD_ANSWER_COUNT).all(),
+    ).bind(target.userId, RECORD_SEASON, MATCH_RECORD_ANSWER_COUNT).all(),
     db.prepare(
       `SELECT
          album.spotify_id AS spotifyId,
@@ -144,7 +144,7 @@ async function createRound(db, player) {
        GROUP BY album.spotify_id, album.image_url
        ORDER BY RANDOM()
        LIMIT ?`,
-    ).bind(SEASON, player.groupId, target.userId, DECOY_COUNT).all(),
+    ).bind(RECORD_SEASON, player.groupId, target.userId, DECOY_COUNT).all(),
     getScoreboard(db, player.id),
   ]);
 

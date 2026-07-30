@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Record Club 2026
 permalink: "/records/"
-pageStyles: "/styles/records.css?v=autosize-notes"
-pageScript: "/assets/js/records.js?v=autosize-notes"
+pageStyles: "/styles/records.css?v=unordered-picks"
+pageScript: "/assets/js/records.js?v=unordered-picks"
 bodyClass: "records-page"
 ---
 
@@ -13,8 +13,8 @@ bodyClass: "records-page"
     <h1 id="records-title"><em>Our</em> albums of the year</h1>
     <div id="records-intro" class="records-intro" hidden>
       <p>I'm sharing this with a few friends. Add the albums that you found this year and a few words on how you connected to it if you'd like.</p>
-      <p>Your list doesn't need to be albums that <em>came out</em> this year, just ones that you especially jammed to or connected with! I need at least 5; no more than 15. Feel free to revisit over the course of the year.</p>
-      <p>You can also keep a ranked list of standout tracks—songs from albums you were generally meh on, or tracks you want to call out because they stayed in rotation. If an album is already in your Top Albums, use its tracklist hearts instead of adding one of its tracks as a standout.</p>
+      <p>Your picks don't need to be albums that <em>came out</em> this year, just ones that you especially jammed to or connected with! I need at least 5; no more than 15. They are a set, not a ranking, and you can revisit them over the course of the year.</p>
+      <p>You can also keep a set of standout tracks—songs from albums you were generally meh on, or tracks you want to call out because they stayed in rotation. If an album is already in your album picks, use its tracklist hearts instead of adding one of its tracks as a standout.</p>
       <p>I'll lock ballots on <strong>December 1st</strong> and then we'll play some NYTimes-style games with the album data.</p>
       <p>For questions, comments, suggestions, feature requests feel free to text me.</p>
     </div>
@@ -63,7 +63,10 @@ bodyClass: "records-page"
         |
         <button id="logout-button" class="records-text-button" type="button">Sign out</button>
       </p>
-      <a id="record-game-link" href="/records/games/" hidden>Play</a>
+      <div class="records-room-links">
+        <a href="/records/wrapped/">Wrapped</a>
+        <a id="record-game-link" href="/records/games/" hidden>Play</a>
+      </div>
     </div>
 
     <section id="password-panel" class="records-panel records-password-panel" hidden aria-labelledby="password-title">
@@ -111,17 +114,17 @@ bodyClass: "records-page"
 
       <section class="records-list-section" aria-labelledby="list-title">
         <div class="records-list-heading">
-          <h2 id="list-title"><strong id="list-owner-name">Your</strong>'s Top Albums</h2>
+          <h2 id="list-title"><strong id="list-owner-name">Your</strong>'s Albums</h2>
           <div class="records-save-group">
             <span id="save-status" class="records-save-status" role="status" aria-live="polite"></span>
             <button id="save-list-button" class="records-primary" type="button">Save draft</button>
           </div>
         </div>
 
-        <ol id="ranked-list" class="ranked-list" aria-label="Your ranked albums"></ol>
+        <ul id="album-list" class="pick-list" aria-label="Your album picks"></ul>
         <div id="empty-list" class="records-empty">
-          <span aria-hidden="true">01</span>
-          <p>Your list is empty. Search above and add the first record you loved this year.</p>
+          <span aria-hidden="true">+</span>
+          <p>Your album picks are empty. Search above and add the first record you loved this year.</p>
         </div>
 
         <section class="standout-section" aria-labelledby="standout-title">
@@ -130,7 +133,7 @@ bodyClass: "records-page"
             <span id="standout-count" class="records-count">0 tracks</span>
           </div>
           <p class="standout-intro">For the songs you loved from albums you were generally meh on, or the ones that stayed in rotation and deserve specific attention.</p>
-          <ol id="standout-list" class="ranked-list" aria-label="Your ranked standout tracks"></ol>
+          <ul id="standout-list" class="pick-list" aria-label="Your standout tracks"></ul>
           <div id="empty-standouts" class="records-empty">
             <span aria-hidden="true">♪</span>
             <p>No standout tracks yet. Find one in the record bin and add it here.</p>

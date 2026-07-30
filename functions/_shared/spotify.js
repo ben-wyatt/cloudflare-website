@@ -81,9 +81,18 @@ export function normalizeSpotifyAlbum(album) {
     spotifyId: album.id,
     name: album.name,
     artistName: (album.artists || []).map((artist) => artist.name).join(", "),
+    artists: (album.artists || [])
+      .filter((artist) => artist?.id && artist?.name)
+      .map((artist) => ({
+        spotifyId: artist.id,
+        name: artist.name,
+        spotifyUrl: artist.external_urls?.spotify || `https://open.spotify.com/artist/${artist.id}`,
+      })),
     imageUrl: album.images?.[0]?.url || null,
     spotifyUrl: album.external_urls?.spotify || `https://open.spotify.com/album/${album.id}`,
     releaseDate: album.release_date || null,
+    releaseDatePrecision: album.release_date_precision || null,
+    albumType: album.album_type || null,
     totalTracks: Number(album.total_tracks || 0),
   };
 }

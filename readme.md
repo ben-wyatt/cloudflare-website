@@ -1,13 +1,17 @@
 ## Record Club 2026
 
-The private `/records/` app adds invite-only accounts, a saved top-ten draft,
-Spotify album search, ordering controls, and short reviews. It uses Cloudflare
+The private `/records/` app adds invite-only accounts, an unordered set of album
+picks, Spotify album search, standout tracks, favorite-track hearts, and short notes. It uses Cloudflare
 Pages Functions and D1 while keeping the rest of the Eleventy site static.
+`/records/wrapped/` turns each group’s picks into live, set-based annual stories
+and can seal an immutable snapshot when that group’s season is marked wrapped.
+`record_group_seasons.locks_at` closes edits automatically; changing its status
+to `wrapped` seals the first fully enriched Wrapped response for that group.
 
 Each access code places an account in a private friend group. The unfinished
 `/records/game/` screen remains locked to the `ben` account; its data queries
 are group-scoped so it can be opened to other groups later. “Who Picked It?”
-chooses another listener's reviewed album from the current 2026 lists and asks
+chooses another listener's reviewed album from the current 2026 picks and asks
 Ben to match it to that member. The player and their own albums are excluded.
 The player gets three guesses; the first two misses reveal the
 member's favorite tracks from the album—linked to Spotify—and then their note.

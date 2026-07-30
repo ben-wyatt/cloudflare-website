@@ -1,0 +1,46 @@
+---
+layout: layout.njk
+title: Records Wrapped · Record Club
+permalink: "/records/wrapped/"
+pageStyles: "/styles/records-wrapped.css?v=first-edition"
+pageScript: "/assets/js/records-wrapped.js?v=first-edition"
+bodyClass: "records-wrapped-page"
+---
+
+<section class="wrapped-shell" aria-labelledby="wrapped-title">
+  <div id="wrapped-loading" class="wrapped-loading" role="status">
+    Dropping the needle on the year…
+  </div>
+
+  <section id="wrapped-gate" class="wrapped-gate" hidden aria-labelledby="wrapped-gate-title">
+    <p class="wrapped-kicker">private listening room</p>
+    <h1 id="wrapped-gate-title">Records Wrapped is inside.</h1>
+    <p id="wrapped-gate-message">Sign in through Record Club to see your group’s edition.</p>
+    <p><a href="/records/">Go to Record Club →</a></p>
+  </section>
+
+  <div id="wrapped-app" hidden>
+    <nav class="wrapped-member-bar" aria-label="Record Club">
+      <p>Reading as <strong id="wrapped-member-name"></strong></p>
+      <p><a href="/records/">Ballot</a> <span aria-hidden="true">·</span> <a href="/records/games/">Games</a></p>
+    </nav>
+
+    <header class="wrapped-masthead">
+      <p class="wrapped-kicker"><span id="wrapped-group-name">Record Club</span> · <span id="wrapped-season">2026</span></p>
+      <h1 id="wrapped-title">Records<br>Wrapped</h1>
+      <p class="wrapped-deck">The group’s listening year, told through the records and notes you left for one another. No podiums. No ranking. Just the little coincidences.</p>
+      <p id="wrapped-edition-status" class="wrapped-edition-status"></p>
+    </header>
+
+    <dl id="wrapped-ledger" class="wrapped-ledger" aria-label="The year in numbers"></dl>
+
+    <div id="wrapped-metadata" class="wrapped-metadata" role="status" aria-live="polite"></div>
+
+    <div id="wrapped-stories" class="wrapped-stories" aria-live="polite"></div>
+
+    <footer class="wrapped-colophon">
+      <p>Made from this group’s album picks, standout tracks, track hearts, and notes.</p>
+      <p><a href="/records/">Add to the year ←</a></p>
+    </footer>
+  </div>
+</section>
