@@ -9,7 +9,7 @@ Each access code places an account in a private friend group. The unfinished
 are group-scoped so it can be opened to other groups later. “Who Picked It?”
 chooses a reviewed album from the current 2026 lists and asks Ben to match it
 to a member. The player gets three guesses; the first two misses reveal the
-member's favorite tracks from the album and then their note.
+member's favorite tracks from the album—linked to Spotify—and then their note.
 The answer and unrevealed clues stay in D1-backed game rounds rather than being
 sent to the browser.
 

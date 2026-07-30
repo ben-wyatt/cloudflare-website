@@ -146,18 +146,56 @@
     }, 950);
   }
 
-  function setClue(element, value, fallback) {
-    const revealed = value !== undefined;
-    const copy = Array.isArray(value)
-      ? (value.length ? value.join(" · ") : "No favorite tracks saved.")
-      : value;
-    element.textContent = revealed ? (copy || fallback) : fallback;
+  function setTextClue(element, value, fallback) {
+    const revealed = typeof value === "string";
+    element.textContent = revealed ? (value || fallback) : fallback;
     element.classList.toggle("is-locked", !revealed);
   }
 
+  function renderFavoriteTracksClue(tracks) {
+    const revealed = Array.isArray(tracks);
+    elements.favoriteTracksClue.classList.toggle("is-locked", !revealed);
+    if (!revealed) {
+      elements.favoriteTracksClue.textContent = "Unlocks after one miss";
+      return;
+    }
+    if (!tracks.length) {
+      elements.favoriteTracksClue.textContent = "No favorite tracks saved.";
+      return;
+    }
+
+    const list = document.createElement("ul");
+    list.className = "game-track-list";
+    for (const track of tracks) {
+      const name = String(track?.name || "").trim();
+      const spotifyUrl = String(track?.spotifyUrl || "").trim();
+      if (!name || !/^https:\/\/open\.spotify\.com\/track\/[A-Za-z0-9]+$/.test(spotifyUrl)) continue;
+
+      const item = document.createElement("li");
+      const link = document.createElement("a");
+      link.href = spotifyUrl;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.setAttribute("aria-label", `Play ${name} on Spotify`);
+      link.append(document.createTextNode(`${name} `));
+      const externalMark = document.createElement("span");
+      externalMark.setAttribute("aria-hidden", "true");
+      externalMark.textContent = "↗";
+      link.append(externalMark);
+      item.append(link);
+      list.append(item);
+    }
+
+    if (!list.childElementCount) {
+      elements.favoriteTracksClue.textContent = "No favorite tracks saved.";
+      return;
+    }
+    elements.favoriteTracksClue.replaceChildren(list);
+  }
+
   function renderClues(clues = {}, revealedLevel = 0) {
-    setClue(elements.favoriteTracksClue, clues.favoriteTracks, "Unlocks after one miss");
-    setClue(elements.reviewClue, clues.review, "Unlocks after two misses");
+    renderFavoriteTracksClue(clues.favoriteTracks);
+    setTextClue(elements.reviewClue, clues.review, "Unlocks after two misses");
 
     [elements.favoriteTracksClue, elements.reviewClue].forEach((element, index) => {
       element.parentElement.classList.toggle("is-revealing", revealedLevel === index + 1);

@@ -940,6 +940,20 @@ button:disabled {
   font-size: 0.86rem;
 }
 
+.game-track-list {
+  margin: 0.15rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.game-track-list li {
+  margin: 0.18rem 0;
+  font-size: 1rem;
+}
+
+.game-track-list a {
+  text-underline-offset: 0.2em;
+}
+
 .game-clue.is-revealing {
   animation: game-clue-reveal 520ms ease-out both;
 }

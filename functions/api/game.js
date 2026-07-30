@@ -43,7 +43,7 @@ function requireGameAccess(user) {
   }
 }
 
-async function favoriteTrackNames(db, env, round) {
+async function favoriteTracks(db, env, round) {
   const favorites = await db.prepare(
     `SELECT spotify_track_id AS spotifyTrackId
      FROM record_track_favorites
@@ -57,12 +57,15 @@ async function favoriteTrackNames(db, env, round) {
   const tracks = await getSpotifyAlbumTracks(env, round.spotifyAlbumId);
   return tracks
     .filter((track) => favoriteIds.has(track.spotifyId))
-    .map((track) => track.name);
+    .map((track) => ({
+      name: track.name,
+      spotifyUrl: `https://open.spotify.com/track/${track.spotifyId}`,
+    }));
 }
 
 async function cluesFor(db, env, round, clueLevel) {
   const clues = {};
-  if (clueLevel >= 1) clues.favoriteTracks = await favoriteTrackNames(db, env, round);
+  if (clueLevel >= 1) clues.favoriteTracks = await favoriteTracks(db, env, round);
   if (clueLevel >= 2) clues.review = round.review;
   return clues;
 }
