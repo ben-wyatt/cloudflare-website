@@ -10,6 +10,8 @@ import {
 import { getSpotifyAlbumTracks } from "../_shared/spotify.js";
 
 const GAME_USERNAMES = new Set(["ben", "ben_dev"]);
+const DEVELOPER_GAME_USERNAME = "ben_dev";
+const DEVELOPMENT_GROUP_ID = "development";
 const SEASON = 2026;
 const ROUND_TTL_MS = 6 * 60 * 60 * 1000;
 const MAX_CLUE_LEVEL = 2;
@@ -41,6 +43,50 @@ function requireGameAccess(user) {
   if (!GAME_USERNAMES.has(normalizeUsername(user.username))) {
     throw new HttpError("This game is not available on this account.", 403, "game_forbidden");
   }
+}
+
+function canChooseRoundSource(user) {
+  return normalizeUsername(user.username) === DEVELOPER_GAME_USERNAME
+    && user.groupId === DEVELOPMENT_GROUP_ID;
+}
+
+async function getDeveloperSources(db, player) {
+  if (!canChooseRoundSource(player)) return [];
+
+  const sources = await db.prepare(
+    `SELECT DISTINCT
+       source_user.id AS userId,
+       source_user.username
+     FROM record_users source_user
+     JOIN record_list_items source_item
+       ON source_item.user_id = source_user.id
+      AND source_item.season = ?
+     JOIN record_albums album
+       ON album.spotify_id = source_item.spotify_album_id
+     WHERE source_user.group_id = ?
+       AND source_user.id <> ?
+       AND album.image_url IS NOT NULL
+       AND trim(album.image_url) <> ''
+       AND EXISTS (
+         SELECT 1
+         FROM record_list_items note_item
+         JOIN record_users note_user ON note_user.id = note_item.user_id
+         WHERE note_item.season = source_item.season
+           AND note_item.spotify_album_id = source_item.spotify_album_id
+           AND note_user.group_id = ?
+           AND note_item.user_id <> ?
+           AND trim(COALESCE(note_item.review, '')) <> ''
+       )
+     ORDER BY source_user.username COLLATE NOCASE ASC`,
+  ).bind(
+    SEASON,
+    player.groupId,
+    player.id,
+    player.groupId,
+    player.id,
+  ).all();
+
+  return sources.results || [];
 }
 
 async function getAnswerUsers(db, round, player) {
@@ -97,28 +143,66 @@ async function cluesFor(db, env, round, answers, clueLevel) {
   return { listeners };
 }
 
-async function createRound(db, player) {
-  const [answer, users, scoreboard] = await Promise.all([
-    db.prepare(
-      `SELECT
-         MIN(li.id) AS listItemId,
-         a.image_url AS coverUrl,
-         COUNT(DISTINCT li.user_id) AS selectorCount
-       FROM record_list_items li
-       JOIN record_users u ON u.id = li.user_id
-       JOIN record_albums a ON a.spotify_id = li.spotify_album_id
-       WHERE li.season = ?
-         AND u.group_id = ?
-         AND li.user_id <> ?
-         AND a.image_url IS NOT NULL
-         AND trim(a.image_url) <> ''
-       GROUP BY li.spotify_album_id, a.image_url
-       HAVING SUM(
-         CASE WHEN trim(COALESCE(li.review, '')) <> '' THEN 1 ELSE 0 END
-       ) > 0
-       ORDER BY RANDOM()
-       LIMIT 1`,
-    ).bind(SEASON, player.groupId, player.id).first(),
+async function createRound(db, player, body) {
+  const sourceUserId = String(body.sourceUserId || "").trim();
+  let sourceUser = null;
+  if (sourceUserId) {
+    if (!canChooseRoundSource(player)) {
+      throw new HttpError(
+        "Choosing the next listener is only available to the development account.",
+        403,
+        "developer_source_forbidden",
+      );
+    }
+    if (sourceUserId === player.id || sourceUserId.length > 128) {
+      throw new HttpError("Choose a valid development listener.", 400, "invalid_round_source");
+    }
+    sourceUser = await db.prepare(
+      `SELECT id, username
+       FROM record_users
+       WHERE id = ? AND group_id = ? AND id <> ?`,
+    ).bind(sourceUserId, player.groupId, player.id).first();
+    if (!sourceUser) {
+      throw new HttpError("Choose a valid development listener.", 400, "invalid_round_source");
+    }
+  }
+
+  const sourceFilter = sourceUser
+    ? `AND EXISTS (
+         SELECT 1
+         FROM record_list_items source_item
+         WHERE source_item.user_id = ?
+           AND source_item.season = li.season
+           AND source_item.spotify_album_id = li.spotify_album_id
+       )`
+    : "";
+  const answerStatement = db.prepare(
+    `SELECT
+       MIN(li.id) AS listItemId,
+       a.image_url AS coverUrl,
+       COUNT(DISTINCT li.user_id) AS selectorCount
+     FROM record_list_items li
+     JOIN record_users u ON u.id = li.user_id
+     JOIN record_albums a ON a.spotify_id = li.spotify_album_id
+     WHERE li.season = ?
+       AND u.group_id = ?
+       AND li.user_id <> ?
+       AND a.image_url IS NOT NULL
+       AND trim(a.image_url) <> ''
+       ${sourceFilter}
+     GROUP BY li.spotify_album_id, a.image_url
+     HAVING SUM(
+       CASE WHEN trim(COALESCE(li.review, '')) <> '' THEN 1 ELSE 0 END
+     ) > 0
+     ORDER BY RANDOM()
+     LIMIT 1`,
+  );
+  const boundAnswer = sourceUser
+    ? answerStatement.bind(SEASON, player.groupId, player.id, sourceUser.id)
+    : answerStatement.bind(SEASON, player.groupId, player.id);
+
+  const [answer, users, scoreboard, developerSources] = await Promise.all([
+    boundAnswer.first(),
     db.prepare(
       `SELECT id AS userId, username
        FROM record_users
@@ -126,9 +210,17 @@ async function createRound(db, player) {
        ORDER BY username COLLATE NOCASE ASC`,
     ).bind(player.groupId, player.id).all(),
     getScoreboard(db, player.id),
+    getDeveloperSources(db, player),
   ]);
 
   if (!answer) {
+    if (sourceUser) {
+      throw new HttpError(
+        `${sourceUser.username} does not have a game-ready album yet.`,
+        404,
+        "no_source_albums",
+      );
+    }
     throw new HttpError(
       "The game needs at least one other listener with a saved album, cover art, and a note.",
       404,
@@ -156,6 +248,9 @@ async function createRound(db, player) {
     choices: users.results || [],
     selectorCount: Number(answer.selectorCount || 1),
     scoreboard,
+    developerTools: canChooseRoundSource(player)
+      ? { sources: developerSources }
+      : null,
   };
 }
 
@@ -329,7 +424,7 @@ export async function onRequestPost({ request, env }) {
     }
 
     if (body.action === "new") {
-      return json(await createRound(db, user));
+      return json(await createRound(db, user, body));
     }
     if (body.action === "guess") {
       return json(await guessRound(db, env, user, body));

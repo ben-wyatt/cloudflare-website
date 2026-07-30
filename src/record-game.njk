@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Who Picked It? · Record Club
 permalink: "/records/game/"
-pageStyles: "/styles/records.css?v=duplicate-albums"
-pageScript: "/assets/js/record-game.js?v=duplicate-albums"
+pageStyles: "/styles/records.css?v=developer-round-source"
+pageScript: "/assets/js/record-game.js?v=developer-round-source"
 bodyClass: "records-page record-game-page"
 ---
 
@@ -73,6 +73,13 @@ bodyClass: "records-page record-game-page"
     </section>
 
     <div class="game-footer">
+      <div id="game-developer-tools" class="game-developer-tools" hidden>
+        <span class="records-eyebrow" aria-hidden="true">developer draw</span>
+        <label for="game-developer-source">Next album from</label>
+        <select id="game-developer-source" name="game-developer-source">
+          <option value="">Anyone (random)</option>
+        </select>
+      </div>
       <button id="game-next" class="records-text-button game-next" type="button" hidden>Next Album -&gt;</button>
     </div>
   </div>

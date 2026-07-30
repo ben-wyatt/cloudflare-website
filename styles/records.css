@@ -1081,9 +1081,42 @@ button:disabled {
 
 .game-footer {
   display: flex;
+  align-items: center;
+  flex-direction: column;
   justify-content: center;
+  gap: 1rem;
   padding: 1.5rem 0 0;
   border-top: 1px solid var(--game-ink);
+}
+
+.game-developer-tools {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.55rem;
+  color: var(--em-color);
+  font-size: 0.82rem;
+}
+
+.game-developer-tools .records-eyebrow {
+  color: var(--game-secondary);
+  font-size: 0.68rem;
+}
+
+.game-developer-tools select {
+  max-width: min(16rem, 42vw);
+  padding: 0.15rem 0.1rem 0.25rem;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.game-developer-tools select:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
 }
 
 .game-next {
@@ -1238,5 +1271,15 @@ button:disabled {
 
   .game-choices {
     grid-template-columns: 1fr;
+  }
+
+  .game-developer-tools {
+    align-items: center;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .game-developer-tools select {
+    max-width: min(18rem, 80vw);
   }
 }

@@ -13,6 +13,8 @@
     clueList: document.getElementById("game-clue-list"),
     choices: document.getElementById("game-choices"),
     status: document.getElementById("game-status"),
+    developerTools: document.getElementById("game-developer-tools"),
+    developerSource: document.getElementById("game-developer-source"),
     next: document.getElementById("game-next"),
     progress: document.getElementById("game-progress"),
     totalPoints: document.getElementById("game-total-points"),
@@ -37,6 +39,7 @@
     solved: false,
     pendingUserId: "",
     feedbackUserId: "",
+    developerToolsEnabled: false,
     scoreboard: {
       totalPoints: 0,
       roundsSolved: 0,
@@ -279,6 +282,40 @@
     elements.choices.replaceChildren(...buttons);
   }
 
+  function renderDeveloperTools(developerTools) {
+    const sources = Array.isArray(developerTools?.sources)
+      ? developerTools.sources
+      : [];
+    state.developerToolsEnabled = Boolean(developerTools);
+    elements.developerTools.hidden = !state.developerToolsEnabled;
+    if (!state.developerToolsEnabled) {
+      elements.developerSource.replaceChildren();
+      return;
+    }
+
+    const selectedUserId = elements.developerSource.value;
+    const options = [];
+    const randomOption = document.createElement("option");
+    randomOption.value = "";
+    randomOption.textContent = "Anyone (random)";
+    options.push(randomOption);
+
+    for (const source of sources) {
+      const userId = String(source?.userId || "").trim();
+      const username = String(source?.username || "").trim();
+      if (!userId || !username) continue;
+      const option = document.createElement("option");
+      option.value = userId;
+      option.textContent = username;
+      options.push(option);
+    }
+
+    elements.developerSource.replaceChildren(...options);
+    if (options.some((option) => option.value === selectedUserId)) {
+      elements.developerSource.value = selectedUserId;
+    }
+  }
+
   function resetRoundState(payload) {
     state.roundId = payload.roundId;
     state.choices = payload.choices || [];
@@ -298,7 +335,8 @@
     elements.cover.alt = "Mystery album cover";
     elements.selectorCount.textContent = `${state.selectorCount} people selected this album`;
     elements.selectorCount.hidden = state.selectorCount <= 1;
-    elements.next.hidden = true;
+    renderDeveloperTools(payload.developerTools);
+    elements.next.hidden = !state.developerToolsEnabled;
     elements.round.hidden = false;
     elements.round.classList.remove("is-solved", "is-entering");
     void elements.round.offsetWidth;
@@ -312,12 +350,19 @@
 
   async function startRound() {
     elements.next.disabled = true;
+    elements.developerSource.disabled = true;
     elements.round.hidden = true;
     setStatus();
     try {
+      const sourceUserId = state.developerToolsEnabled
+        ? elements.developerSource.value
+        : "";
       const payload = await api("/api/game", {
         method: "POST",
-        body: { action: "new" },
+        body: {
+          action: "new",
+          ...(sourceUserId ? { sourceUserId } : {}),
+        },
       });
       resetRoundState(payload);
     } catch (error) {
@@ -326,6 +371,7 @@
       setStatus(error.message, "wrong");
     } finally {
       elements.next.disabled = false;
+      elements.developerSource.disabled = false;
     }
   }
 
