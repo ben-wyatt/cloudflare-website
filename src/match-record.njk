@@ -1,0 +1,68 @@
+---
+layout: layout.njk
+title: Match The Record · Record Club
+permalink: "/records/match/"
+pageStyles: "/styles/records.css?v=match-the-record"
+pageScript: "/assets/js/match-record.js?v=match-the-record"
+bodyClass: "records-page record-game-page record-match-page"
+---
+
+<section class="game-shell match-shell" aria-labelledby="match-title">
+  <div id="match-loading" class="records-panel game-loading" role="status">
+    Sorting the record wall…
+  </div>
+
+  <section id="match-gate" class="records-panel game-gate" hidden aria-labelledby="match-gate-title">
+    <p class="records-eyebrow">private game</p>
+    <h1 id="match-gate-title">This room is locked</h1>
+    <p id="match-gate-message">Sign in to play.</p>
+    <a class="records-primary game-back-link" href="/records/">Go to Record Club</a>
+  </section>
+
+  <div id="match-app" hidden>
+    <div class="records-member-bar game-member-bar">
+      <p>Playing as <strong id="match-member-name"></strong></p>
+      <a class="game-back-link" href="/records/games/">Back to games</a>
+    </div>
+
+    <header class="game-masthead">
+      <p class="records-eyebrow">a record club guessing game</p>
+      <h1 id="match-title">Match The Record</h1>
+      <p class="game-deck">One listener picked two of these eight records. Find both using only the covers.</p>
+      <div class="game-scoreboard" aria-label="Your Match The Record statistics">
+        <div class="game-score-stat game-score-stat-primary">
+          <strong id="match-total-matches">0</strong>
+          <span>matches</span>
+        </div>
+        <div class="game-score-stat">
+          <strong id="match-rounds-played">0</strong>
+          <span>rounds</span>
+        </div>
+        <div class="game-score-stat">
+          <strong id="match-perfect-rounds">0</strong>
+          <span>perfect</span>
+        </div>
+      </div>
+    </header>
+
+    <section id="match-round" class="match-round" hidden aria-labelledby="match-listener-prompt">
+      <div class="match-prompt">
+        <p class="records-eyebrow">this listener chose two</p>
+        <h2 id="match-listener-prompt"><span id="match-listener-name"></span>'s records</h2>
+        <p>Select the two covers that belong on their list.</p>
+      </div>
+
+      <div id="match-choices" class="match-choices" role="group" aria-label="Eight album covers"></div>
+
+      <div class="match-controls">
+        <p id="match-selection-count" class="match-selection-count">0 / 2 selected</p>
+        <button id="match-submit" class="records-primary" type="button" disabled>Lock in two covers</button>
+      </div>
+      <p id="match-status" class="game-status match-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <div class="game-footer">
+      <button id="match-next" class="records-text-button game-next" type="button" hidden>Next listener -&gt;</button>
+    </div>
+  </div>
+</section>

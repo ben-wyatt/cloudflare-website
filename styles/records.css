@@ -696,7 +696,7 @@ button:disabled {
   display: none !important;
 }
 
-/* Who Picked It? */
+/* Record Club games */
 
 .record-game-page {
   max-width: 960px;
@@ -1131,6 +1131,173 @@ button:disabled {
   text-decoration-color: color-mix(in srgb, currentColor 82%, transparent);
 }
 
+/* Match The Record */
+
+.record-match-page {
+  max-width: var(--wide-content-width);
+}
+
+.match-shell {
+  max-width: 920px;
+}
+
+.match-round {
+  padding: 0.35rem 0 2rem;
+}
+
+.match-round.is-entering {
+  animation: game-round-in 420ms ease-out both;
+}
+
+.match-prompt {
+  margin-bottom: 1.1rem;
+  text-align: center;
+}
+
+.match-prompt h2 {
+  margin: 0.15rem 0 0.2rem;
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+}
+
+.match-prompt > p:last-child {
+  margin: 0;
+  color: var(--em-color);
+}
+
+.match-choices {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(0.55rem, 1.5vw, 0.9rem);
+}
+
+.match-choice {
+  position: relative;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--game-rule);
+  border-radius: 3px;
+  background: var(--game-soft);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.match-choice:hover:not(:disabled) {
+  border-color: var(--game-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--game-primary) 18%, transparent);
+  transform: translateY(-2px);
+}
+
+.match-choice:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.match-choice img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.match-choice.is-selected {
+  border-color: var(--game-primary);
+  box-shadow: 0 0 0 3px var(--game-primary);
+}
+
+.match-choice.is-correct,
+.match-choice.is-missed {
+  border-color: var(--game-correct);
+  box-shadow: 0 0 0 3px var(--game-correct);
+}
+
+.match-choice.is-missed {
+  border-style: dashed;
+}
+
+.match-choice.is-wrong {
+  border-color: var(--game-wrong);
+  box-shadow: 0 0 0 3px var(--game-wrong);
+}
+
+.match-choice:disabled {
+  opacity: 1;
+}
+
+.match-choice-marker {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  min-width: 1.8rem;
+  box-sizing: border-box;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  background: var(--color-surface);
+  color: var(--game-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.match-choice.is-correct .match-choice-marker,
+.match-choice.is-missed .match-choice-marker {
+  color: var(--game-correct);
+}
+
+.match-choice.is-wrong .match-choice-marker {
+  color: var(--game-wrong);
+}
+
+.match-choice-caption {
+  display: grid;
+  gap: 0.05rem;
+  min-height: 3.7rem;
+  box-sizing: border-box;
+  padding: 0.45rem 0.55rem 0.5rem;
+  border-top: 1px solid var(--game-rule);
+  line-height: 1.2;
+}
+
+.match-choice-caption strong,
+.match-choice-caption span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-choice-caption strong {
+  font-size: 0.86rem;
+}
+
+.match-choice-caption span {
+  color: var(--em-color);
+  font-size: 0.76rem;
+}
+
+.match-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.match-selection-count {
+  margin: 0;
+  color: var(--em-color);
+  font-size: 0.86rem;
+}
+
+.match-status {
+  text-align: center;
+}
+
 @keyframes game-round-in {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -1194,6 +1361,7 @@ button:disabled {
   }
 
   .game-round.is-entering,
+  .match-round.is-entering,
   .game-round.is-solved .game-cover-wrap,
   .game-choice.is-pending,
   .game-choice.is-new-wrong,
@@ -1218,6 +1386,12 @@ button:disabled {
   .game-round {
     grid-template-columns: minmax(0, 440px);
     justify-content: center;
+  }
+
+  .match-choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 620px;
+    margin: 0 auto;
   }
 }
 
@@ -1281,5 +1455,19 @@ button:disabled {
 
   .game-developer-tools select {
     max-width: min(18rem, 80vw);
+  }
+
+  .match-controls {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .match-selection-count {
+    text-align: center;
+  }
+
+  .match-controls .records-primary {
+    width: 100%;
   }
 }
