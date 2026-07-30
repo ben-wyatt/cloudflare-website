@@ -7,6 +7,7 @@ import {
   readJson,
   requireDb,
 } from "../_shared/http.js";
+import { getListenerClueVisibility } from "../_shared/record-game-clues.js";
 import { getSpotifyAlbumTracks } from "../_shared/spotify.js";
 
 const GAME_USERNAMES = new Set(["ben", "ben_dev"]);
@@ -107,37 +108,48 @@ async function getAnswerUsers(db, round, player) {
   return answers.results || [];
 }
 
-async function cluesFor(db, env, round, answers, clueLevel) {
+async function cluesFor(db, env, round, answers, clueLevel, foundUserIds) {
   const listeners = answers.map(() => ({}));
-  if (clueLevel < 1) return { listeners };
+  const visibility = answers.map((answer) => (
+    getListenerClueVisibility(answer.userId, clueLevel, foundUserIds)
+  ));
+  const favoriteAnswerIds = answers
+    .filter((_, index) => visibility[index].favoriteTracks)
+    .map((answer) => answer.userId);
 
-  const placeholders = answers.map(() => "?").join(", ");
-  const favorites = await db.prepare(
-    `SELECT user_id AS userId, spotify_track_id AS spotifyTrackId
-     FROM record_track_favorites
-     WHERE season = ?
-       AND spotify_album_id = ?
-       AND user_id IN (${placeholders})`,
-  ).bind(SEASON, round.spotifyAlbumId, ...answers.map((answer) => answer.userId)).all();
   const favoriteIdsByUser = new Map();
-  for (const favorite of favorites.results || []) {
-    if (!favoriteIdsByUser.has(favorite.userId)) {
-      favoriteIdsByUser.set(favorite.userId, new Set());
+  if (favoriteAnswerIds.length) {
+    const placeholders = favoriteAnswerIds.map(() => "?").join(", ");
+    const favorites = await db.prepare(
+      `SELECT user_id AS userId, spotify_track_id AS spotifyTrackId
+       FROM record_track_favorites
+       WHERE season = ?
+         AND spotify_album_id = ?
+         AND user_id IN (${placeholders})`,
+    ).bind(SEASON, round.spotifyAlbumId, ...favoriteAnswerIds).all();
+    for (const favorite of favorites.results || []) {
+      if (!favoriteIdsByUser.has(favorite.userId)) {
+        favoriteIdsByUser.set(favorite.userId, new Set());
+      }
+      favoriteIdsByUser.get(favorite.userId).add(favorite.spotifyTrackId);
     }
-    favoriteIdsByUser.get(favorite.userId).add(favorite.spotifyTrackId);
   }
 
   const hasFavorites = favoriteIdsByUser.size > 0;
   const tracks = hasFavorites ? await getSpotifyAlbumTracks(env, round.spotifyAlbumId) : [];
   answers.forEach((answer, index) => {
-    const favoriteIds = favoriteIdsByUser.get(answer.userId) || new Set();
-    listeners[index].favoriteTracks = tracks
-      .filter((track) => favoriteIds.has(track.spotifyId))
-      .map((track) => ({
-        name: track.name,
-        spotifyUrl: `https://open.spotify.com/track/${track.spotifyId}`,
-      }));
-    if (clueLevel >= 2) listeners[index].review = String(answer.review || "");
+    if (visibility[index].favoriteTracks) {
+      const favoriteIds = favoriteIdsByUser.get(answer.userId) || new Set();
+      listeners[index].favoriteTracks = tracks
+        .filter((track) => favoriteIds.has(track.spotifyId))
+        .map((track) => ({
+          name: track.name,
+          spotifyUrl: `https://open.spotify.com/track/${track.spotifyId}`,
+        }));
+    }
+    if (visibility[index].review) {
+      listeners[index].review = String(answer.review || "");
+    }
   });
 
   return { listeners };
@@ -338,7 +350,7 @@ async function guessRound(db, env, player, body) {
     ? Number(round.clueLevel)
     : Math.min(Number(round.clueLevel) + 1, MAX_CLUE_LEVEL);
   const clueLevel = finished ? MAX_CLUE_LEVEL : nextClueLevel;
-  const clues = await cluesFor(db, env, round, answers, clueLevel);
+  const clues = await cluesFor(db, env, round, answers, clueLevel, foundUserIds);
   const statements = [
     db.prepare(
       `INSERT INTO record_game_guesses (round_id, guessed_user_id, created_at)

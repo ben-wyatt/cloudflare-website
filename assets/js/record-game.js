@@ -213,7 +213,7 @@
     return { clue, value };
   }
 
-  function renderClues(clues = {}, revealedLevel = 0) {
+  function renderClues(clues = {}, revealedLevel = 0, revealedListenerIndex = -1) {
     const listenerClues = Array.isArray(clues.listeners) ? clues.listeners : [];
     const listenerCount = Math.max(state.selectorCount, listenerClues.length, 1);
     const clueGroups = [];
@@ -235,11 +235,17 @@
 
       const favoriteTracks = createClue("Their favorite tracks");
       renderFavoriteTracksClue(favoriteTracks.value, listener.favoriteTracks);
-      favoriteTracks.clue.classList.toggle("is-revealing", revealedLevel === 1);
+      favoriteTracks.clue.classList.toggle(
+        "is-revealing",
+        revealedLevel === 1 || index === revealedListenerIndex,
+      );
 
       const review = createClue("Their note");
       setTextClue(review.value, listener.review, "Unlocks after two misses");
-      review.clue.classList.toggle("is-revealing", revealedLevel === 2);
+      review.clue.classList.toggle(
+        "is-revealing",
+        revealedLevel === 2 || index === revealedListenerIndex,
+      );
 
       group.append(favoriteTracks.clue, review.clue);
       clueGroups.push(group);
@@ -437,7 +443,11 @@
       const revealedLevel = !payload.correct && state.clueLevel > previousClueLevel
         ? state.clueLevel
         : 0;
-      renderClues(payload.clues, revealedLevel);
+      const revealedListenerIndex = payload.correct
+        && Number.isInteger(payload.matchedListenerIndex)
+        ? payload.matchedListenerIndex
+        : -1;
+      renderClues(payload.clues, revealedLevel, revealedListenerIndex);
       renderChoices();
 
       if (payload.solved) {
