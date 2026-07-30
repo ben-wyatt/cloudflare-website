@@ -7,8 +7,9 @@ Pages Functions and D1 while keeping the rest of the Eleventy site static.
 Each access code places an account in a private friend group. The unfinished
 `/records/game/` screen remains locked to the `ben` account; its data queries
 are group-scoped so it can be opened to other groups later. “Who Picked It?”
-chooses a reviewed album from the current 2026 lists and asks Ben to match it
-to a member. The player gets three guesses; the first two misses reveal the
+chooses another listener's reviewed album from the current 2026 lists and asks
+Ben to match it to that member. The player and their own albums are excluded.
+The player gets three guesses; the first two misses reveal the
 member's favorite tracks from the album—linked to Spotify—and then their note.
 The answer and unrevealed clues stay in D1-backed game rounds rather than being
 sent to the browser.

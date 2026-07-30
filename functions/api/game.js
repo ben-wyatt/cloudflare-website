@@ -79,24 +79,25 @@ async function createRound(db, player) {
        JOIN record_albums a ON a.spotify_id = li.spotify_album_id
        WHERE li.season = ?
          AND u.group_id = ?
+         AND li.user_id <> ?
          AND a.image_url IS NOT NULL
          AND trim(a.image_url) <> ''
          AND trim(li.review) <> ''
        ORDER BY RANDOM()
        LIMIT 1`,
-    ).bind(SEASON, player.groupId).first(),
+    ).bind(SEASON, player.groupId, player.id).first(),
     db.prepare(
       `SELECT id AS userId, username
        FROM record_users
-       WHERE group_id = ?
+       WHERE group_id = ? AND id <> ?
        ORDER BY username COLLATE NOCASE ASC`,
-    ).bind(player.groupId).all(),
+    ).bind(player.groupId, player.id).all(),
     getScoreboard(db, player.id),
   ]);
 
   if (!answer) {
     throw new HttpError(
-      "The game needs at least one saved album with cover art and a note.",
+      "The game needs at least one other listener with a saved album, cover art, and a note.",
       404,
       "no_game_albums",
     );
@@ -160,7 +161,13 @@ async function getRound(db, roundId, player) {
 async function guessRound(db, env, player, body) {
   const roundId = String(body.roundId || "").trim();
   const guessedUserId = String(body.userId || "").trim();
-  if (!roundId || !guessedUserId || roundId.length > 64 || guessedUserId.length > 128) {
+  if (
+    !roundId
+    || !guessedUserId
+    || guessedUserId === player.id
+    || roundId.length > 64
+    || guessedUserId.length > 128
+  ) {
     throw new HttpError("Choose one of the listed members.", 400, "invalid_guess");
   }
 
