@@ -12,8 +12,7 @@
     choices: document.getElementById("game-choices"),
     status: document.getElementById("game-status"),
     next: document.getElementById("game-next"),
-    albumClue: document.getElementById("game-album-clue"),
-    artistClue: document.getElementById("game-artist-clue"),
+    favoriteTracksClue: document.getElementById("game-favorite-tracks-clue"),
     reviewClue: document.getElementById("game-review-clue"),
     progress: document.getElementById("game-progress"),
     totalPoints: document.getElementById("game-total-points"),
@@ -30,6 +29,7 @@
     guessedUserIds: new Set(),
     clueLevel: 0,
     guessing: false,
+    finished: false,
     solved: false,
     pendingUserId: "",
     feedbackUserId: "",
@@ -147,17 +147,19 @@
   }
 
   function setClue(element, value, fallback) {
-    const revealed = typeof value === "string";
-    element.textContent = revealed ? (value || fallback) : fallback;
+    const revealed = value !== undefined;
+    const copy = Array.isArray(value)
+      ? (value.length ? value.join(" · ") : "No favorite tracks saved.")
+      : value;
+    element.textContent = revealed ? (copy || fallback) : fallback;
     element.classList.toggle("is-locked", !revealed);
   }
 
   function renderClues(clues = {}, revealedLevel = 0) {
-    setClue(elements.albumClue, clues.albumName, "Unlocks after one miss");
-    setClue(elements.artistClue, clues.artistName, "Unlocks after two misses");
-    setClue(elements.reviewClue, clues.review, "Unlocks after three misses");
+    setClue(elements.favoriteTracksClue, clues.favoriteTracks, "Unlocks after one miss");
+    setClue(elements.reviewClue, clues.review, "Unlocks after two misses");
 
-    [elements.albumClue, elements.artistClue, elements.reviewClue].forEach((element, index) => {
+    [elements.favoriteTracksClue, elements.reviewClue].forEach((element, index) => {
       element.parentElement.classList.toggle("is-revealing", revealedLevel === index + 1);
     });
 
@@ -168,7 +170,7 @@
     });
     elements.progress.setAttribute(
       "aria-label",
-      state.solved ? "Mystery record solved" : `${state.clueLevel} of 3 clues revealed`,
+      state.solved ? "Mystery record solved" : `${state.clueLevel} of 2 clues revealed`,
     );
   }
 
@@ -181,7 +183,7 @@
       button.dataset.userId = choice.userId;
 
       const guessed = state.guessedUserIds.has(choice.userId);
-      const correct = state.solved && choice.userId === correctUserId;
+      const correct = state.finished && choice.userId === correctUserId;
       const pending = state.guessing && choice.userId === state.pendingUserId;
       button.classList.toggle("is-wrong", guessed && !correct);
       button.classList.toggle("is-correct", correct);
@@ -190,7 +192,7 @@
       button.classList.toggle("is-new-correct", correct && choice.userId === state.feedbackUserId);
       if (guessed && !correct) button.setAttribute("aria-label", `${choice.username}, incorrect guess`);
       if (correct) button.setAttribute("aria-label", `${choice.username}, correct answer`);
-      button.disabled = state.guessing || state.solved || guessed;
+      button.disabled = state.guessing || state.finished || guessed;
       button.addEventListener("click", () => makeGuess(choice));
       return button;
     });
@@ -203,6 +205,7 @@
     state.guessedUserIds = new Set();
     state.clueLevel = 0;
     state.guessing = false;
+    state.finished = false;
     state.solved = false;
     state.pendingUserId = "";
     state.feedbackUserId = "";
@@ -241,7 +244,7 @@
   }
 
   async function makeGuess(choice) {
-    if (state.guessing || state.solved || state.guessedUserIds.has(choice.userId)) return;
+    if (state.guessing || state.finished || state.guessedUserIds.has(choice.userId)) return;
     state.guessing = true;
     state.pendingUserId = choice.userId;
     state.feedbackUserId = "";
@@ -262,6 +265,7 @@
       const previousClueLevel = state.clueLevel;
       state.guessedUserIds.add(choice.userId);
       state.clueLevel = payload.clueLevel;
+      state.finished = payload.finished;
       state.solved = payload.correct;
       state.guessing = false;
       state.pendingUserId = "";
@@ -272,20 +276,23 @@
         : 0;
       renderClues(payload.clues, revealedLevel);
 
-      if (payload.correct) {
-        elements.cover.alt = `${payload.clues.albumName} album cover`;
-        elements.round.classList.add("is-solved");
+      if (payload.finished) {
+        elements.cover.alt = `${payload.answer.albumName} by ${payload.answer.artistName} album cover`;
         renderChoices(payload.answer.userId);
+        elements.next.hidden = false;
+      }
+
+      if (payload.correct) {
+        elements.round.classList.add("is-solved");
         renderScoreboard(payload.scoreboard, true);
         showPointsBurst(payload.pointsAwarded);
         setStatus(`Correct — ${payload.answer.username} picked it. +${numberFormatter.format(payload.pointsAwarded)} points in ${payload.guessCount} ${payload.guessCount === 1 ? "guess" : "guesses"}.`, "correct");
-        elements.next.hidden = false;
+      } else if (payload.finished) {
+        setStatus(`Not ${choice.username}. That was your third guess — ${payload.answer.username} picked it.`, "wrong");
       } else {
         renderChoices();
-        setStatus(
-          state.clueLevel < 3 ? `Not ${choice.username}. A new clue is unlocked.` : `Not ${choice.username}. All clues are unlocked — keep guessing.`,
-          "wrong",
-        );
+        const guessesLeft = 3 - payload.guessCount;
+        setStatus(`Not ${choice.username}. A new clue is unlocked — ${guessesLeft} ${guessesLeft === 1 ? "guess" : "guesses"} left.`, "wrong");
       }
     } catch (error) {
       state.guessing = false;
@@ -293,7 +300,7 @@
       state.feedbackUserId = "";
       elements.choices.setAttribute("aria-busy", "false");
       if (error.code === "round_expired" || error.code === "round_finished") {
-        state.solved = true;
+        state.finished = true;
         setStatus(`${error.message} Start another record.`, "wrong");
         elements.next.hidden = false;
       } else {

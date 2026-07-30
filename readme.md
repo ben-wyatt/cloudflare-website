@@ -8,7 +8,8 @@ Each access code places an account in a private friend group. The unfinished
 `/records/game/` screen remains locked to the `ben` account; its data queries
 are group-scoped so it can be opened to other groups later. “Who Picked It?”
 chooses a reviewed album from the current 2026 lists and asks Ben to match it
-to a member. Misses reveal the album title, artist, and member note in that order.
+to a member. The player gets three guesses; the first two misses reveal the
+member's favorite tracks from the album and then their note.
 The answer and unrevealed clues stay in D1-backed game rounds rather than being
 sent to the browser.
 

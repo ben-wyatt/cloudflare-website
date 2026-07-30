@@ -7,16 +7,17 @@ import {
   readJson,
   requireDb,
 } from "../_shared/http.js";
+import { getSpotifyAlbumTracks } from "../_shared/spotify.js";
 
 const GAME_USERNAMES = new Set(["ben", "ben_dev"]);
 const SEASON = 2026;
 const ROUND_TTL_MS = 6 * 60 * 60 * 1000;
-const MAX_CLUE_LEVEL = 3;
+const MAX_CLUE_LEVEL = 2;
+const MAX_GUESSES = 3;
 
 function pointsForGuessCount(guessCount) {
-  const awards = [1000, 750, 500, 300];
-  if (guessCount <= awards.length) return awards[guessCount - 1];
-  return Math.max(50, awards[awards.length - 1] - ((guessCount - awards.length) * 50));
+  const awards = [1000, 750, 500];
+  return awards[guessCount - 1] || 0;
 }
 
 async function getScoreboard(db, playerId) {
@@ -42,11 +43,27 @@ function requireGameAccess(user) {
   }
 }
 
-function cluesFor(round, clueLevel) {
+async function favoriteTrackNames(db, env, round) {
+  const favorites = await db.prepare(
+    `SELECT spotify_track_id AS spotifyTrackId
+     FROM record_track_favorites
+     WHERE user_id = ? AND season = ? AND spotify_album_id = ?`,
+  ).bind(round.answerUserId, SEASON, round.spotifyAlbumId).all();
+  const favoriteIds = new Set(
+    (favorites.results || []).map((favorite) => favorite.spotifyTrackId),
+  );
+  if (!favoriteIds.size) return [];
+
+  const tracks = await getSpotifyAlbumTracks(env, round.spotifyAlbumId);
+  return tracks
+    .filter((track) => favoriteIds.has(track.spotifyId))
+    .map((track) => track.name);
+}
+
+async function cluesFor(db, env, round, clueLevel) {
   const clues = {};
-  if (clueLevel >= 1) clues.albumName = round.albumName;
-  if (clueLevel >= 2) clues.artistName = round.artistName;
-  if (clueLevel >= 3) clues.review = round.review;
+  if (clueLevel >= 1) clues.favoriteTracks = await favoriteTrackNames(db, env, round);
+  if (clueLevel >= 2) clues.review = round.review;
   return clues;
 }
 
@@ -114,6 +131,7 @@ async function getRound(db, roundId, player) {
        r.expires_at AS expiresAt,
        li.user_id AS answerUserId,
        li.review,
+       li.spotify_album_id AS spotifyAlbumId,
        a.name AS albumName,
        a.artist_name AS artistName,
        u.username AS answerUsername
@@ -130,10 +148,13 @@ async function getRound(db, roundId, player) {
   if (round.solvedAt) {
     throw new HttpError("That round is already complete.", 409, "round_finished");
   }
+  if (Number(round.guessCount) >= MAX_GUESSES) {
+    throw new HttpError("That round is already complete.", 409, "round_finished");
+  }
   return round;
 }
 
-async function guessRound(db, player, body) {
+async function guessRound(db, env, player, body) {
   const roundId = String(body.roundId || "").trim();
   const guessedUserId = String(body.userId || "").trim();
   if (!roundId || !guessedUserId || roundId.length > 64 || guessedUserId.length > 128) {
@@ -161,6 +182,8 @@ async function guessRound(db, player, body) {
     ? MAX_CLUE_LEVEL
     : Math.min(Number(round.clueLevel) + 1, MAX_CLUE_LEVEL);
   const guessCount = Number(round.guessCount) + 1;
+  const finished = correct || guessCount >= MAX_GUESSES;
+  const clues = await cluesFor(db, env, round, clueLevel);
   const statements = [
     db.prepare(
       `INSERT INTO record_game_guesses (round_id, guessed_user_id, created_at)
@@ -180,6 +203,12 @@ async function guessRound(db, player, body) {
          (round_id, player_user_id, points, guesses, clues_used, solved_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
     ).bind(roundId, player.id, pointsAwarded, guessCount, Number(round.clueLevel), now));
+  } else if (finished) {
+    statements.push(db.prepare(
+      `UPDATE record_game_rounds
+       SET clue_level = ?, guess_count = ?, solved_at = ?
+       WHERE id = ?`,
+    ).bind(clueLevel, guessCount, now, roundId));
   } else {
     statements.push(db.prepare(
       `UPDATE record_game_rounds
@@ -191,16 +220,21 @@ async function guessRound(db, player, body) {
 
   const response = {
     correct,
+    finished,
     clueLevel,
     guessCount,
-    clues: cluesFor(round, clueLevel),
+    clues,
   };
   if (correct) {
     response.pointsAwarded = pointsForGuessCount(guessCount);
     response.scoreboard = await getScoreboard(db, player.id);
+  }
+  if (finished) {
     response.answer = {
       userId: round.answerUserId,
       username: round.answerUsername,
+      albumName: round.albumName,
+      artistName: round.artistName,
     };
   }
   return response;
@@ -221,7 +255,7 @@ export async function onRequestPost({ request, env }) {
       return json(await createRound(db, user));
     }
     if (body.action === "guess") {
-      return json(await guessRound(db, user, body));
+      return json(await guessRound(db, env, user, body));
     }
     throw new HttpError("Choose a valid game action.", 400, "invalid_game_action");
   } catch (error) {
