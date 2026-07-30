@@ -1183,13 +1183,16 @@ button:disabled {
   font: inherit;
   text-align: left;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
-.match-choice:hover:not(:disabled) {
-  border-color: var(--game-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--game-primary) 18%, transparent);
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .match-choice:hover:not(:disabled) {
+    border-color: var(--game-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--game-primary) 18%, transparent);
+    transform: translateY(-2px);
+  }
 }
 
 .match-choice:focus-visible {
@@ -1390,10 +1393,9 @@ button:disabled {
   }
 
   .match-choices {
-    width: min(100%, 310px);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: min(100%, 500px);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     margin: 0 auto;
-    gap: 0.65rem;
   }
 }
 
@@ -1447,6 +1449,12 @@ button:disabled {
 
   .game-choices {
     grid-template-columns: 1fr;
+  }
+
+  .match-choices {
+    width: min(100%, 310px);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
   }
 
   .game-developer-tools {
