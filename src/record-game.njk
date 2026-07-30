@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Who Picked It? · Record Club
 permalink: "/records/game/"
-pageStyles: "/styles/records.css?v=track-list-links"
-pageScript: "/assets/js/record-game.js?v=track-list-links"
+pageStyles: "/styles/records.css?v=duplicate-albums"
+pageScript: "/assets/js/record-game.js?v=duplicate-albums"
 bodyClass: "records-page record-game-page"
 ---
 
@@ -28,7 +28,7 @@ bodyClass: "records-page record-game-page"
     <header class="game-masthead">
       <p class="records-eyebrow">a record club guessing game</p>
       <h1 id="game-title">Who Picked It?</h1>
-      <p class="game-deck">Match the mystery record to the person who put it on their list. You get three guesses; the first two misses unlock clues.</p>
+      <p class="game-deck">Match the mystery record to everyone who put it on their list. You get three misses; the first two unlock clues.</p>
       <div class="game-scoreboard" aria-label="Your game statistics">
         <div class="game-score-stat game-score-stat-primary">
           <strong id="game-total-points">0</strong>
@@ -43,10 +43,12 @@ bodyClass: "records-page record-game-page"
           <span>perfect</span>
         </div>
       </div>
-      <p class="game-scoring-rule"><strong>Accuracy pays:</strong> 1st guess 1,000 · 2nd 750 · 3rd 500</p>
+      <p class="game-scoring-rule"><strong>Accuracy pays:</strong> 0 misses 1,000 · 1 miss 750 · 2 misses 500</p>
     </header>
 
     <section id="game-round" class="game-round" hidden aria-label="Current mystery record">
+      <p id="game-selector-count" class="game-selector-count" hidden></p>
+
       <div>
         <figure class="game-cover-frame">
           <div class="game-cover-wrap">
@@ -62,16 +64,7 @@ bodyClass: "records-page record-game-page"
       </div>
 
       <div>
-        <div class="game-clue-list" aria-label="Unlocked clues">
-          <div class="game-clue">
-            <span class="game-clue-label">Their favorite tracks</span>
-            <div id="game-favorite-tracks-clue" class="game-clue-value is-locked">Unlocks after one miss</div>
-          </div>
-          <div class="game-clue">
-            <span class="game-clue-label">Their note</span>
-            <div id="game-review-clue" class="game-clue-value is-locked">Unlocks after two misses</div>
-          </div>
-        </div>
+        <div id="game-clue-list" class="game-clue-list" aria-label="Unlocked clues"></div>
 
         <h2 class="game-choices-title">Choose a listener</h2>
         <div id="game-choices" class="game-choices" role="group" aria-label="Record Club members"></div>

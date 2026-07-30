@@ -9,11 +9,11 @@
     memberName: document.getElementById("game-member-name"),
     round: document.getElementById("game-round"),
     cover: document.getElementById("game-cover"),
+    selectorCount: document.getElementById("game-selector-count"),
+    clueList: document.getElementById("game-clue-list"),
     choices: document.getElementById("game-choices"),
     status: document.getElementById("game-status"),
     next: document.getElementById("game-next"),
-    favoriteTracksClue: document.getElementById("game-favorite-tracks-clue"),
-    reviewClue: document.getElementById("game-review-clue"),
     progress: document.getElementById("game-progress"),
     totalPoints: document.getElementById("game-total-points"),
     roundsSolved: document.getElementById("game-rounds-solved"),
@@ -27,7 +27,11 @@
     roundId: "",
     choices: [],
     guessedUserIds: new Set(),
+    correctUserIds: new Set(),
+    listenerNames: new Map(),
+    selectorCount: 1,
     clueLevel: 0,
+    missCount: 0,
     guessing: false,
     finished: false,
     solved: false,
@@ -43,6 +47,7 @@
 
   const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || false;
   const numberFormatter = new Intl.NumberFormat();
+  const listFormatter = new Intl.ListFormat("en", { style: "long", type: "conjunction" });
 
   class ApiError extends Error {
     constructor(message, status, code) {
@@ -152,15 +157,15 @@
     element.classList.toggle("is-locked", !revealed);
   }
 
-  function renderFavoriteTracksClue(tracks) {
+  function renderFavoriteTracksClue(element, tracks) {
     const revealed = Array.isArray(tracks);
-    elements.favoriteTracksClue.classList.toggle("is-locked", !revealed);
+    element.classList.toggle("is-locked", !revealed);
     if (!revealed) {
-      elements.favoriteTracksClue.textContent = "Unlocks after one miss";
+      element.textContent = "Unlocks after one miss";
       return;
     }
     if (!tracks.length) {
-      elements.favoriteTracksClue.textContent = "No favorite tracks saved.";
+      element.textContent = "No favorite tracks saved.";
       return;
     }
 
@@ -187,19 +192,56 @@
     }
 
     if (!list.childElementCount) {
-      elements.favoriteTracksClue.textContent = "No favorite tracks saved.";
+      element.textContent = "No favorite tracks saved.";
       return;
     }
-    elements.favoriteTracksClue.replaceChildren(list);
+    element.replaceChildren(list);
+  }
+
+  function createClue(label) {
+    const clue = document.createElement("div");
+    clue.className = "game-clue";
+    const clueLabel = document.createElement("span");
+    clueLabel.className = "game-clue-label";
+    clueLabel.textContent = label;
+    const value = document.createElement("div");
+    value.className = "game-clue-value";
+    clue.append(clueLabel, value);
+    return { clue, value };
   }
 
   function renderClues(clues = {}, revealedLevel = 0) {
-    renderFavoriteTracksClue(clues.favoriteTracks);
-    setTextClue(elements.reviewClue, clues.review, "Unlocks after two misses");
+    const listenerClues = Array.isArray(clues.listeners) ? clues.listeners : [];
+    const listenerCount = Math.max(state.selectorCount, listenerClues.length, 1);
+    const clueGroups = [];
 
-    [elements.favoriteTracksClue, elements.reviewClue].forEach((element, index) => {
-      element.parentElement.classList.toggle("is-revealing", revealedLevel === index + 1);
-    });
+    for (let index = 0; index < listenerCount; index += 1) {
+      const listener = listenerClues[index] || {};
+      const group = document.createElement("section");
+      group.className = "game-listener-clues";
+      group.setAttribute("aria-label", listenerCount > 1
+        ? `Mystery listener ${index + 1} clues`
+        : "Mystery listener clues");
+
+      if (listenerCount > 1) {
+        const label = document.createElement("p");
+        label.className = "game-listener-label";
+        label.textContent = state.listenerNames.get(index) || `Listener ${index + 1}`;
+        group.append(label);
+      }
+
+      const favoriteTracks = createClue("Their favorite tracks");
+      renderFavoriteTracksClue(favoriteTracks.value, listener.favoriteTracks);
+      favoriteTracks.clue.classList.toggle("is-revealing", revealedLevel === 1);
+
+      const review = createClue("Their note");
+      setTextClue(review.value, listener.review, "Unlocks after two misses");
+      review.clue.classList.toggle("is-revealing", revealedLevel === 2);
+
+      group.append(favoriteTracks.clue, review.clue);
+      clueGroups.push(group);
+    }
+    elements.clueList.replaceChildren(...clueGroups);
 
     const dots = [...elements.progress.children];
     dots.forEach((dot, index) => {
@@ -212,7 +254,7 @@
     );
   }
 
-  function renderChoices(correctUserId = "") {
+  function renderChoices() {
     const buttons = state.choices.map((choice) => {
       const button = document.createElement("button");
       button.type = "button";
@@ -221,7 +263,7 @@
       button.dataset.userId = choice.userId;
 
       const guessed = state.guessedUserIds.has(choice.userId);
-      const correct = state.finished && choice.userId === correctUserId;
+      const correct = state.correctUserIds.has(choice.userId);
       const pending = state.guessing && choice.userId === state.pendingUserId;
       button.classList.toggle("is-wrong", guessed && !correct);
       button.classList.toggle("is-correct", correct);
@@ -229,7 +271,7 @@
       button.classList.toggle("is-new-wrong", guessed && !correct && choice.userId === state.feedbackUserId);
       button.classList.toggle("is-new-correct", correct && choice.userId === state.feedbackUserId);
       if (guessed && !correct) button.setAttribute("aria-label", `${choice.username}, incorrect guess`);
-      if (correct) button.setAttribute("aria-label", `${choice.username}, correct answer`);
+      if (correct) button.setAttribute("aria-label", `${choice.username}, correct selection`);
       button.disabled = state.guessing || state.finished || guessed;
       button.addEventListener("click", () => makeGuess(choice));
       return button;
@@ -241,7 +283,11 @@
     state.roundId = payload.roundId;
     state.choices = payload.choices || [];
     state.guessedUserIds = new Set();
+    state.correctUserIds = new Set();
+    state.listenerNames = new Map();
+    state.selectorCount = Math.max(Number(payload.selectorCount || 1), 1);
     state.clueLevel = 0;
+    state.missCount = 0;
     state.guessing = false;
     state.finished = false;
     state.solved = false;
@@ -250,6 +296,8 @@
     elements.choices.setAttribute("aria-busy", "false");
     elements.cover.src = payload.coverUrl;
     elements.cover.alt = "Mystery album cover";
+    elements.selectorCount.textContent = `${state.selectorCount} people selected this album`;
+    elements.selectorCount.hidden = state.selectorCount <= 1;
     elements.next.hidden = true;
     elements.round.hidden = false;
     elements.round.classList.remove("is-solved", "is-entering");
@@ -281,6 +329,17 @@
     }
   }
 
+  function answerSummary(answer) {
+    const names = (answer?.users || [])
+      .map((user) => String(user?.username || "").trim())
+      .filter(Boolean);
+    if (!names.length) return "The other listeners selected it";
+    const formattedNames = listFormatter.format(names);
+    return names.length === 1
+      ? `${formattedNames} picked it`
+      : `${formattedNames} selected it`;
+  }
+
   async function makeGuess(choice) {
     if (state.guessing || state.finished || state.guessedUserIds.has(choice.userId)) return;
     state.guessing = true;
@@ -302,35 +361,54 @@
 
       const previousClueLevel = state.clueLevel;
       state.guessedUserIds.add(choice.userId);
+      if (payload.correct) {
+        state.correctUserIds.add(choice.userId);
+        if (Number.isInteger(payload.matchedListenerIndex)) {
+          state.listenerNames.set(payload.matchedListenerIndex, choice.username);
+        }
+      }
+      state.selectorCount = Math.max(Number(payload.selectorCount || state.selectorCount), 1);
       state.clueLevel = payload.clueLevel;
+      state.missCount = payload.missCount;
       state.finished = payload.finished;
-      state.solved = payload.correct;
+      state.solved = payload.solved;
       state.guessing = false;
       state.pendingUserId = "";
       state.feedbackUserId = choice.userId;
       elements.choices.setAttribute("aria-busy", "false");
+      elements.selectorCount.textContent = `${state.selectorCount} people selected this album`;
+      elements.selectorCount.hidden = state.selectorCount <= 1;
+
+      if (payload.finished) {
+        (payload.answer?.users || []).forEach((user, index) => {
+          if (user?.userId) state.correctUserIds.add(user.userId);
+          if (user?.username) state.listenerNames.set(index, user.username);
+        });
+        elements.cover.alt = `${payload.answer.albumName} by ${payload.answer.artistName} album cover`;
+        elements.next.hidden = false;
+      }
+
       const revealedLevel = !payload.correct && state.clueLevel > previousClueLevel
         ? state.clueLevel
         : 0;
       renderClues(payload.clues, revealedLevel);
+      renderChoices();
 
-      if (payload.finished) {
-        elements.cover.alt = `${payload.answer.albumName} by ${payload.answer.artistName} album cover`;
-        renderChoices(payload.answer.userId);
-        elements.next.hidden = false;
-      }
-
-      if (payload.correct) {
+      if (payload.solved) {
         elements.round.classList.add("is-solved");
         renderScoreboard(payload.scoreboard, true);
         showPointsBurst(payload.pointsAwarded);
-        setStatus(`Correct — ${payload.answer.username} picked it. +${numberFormatter.format(payload.pointsAwarded)} points in ${payload.guessCount} ${payload.guessCount === 1 ? "guess" : "guesses"}.`, "correct");
+        const missSummary = payload.missCount === 0
+          ? "with no misses"
+          : `after ${payload.missCount} ${payload.missCount === 1 ? "miss" : "misses"}`;
+        setStatus(`Correct — ${answerSummary(payload.answer)}. +${numberFormatter.format(payload.pointsAwarded)} points ${missSummary}.`, "correct");
+      } else if (payload.correct) {
+        setStatus(`Correct — ${choice.username} selected it. ${payload.foundCount} of ${payload.selectorCount} found.`, "correct");
       } else if (payload.finished) {
-        setStatus(`Not ${choice.username}. That was your third guess — ${payload.answer.username} picked it.`, "wrong");
+        setStatus(`Not ${choice.username}. That was your third miss — ${answerSummary(payload.answer)}.`, "wrong");
       } else {
-        renderChoices();
-        const guessesLeft = 3 - payload.guessCount;
-        setStatus(`Not ${choice.username}. A new clue is unlocked — ${guessesLeft} ${guessesLeft === 1 ? "guess" : "guesses"} left.`, "wrong");
+        const missesLeft = 3 - payload.missCount;
+        setStatus(`Not ${choice.username}. A new clue is unlocked — ${missesLeft} ${missesLeft === 1 ? "miss" : "misses"} left.`, "wrong");
       }
     } catch (error) {
       state.guessing = false;

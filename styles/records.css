@@ -820,6 +820,14 @@ button:disabled {
   animation: game-round-in 420ms ease-out both;
 }
 
+.game-selector-count {
+  grid-column: 1 / -1;
+  margin: 0 0 -0.25rem;
+  color: var(--game-secondary);
+  font-weight: 700;
+  text-align: center;
+}
+
 .game-cover-frame {
   margin: 0;
 }
@@ -909,7 +917,22 @@ button:disabled {
   display: grid;
   gap: 0;
   margin: 0 0 1.5rem;
+}
+
+.game-listener-clues {
   border-top: 1px solid var(--game-ink);
+}
+
+.game-listener-clues + .game-listener-clues {
+  margin-top: 1rem;
+}
+
+.game-listener-label {
+  margin: 0.55rem 0 0.1rem;
+  color: var(--game-secondary);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .game-clue {
