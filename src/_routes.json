@@ -1,5 +1,11 @@
 {
   "version": 1,
-  "include": ["/api/*"],
+  "include": [
+    "/api/*",
+    "/records/game/*",
+    "/records/games/*",
+    "/records/match/*",
+    "/records/wrapped/*"
+  ],
   "exclude": []
 }

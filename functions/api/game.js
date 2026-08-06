@@ -1,4 +1,8 @@
-import { normalizeUsername, requireUser } from "../_shared/auth.js";
+import {
+  normalizeUsername,
+  requireRecordClubOwner,
+  requireUser,
+} from "../_shared/auth.js";
 import {
   HttpError,
   assertSameOrigin,
@@ -11,7 +15,6 @@ import { getListenerClueVisibility } from "../_shared/record-game-clues.js";
 import { RECORD_SEASON } from "../_shared/records-config.js";
 import { getSpotifyAlbumTracks } from "../_shared/spotify.js";
 
-const GAME_USERNAMES = new Set(["ben", "ben_dev"]);
 const DEVELOPER_GAME_USERNAME = "ben_dev";
 const DEVELOPMENT_GROUP_ID = "development";
 const ROUND_TTL_MS = 6 * 60 * 60 * 1000;
@@ -41,9 +44,7 @@ async function getScoreboard(db, playerId) {
 }
 
 function requireGameAccess(user) {
-  if (!GAME_USERNAMES.has(normalizeUsername(user.username))) {
-    throw new HttpError("This game is not available on this account.", 403, "game_forbidden");
-  }
+  requireRecordClubOwner(user);
 }
 
 function canChooseRoundSource(user) {

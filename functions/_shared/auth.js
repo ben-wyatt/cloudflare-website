@@ -4,6 +4,7 @@ const SESSION_COOKIE = "record_session";
 const SESSION_DAYS = 30;
 // Cloudflare Workers WebCrypto currently caps PBKDF2 at 100,000 iterations.
 const PASSWORD_ITERATIONS = 100_000;
+const RECORD_CLUB_OWNER_USERNAMES = new Set(["ben", "ben_dev"]);
 
 function encodeBase64Url(bytes) {
   let binary = "";
@@ -31,6 +32,16 @@ function constantTimeEqual(left, right) {
 
 export function normalizeUsername(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+export function isRecordClubOwner(user) {
+  return RECORD_CLUB_OWNER_USERNAMES.has(normalizeUsername(user?.username));
+}
+
+export function requireRecordClubOwner(user) {
+  if (!isRecordClubOwner(user)) {
+    throw new HttpError("This feature is only available on this account.", 403, "record_owner_required");
+  }
 }
 
 export function validateUsername(username) {

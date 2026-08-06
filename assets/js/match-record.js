@@ -1,5 +1,4 @@
 (() => {
-  const gameUsernames = new Set(["ben", "ben_dev"]);
   const pickCount = 2;
 
   const elements = {
@@ -277,7 +276,7 @@
         showGate("Sign in to play.");
         return;
       }
-      if (!gameUsernames.has(payload.user.username.toLowerCase())) {
+      if (!payload.user.recordClubOwner) {
         showGate("This game is not available on this account.");
         return;
       }

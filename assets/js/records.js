@@ -1,7 +1,6 @@
 (() => {
   const MAX_ALBUMS = 15;
   const MAX_FAVORITE_TRACKS_PER_ALBUM = 50;
-  const gameUsernames = new Set(["ben", "ben_dev"]);
 
   const elements = {
     loading: document.getElementById("records-loading"),
@@ -20,6 +19,7 @@
     memberName: document.getElementById("member-name"),
     listOwnerName: document.getElementById("list-owner-name"),
     standoutOwnerName: document.getElementById("standout-owner-name"),
+    wrappedLink: document.getElementById("records-wrapped-link"),
     gameLink: document.getElementById("record-game-link"),
     logoutButton: document.getElementById("logout-button"),
     searchForm: document.getElementById("album-search-form"),
@@ -126,7 +126,8 @@
     elements.memberName.textContent = user.username;
     elements.listOwnerName.textContent = user.username;
     elements.standoutOwnerName.textContent = user.username;
-    elements.gameLink.hidden = !gameUsernames.has(user.username.toLowerCase());
+    elements.wrappedLink.hidden = !user.recordClubOwner;
+    elements.gameLink.hidden = !user.recordClubOwner;
     document.body.classList.add("records-app-active");
     elements.loading.hidden = true;
     elements.intro.hidden = false;

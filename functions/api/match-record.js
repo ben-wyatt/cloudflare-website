@@ -1,4 +1,4 @@
-import { normalizeUsername, requireUser } from "../_shared/auth.js";
+import { requireRecordClubOwner, requireUser } from "../_shared/auth.js";
 import {
   HttpError,
   assertSameOrigin,
@@ -15,14 +15,11 @@ import {
 } from "../_shared/match-record-game.js";
 import { RECORD_SEASON } from "../_shared/records-config.js";
 
-const GAME_USERNAMES = new Set(["ben", "ben_dev"]);
 const ROUND_TTL_MS = 6 * 60 * 60 * 1000;
 const DECOY_COUNT = MATCH_RECORD_CHOICE_COUNT - MATCH_RECORD_ANSWER_COUNT;
 
 function requireGameAccess(user) {
-  if (!GAME_USERNAMES.has(normalizeUsername(user.username))) {
-    throw new HttpError("This game is not available on this account.", 403, "game_forbidden");
-  }
+  requireRecordClubOwner(user);
 }
 
 function shuffleChoices(choices) {

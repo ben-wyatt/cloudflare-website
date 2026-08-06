@@ -1,4 +1,4 @@
-import { requireUser } from "../_shared/auth.js";
+import { requireRecordClubOwner, requireUser } from "../_shared/auth.js";
 import {
   HttpError,
   assertSameOrigin,
@@ -152,6 +152,7 @@ async function getSnapshot(db, groupId) {
 export async function onRequestGet({ request, env }) {
   try {
     const user = await requireUser(env, request);
+    requireRecordClubOwner(user);
     requireGroup(user);
     const db = requireDb(env);
     const seasonInfo = await getSeason(db, user.groupId);
@@ -211,6 +212,7 @@ export async function onRequestPost({ request, env }) {
   try {
     assertSameOrigin(request);
     const user = await requireUser(env, request);
+    requireRecordClubOwner(user);
     requireGroup(user);
     const db = requireDb(env);
     const body = await readJson(request);
