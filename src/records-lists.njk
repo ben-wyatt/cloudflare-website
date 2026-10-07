@@ -1,0 +1,40 @@
+---
+layout: layout.njk
+title: The whole room · Record Club
+permalink: "/records/lists/"
+pageStyles: "/styles/records-wrapped.css?v=notes-v1"
+pageScript: "/assets/js/record-lists.js?v=notes-v1"
+bodyClass: "records-wrapped-page"
+---
+
+<section class="wrapped-shell" aria-labelledby="lists-title">
+  <div id="lists-loading" class="wrapped-loading" role="status">Opening the shelves…</div>
+
+  <section id="lists-gate" class="wrapped-gate" hidden aria-labelledby="lists-gate-title">
+    <h1 id="lists-gate-title">The lists are inside.</h1>
+    <p id="lists-gate-message">Sign in through Record Club to read your group’s lists.</p>
+    <p><a href="/records/">Go to Record Club →</a></p>
+  </section>
+
+  <div id="lists-app" hidden>
+    <nav class="wrapped-member-bar" aria-label="Record Club">
+      <p>Reading as <strong id="lists-member-name"></strong></p>
+      <p><a href="/records/wrapped/">Wrapped</a> <span aria-hidden="true">·</span> <a href="/records/">Ballot</a></p>
+    </nav>
+
+    <header class="wrapped-masthead">
+      <p class="wrapped-kicker">record club · <span id="lists-season">2026</span></p>
+      <h1 id="lists-title">The whole room</h1>
+      <p class="wrapped-deck">Every member’s records, notes, favorite tracks, and standout songs in one place.</p>
+    </header>
+
+    <form id="lists-search-form" class="wrapped-list-search" role="search">
+      <label for="lists-search">Find a record, artist, or word from a note</label>
+      <input id="lists-search" type="search" autocomplete="off" placeholder="search the room">
+    </form>
+    <p id="lists-count" class="wrapped-edition-status" role="status"></p>
+    <nav id="lists-members" class="wrapped-list-members" aria-label="Jump to a member"></nav>
+    <div id="lists-people"></div>
+    <footer class="wrapped-colophon"><p><a href="/records/wrapped/">Back to Wrapped ←</a></p></footer>
+  </div>
+</section>

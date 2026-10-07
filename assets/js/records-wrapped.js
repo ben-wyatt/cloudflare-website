@@ -137,7 +137,7 @@
     return fragment;
   }
 
-  function addStory({ title, lede, detail = "", records = [] }, onDismiss) {
+  function addStory({ title, lede, detail = "", records = [], notes = [], wordMap = [], links = [], status = "" }, onDismiss) {
     storyNumber += 1;
     const article = document.createElement("article");
     article.className = "wrapped-story";
@@ -150,9 +150,60 @@
     copy.className = "wrapped-story-copy";
     const heading = document.createElement("h2");
     heading.textContent = title;
-    copy.append(heading, textParagraph(lede, "wrapped-story-lede"));
+    copy.append(heading);
+    if (status) copy.append(textParagraph(status, "wrapped-story-status"));
+    copy.append(textParagraph(lede, "wrapped-story-lede"));
     if (detail) copy.append(textParagraph(detail, "wrapped-story-detail"));
     if (records.length) copy.append(recordList(records));
+    if (notes.length) {
+      const noteList = document.createElement("div");
+      noteList.className = "wrapped-note-excerpts";
+      for (const note of notes) {
+        const block = document.createElement("blockquote");
+        const excerpt = document.createElement("p");
+        excerpt.textContent = note.text;
+        const footer = document.createElement("footer");
+        const author = document.createElement("span");
+        author.textContent = `— ${note.author} · `;
+        const link = document.createElement("a");
+        link.href = note.href;
+        link.textContent = "Read in full →";
+        footer.append(author, link);
+        block.append(excerpt, footer);
+        noteList.append(block);
+      }
+      copy.append(noteList);
+    }
+    if (wordMap.length) {
+      const map = document.createElement("div");
+      map.className = "wrapped-word-map";
+      map.setAttribute("aria-label", "Repeated words in members’ notes");
+      const maximum = Math.max(...wordMap.map((entry) => entry.count));
+      for (const entry of wordMap) {
+        const link = document.createElement("a");
+        link.href = `/records/lists/?q=${encodeURIComponent(entry.word)}`;
+        link.className = `wrapped-word wrapped-word-${Math.min(4, Math.ceil(entry.count / maximum * 4))}`;
+        link.textContent = entry.word;
+        link.setAttribute("aria-label", `${entry.word}, in ${entry.count} notes; find the notes`);
+        map.append(link);
+      }
+      copy.append(map);
+    }
+    if (links.length) {
+      const navigation = document.createElement("p");
+      navigation.className = "wrapped-story-links";
+      for (const item of links) {
+        const link = document.createElement("a");
+        link.href = item.href;
+        link.textContent = item.label;
+        if (item.external) {
+          link.target = "_blank";
+          link.rel = "noopener";
+        }
+        navigation.append(link);
+      }
+      copy.append(navigation);
+    }
     const dismiss = document.createElement("button");
     dismiss.type = "button";
     dismiss.className = "wrapped-text-button wrapped-dismiss";

@@ -94,8 +94,37 @@ function top(rows, score, descending = true) {
   return sorted.filter((row) => score(row) === score(sorted[0]));
 }
 
-function card(id, title, lede, { detail = "", records = [] } = {}) {
-  return { id, title, lede, detail, records };
+function card(id, title, lede, {
+  detail = "", records = [], notes = [], wordMap = [], links = [], status = "",
+} = {}) {
+  return { id, title, lede, detail, records, notes, wordMap, links, status };
+}
+
+const noteHref = (row, kind = "album") =>
+  `/records/lists/#${kind}-note-${encodeURIComponent(row.userId)}-${encodeURIComponent(row.spotifyId)}`;
+
+const NOTE_STOP_WORDS = new Set((
+  "about after again album albums also always and are back been being best but can cant could " +
+  "did didnt does dont each even every feel felt first for from get got good great had has have " +
+  "here how into its it's just last like listen listening love loved many more most much music " +
+  "not now only our out over really record records she should song songs still than that thats " +
+  "the their them there these they this those through time too track tracks very was were what " +
+  "when where which while who why will with would your you"
+).split(" "));
+
+function noteWordMap(rows) {
+  const counts = new Map();
+  for (const row of rows) {
+    const words = new Set((String(row.review || "").toLocaleLowerCase()
+      .match(/[\p{L}][\p{L}\p{N}'’-]*/gu) || [])
+      .map((word) => word.replace(/^[’']+|[’']+$/g, ""))
+      .filter((word) => word.length >= 4 && !NOTE_STOP_WORDS.has(word)));
+    for (const word of words) counts.set(word, (counts.get(word) || 0) + 1);
+  }
+  return [...counts]
+    .sort((a, b) => b[1] - a[1] || byName(a[0], b[0]))
+    .slice(0, 16)
+    .map(([word, count]) => ({ word, count }));
 }
 
 export function generateWrappedCards({ season, members = [], picks = [], standouts = [], albumArtists = [] }) {
@@ -140,6 +169,18 @@ export function generateWrappedCards({ season, members = [], picks = [], standou
       { records: shared.map((rows) => ({
         ...album(rows[0]), caption: `Picked by ${names(rows.map(person))}`,
       })) }));
+    const withNotes = shared.find((rows) => rows.filter((row) => row.review?.trim()).length >= 2);
+    const rows = withNotes || shared[0];
+    const noteRows = rows.filter((row) => row.review?.trim());
+    cards.push(card("same-record-different-reasons", "Same record, different reasons.",
+      withNotes
+        ? `${noteRows.length} people wrote about ${rows[0].name}; each heard something of their own.`
+        : `${rows[0].name} found more than one home. Its notes are still waiting for two different takes.`,
+      { records: [album(rows[0])],
+        notes: withNotes ? noteRows.map((row) => ({
+          author: row.username, text: row.review.trim(), href: noteHref(row),
+        })) : [],
+        links: [{ href: "/records/lists/", label: "Explore the full lists →" }] }));
   }
 
   const artistNames = new Map();
@@ -316,6 +357,19 @@ export function generateWrappedCards({ season, members = [], picks = [], standou
 
   const wordCount = (value) => (String(value || "").match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu) || []).length;
   const noteRows = [...picks, ...standouts].filter((row) => row.userId && wordCount(row.review));
+  const wordMap = noteWordMap(noteRows);
+  if (wordMap.length) cards.push(card("word-map", "A map of the margins.",
+    `A few words from the room’s ${noteRows.length} notes, sized by how many notes use them.`,
+    { detail: "Choose a word to find the notes that used it.", wordMap }));
+
+  cards.push(card("hill-worth-dying-on", "A hill worth dying on.",
+    "In construction. A future Jev rerank will surface a note that makes the strongest case for a record.",
+    { status: "in construction",
+      links: [{ href: "/records/lists/", label: "Read the notes for now →" }] }));
+  cards.push(card("one-sentence-liner-note", "One-sentence liner note.",
+    "In construction. A future Jev rerank will look for a brief note that says more than its word count suggests.",
+    { status: "in construction",
+      links: [{ href: "/records/lists/", label: "Read the notes for now →" }] }));
   const noteTotals = new Map();
   for (const row of noteRows) {
     const entry = noteTotals.get(row.userId) || { listener: person(row), words: 0, count: 0,
@@ -333,7 +387,14 @@ export function generateWrappedCards({ season, members = [], picks = [], standou
     cards.push(card("written-margins", "Written in the margins.",
       `${names(writers.map((entry) => entry.listener))} left ${writers[0].words} words across ${writers[0].count} ${writers[0].count === 1 ? "note" : "notes"}.`,
       { detail: `The longest single note was ${longest.username}'s ${wordCount(longest.review)}-word take on ${longest.name}.`,
-        records: ordered(writers[0].records).slice(0, 3) }));
+        records: ordered(writers[0].records).slice(0, 3),
+        links: [
+          { href: noteHref(longest, albumRows.has(longest.spotifyId) ? "album" : "track"),
+            label: "Read that note →" },
+          ...(albumRows.has(longest.spotifyId) ? [] :
+            [{ href: `https://open.spotify.com/track/${encodeURIComponent(longest.spotifyId)}`,
+              label: "Play the track on Spotify ↗", external: true }]),
+        ] }));
   }
 
   return cards;

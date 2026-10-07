@@ -19,11 +19,11 @@ function pick(userId, spotifyId, name, artistName, genres, audience, releaseDate
 }
 
 const picks = [
-  pick("alex", "shared", "Shared", "Echo", ["indie rock", "2026"], 100, "2026-01-01", "A favorite."),
+  pick("alex", "shared", "Shared", "Echo", ["indie rock", "2026"], 100, "2026-01-01", "An echo from my favorite summer."),
   pick("alex", "a2", "Old Rock", "Old Band", ["classic rock"], 200, "1980-01-01"),
   pick("alex", "a3", "Pop Turn", "Pop Star", ["pop"], 300, "2025-01-01"),
   pick("alex", "a4", "Bluegrass Turn", "Blue Band", ["bluegrass"], 400, "2026-01-01"),
-  pick("blair", "shared", "Shared", "Echo", ["indie rock", "2026"], 100, "2026-01-01"),
+  pick("blair", "shared", "Shared", "Echo", ["indie rock", "2026"], 100, "2026-01-01", "That echo sounds like home."),
   pick("blair", "b2", "Another Door", "Echo", ["psychedelic rock"], 1000, "2024-01-01"),
   pick("blair", "b3", "Dance Turn", "Club", ["house"], 2000, "2026-01-01"),
   pick("blair", "b4", "Jazz Turn", "Quartet", ["jazz"], 3000, "2025-01-01"),
@@ -33,19 +33,26 @@ const picks = [
   pick("casey", "c4", "Big Dance", "DJ", ["house"], 20000, "2026-01-01"),
 ];
 
-test("all fifteen Wrapped cards are supported by qualifying group data", () => {
+test("Wrapped includes note stories and clearly unfinished editorial awards", () => {
   const cards = generateWrappedCards({ season: 2026, picks });
   assert.deepEqual(cards.map((entry) => entry.id), [
-    "room", "shared-records", "artist-echo", "music-besties", "opposite-ends",
+    "room", "shared-records", "same-record-different-reasons", "artist-echo", "music-besties", "opposite-ends",
     "most-basic", "not-like-other-girls", "tiniest-violin", "biggest-tuba",
     "common-chord", "unexpected-detour", "genre-passport", "time-traveler",
-    "fresh-off-press", "written-margins",
+    "fresh-off-press", "word-map", "hill-worth-dying-on", "one-sentence-liner-note", "written-margins",
   ]);
   assert.equal(cards.find((entry) => entry.id === "shared-records").records[0].caption,
     "Picked by alex, blair");
   assert.match(cards.find((entry) => entry.id === "not-like-other-girls").lede, /alex/);
   assert.match(cards.find((entry) => entry.id === "most-basic").lede, /casey/);
   assert.match(cards.find((entry) => entry.id === "common-chord").lede, /rock|electronic/);
+  const sharedNotes = cards.find((entry) => entry.id === "same-record-different-reasons");
+  assert.equal(sharedNotes.notes.length, 2);
+  assert.equal(sharedNotes.notes[0].href, "/records/lists/#album-note-alex-shared");
+  assert.deepEqual(cards.find((entry) => entry.id === "word-map").wordMap[0],
+    { word: "echo", count: 2 });
+  assert.equal(cards.find((entry) => entry.id === "hill-worth-dying-on").status, "in construction");
+  assert.equal(cards.find((entry) => entry.id === "one-sentence-liner-note").status, "in construction");
 });
 
 test("shared record card includes every record picked by at least two people", () => {
