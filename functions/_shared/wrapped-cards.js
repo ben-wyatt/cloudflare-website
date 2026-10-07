@@ -276,12 +276,14 @@ export function generateWrappedCards({ season, members = [], picks = [], standou
   const withAudience = unique.filter((row) => number(row.lastfmListeners) > 0);
   const tiniest = top(withAudience.map((row) => ({ row, label: row.name })), (entry) => number(entry.row.lastfmListeners), false);
   const biggest = top(withAudience.map((row) => ({ row, label: row.name })), (entry) => number(entry.row.lastfmListeners));
+  const pickersFor = (row) => names(byAlbum.get(row.spotifyId).map(person));
+  const audienceRecord = (entry) => ({ ...album(entry.row), caption: `Picked by ${pickersFor(entry.row)}` });
   if (withAudience.length >= 2 && number(biggest[0].row.lastfmListeners) > number(tiniest[0].row.lastfmListeners)) cards.push(card("tiniest-violin", "Tiniest violin award.",
-    `${tiniest[0].row.name} has the smallest Last.fm audience in the room: ${number(tiniest[0].row.lastfmListeners).toLocaleString()} listeners.`,
-    { records: tiniest.map((entry) => album(entry.row)) }));
+    `${tiniest[0].row.name}, picked by ${pickersFor(tiniest[0].row)}, has the smallest Last.fm audience in the room: ${number(tiniest[0].row.lastfmListeners).toLocaleString()} listeners.`,
+    { records: tiniest.map(audienceRecord) }));
   if (withAudience.length >= 2 && number(biggest[0].row.lastfmListeners) > number(tiniest[0].row.lastfmListeners)) cards.push(card("biggest-tuba", "Biggest tuba award.",
-    `${biggest[0].row.name} has the largest Last.fm audience in the room: ${number(biggest[0].row.lastfmListeners).toLocaleString()} listeners.`,
-    { records: biggest.map((entry) => album(entry.row)) }));
+    `${biggest[0].row.name}, picked by ${pickersFor(biggest[0].row)}, has the largest Last.fm audience in the room: ${number(biggest[0].row.lastfmListeners).toLocaleString()} listeners.`,
+    { records: biggest.map(audienceRecord) }));
 
   const genrePeople = new Map();
   for (const listener of contributors) {
