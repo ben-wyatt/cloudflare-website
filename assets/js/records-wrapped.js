@@ -10,6 +10,7 @@
     editionStatus: document.getElementById("wrapped-edition-status"),
     ledger: document.getElementById("wrapped-ledger"),
     metadata: document.getElementById("wrapped-metadata"),
+    cardControls: document.getElementById("wrapped-card-controls"),
     stories: document.getElementById("wrapped-stories"),
   };
   if (!elements.loading) return;
@@ -17,6 +18,8 @@
   let storyNumber = 0;
   let currentPayload = null;
   let enriching = false;
+  let viewerId = "";
+  const dismissalsInMemory = new Map();
 
   class ApiError extends Error {
     constructor(message, status, code) {
@@ -53,10 +56,6 @@
     return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
   }
 
-  function possessive(name) {
-    return /s$/i.test(name) ? `${name}’` : `${name}’s`;
-  }
-
   function plural(value, singular, pluralForm = `${singular}s`) {
     return `${value.toLocaleString()} ${value === 1 ? singular : pluralForm}`;
   }
@@ -87,6 +86,9 @@
     }
     const list = document.createElement("ul");
     list.className = "wrapped-records";
+    const hiddenList = document.createElement("ul");
+    hiddenList.className = "wrapped-records";
+    let index = 0;
     for (const record of unique.values()) {
       const item = document.createElement("li");
       item.className = "wrapped-record";
@@ -119,13 +121,23 @@
       const year = releaseYear(record);
       meta.textContent = `${record.artistName}${year ? ` · ${year}` : ""}`;
       copy.append(title, meta);
+      if (record.caption) copy.append(textParagraph(record.caption, "wrapped-record-caption"));
       item.append(coverLink, copy);
-      list.append(item);
+      (index < 5 ? list : hiddenList).append(item);
+      index += 1;
     }
-    return list;
+    if (!hiddenList.children.length) return list;
+    const fragment = document.createDocumentFragment();
+    const more = document.createElement("details");
+    more.className = "wrapped-more";
+    const summary = document.createElement("summary");
+    summary.textContent = `Show ${hiddenList.children.length} more records`;
+    more.append(summary, hiddenList);
+    fragment.append(list, more);
+    return fragment;
   }
 
-  function addStory({ kicker, title, lede, detail = "", records = [] }) {
+  function addStory({ title, lede, detail = "", records = [] }, onDismiss) {
     storyNumber += 1;
     const article = document.createElement("article");
     article.className = "wrapped-story";
@@ -136,12 +148,18 @@
 
     const copy = document.createElement("div");
     copy.className = "wrapped-story-copy";
-    const eyebrow = textParagraph(kicker, "wrapped-story-kicker");
     const heading = document.createElement("h2");
     heading.textContent = title;
-    copy.append(eyebrow, heading, textParagraph(lede, "wrapped-story-lede"));
+    copy.append(heading, textParagraph(lede, "wrapped-story-lede"));
     if (detail) copy.append(textParagraph(detail, "wrapped-story-detail"));
     if (records.length) copy.append(recordList(records));
+    const dismiss = document.createElement("button");
+    dismiss.type = "button";
+    dismiss.className = "wrapped-text-button wrapped-dismiss";
+    dismiss.textContent = "Dismiss";
+    dismiss.setAttribute("aria-label", `Dismiss ${title}`);
+    dismiss.addEventListener("click", onDismiss);
+    copy.append(dismiss);
     article.append(number, copy);
     elements.stories.append(article);
   }
@@ -165,159 +183,73 @@
     }));
   }
 
+  function dismissalKey(payload) {
+    return `records-wrapped-dismissed-v2:${payload.group.id}:${payload.season}:${viewerId}`;
+  }
+
+  function readDismissed(payload) {
+    const key = dismissalKey(payload);
+    if (dismissalsInMemory.has(key)) return new Set(dismissalsInMemory.get(key));
+    try {
+      const stored = JSON.parse(localStorage.getItem(key) || "[]");
+      const dismissed = new Set(Array.isArray(stored) ? stored.filter((id) => typeof id === "string") : []);
+      dismissalsInMemory.set(key, dismissed);
+      return new Set(dismissed);
+    } catch {
+      return new Set();
+    }
+  }
+
+  function saveDismissed(payload, dismissed) {
+    dismissalsInMemory.set(dismissalKey(payload), new Set(dismissed));
+    try {
+      localStorage.setItem(dismissalKey(payload), JSON.stringify([...dismissed]));
+    } catch {
+      // Dismissal still works for this render when storage is unavailable.
+    }
+  }
+
   function renderStories(payload) {
     storyNumber = 0;
     elements.stories.replaceChildren();
-    const { room, sharedTaste, people, records, connections } = payload;
-    if (!room.pickCount) {
+    elements.cardControls.replaceChildren();
+    const cards = payload.cards || [];
+    if (!cards.length) {
       const empty = document.createElement("section");
       empty.className = "wrapped-empty";
       const heading = document.createElement("h2");
       heading.textContent = "The sleeves are still blank.";
-      empty.append(
-        heading,
-        textParagraph("Once this group saves a few album picks, the coincidences will start appearing here."),
-      );
+      empty.append(heading,
+        textParagraph("Once this group saves a few album picks, the coincidences will start appearing here."));
       elements.stories.append(empty);
       return;
     }
-
-    const closestPairs = sharedTaste.closestListeners || [];
-    const closest = closestPairs[0];
-    if (closest && closestPairs.length === 1) {
-      const pair = joinNames(closest.listeners);
-      addStory({
-        kicker: closest.exactMatch ? "crate twins" : "same wavelength",
-        title: `${pair} kept meeting in the stacks.`,
-        lede: closest.exactMatch
-          ? `Their album sets match exactly: all ${plural(closest.sharedCount, "record")}.`
-          : `They shared ${plural(closest.sharedCount, "record")}—${closest.similarityPercent}% of everything between their two sets.`,
-        detail: "Similarity uses shared album membership only. Where a pick appears on the page carries no weight.",
-        records: closest.sharedAlbums,
+    const dismissed = readDismissed(payload);
+    const availableIds = new Set(cards.map((card) => card.id));
+    for (const id of dismissed) if (!availableIds.has(id)) dismissed.delete(id);
+    if (dismissed.size) {
+      const restore = document.createElement("button");
+      restore.type = "button";
+      restore.className = "wrapped-text-button";
+      restore.textContent = `Restore dismissed cards (${dismissed.size})`;
+      restore.addEventListener("click", () => {
+        dismissed.clear();
+        saveDismissed(payload, dismissed);
+        renderStories(payload);
       });
-    } else if (closest) {
-      addStory({
-        kicker: "same wavelength · tie",
-        title: `${closestPairs.length} pairs landed on the same frequency.`,
-        lede: closestPairs.map((entry) => (
-          `${joinNames(entry.listeners)} shared ${plural(entry.sharedCount, "record")} (${entry.similarityPercent}%)`
-        )).join("; ").concat("."),
-        detail: "Similarity uses shared album membership only. Where a pick appears on the page carries no weight.",
-        records: closestPairs.flatMap((entry) => entry.sharedAlbums),
+      elements.cardControls.append(restore);
+    }
+    for (const card of cards) {
+      if (dismissed.has(card.id)) continue;
+      addStory(card, () => {
+        dismissed.add(card.id);
+        saveDismissed(payload, dismissed);
+        renderStories(payload);
       });
     }
-
-    const roomRecords = sharedTaste.roomRecords || [];
-    if (roomRecords.length) {
-      const topCount = roomRecords[0].listenerCount;
-      addStory({
-        kicker: roomRecords.length > 1 ? "the room records" : "the room record",
-        title: roomRecords.length > 1
-          ? `${roomRecords.length} records tied the room together.`
-          : `${roomRecords[0].album.name} kept turning up.`,
-        lede: roomRecords.length > 1
-          ? `Each appeared in the album sets of ${plural(topCount, "listener", "listeners")}.`
-          : `${joinNames(roomRecords[0].listeners)} all made space for it.`,
-        records: roomRecords.map((entry) => entry.album),
-      });
-    }
-
-    const longestRecords = records.longest || [];
-    const longest = longestRecords[0];
-    if (longest) {
-      addStory({
-        kicker: "the long sit",
-        title: longestRecords.length === 1
-          ? `${longest.name} asked for ${formatDuration(longest.totalDurationMs)}.`
-          : `${longestRecords.length} records tied for the long sit.`,
-        lede: longestRecords.length === 1
-          ? `The longest album in the collection came from ${longest.artistName}.`
-          : `Each runs ${formatDuration(longest.totalDurationMs)} from first track to last.`,
-        detail: `Playing every different record once would take ${formatDuration(room.totalDurationMs)}.`,
-        records: longestRecords,
-      });
-    }
-
-    const writers = people.mostWords || [];
-    if (writers.length) {
-      const top = writers[0];
-      const names = joinNames(writers.map((entry) => entry.person));
-      const longestNote = people.longestNotes?.[0];
-      addStory({
-        kicker: writers.length > 1 ? "co-correspondents" : "liner-note correspondent",
-        title: `${names} wrote the most in the margins.`,
-        lede: writers.length > 1
-          ? `They each left ${plural(top.wordCount, "word")} across their album and track notes.`
-          : `${top.person.username} left ${plural(top.wordCount, "word")} across ${plural(top.noteCount, "note")}.`,
-        detail: longestNote
-          ? `The single longest note was ${possessive(longestNote.person.username)} ${plural(longestNote.wordCount, "word")} dispatch on ${longestNote.subject.name}.`
-          : "",
-        records: longestNote?.noteType === "album" ? [longestNote.subject] : [],
-      });
-    }
-
-    const scouts = people.scouts || [];
-    if (scouts.length) {
-      const top = scouts[0];
-      const names = joinNames(scouts.map((entry) => entry.person));
-      addStory({
-        kicker: "far edge of the crate",
-        title: `${names} wandered furthest from the group.`,
-        lede: scouts.length > 1
-          ? `Each brought back ${plural(top.count, "record")} nobody else picked.`
-          : `${top.person.username} brought back ${plural(top.count, "record")} nobody else picked.`,
-        records: scouts.flatMap((entry) => entry.albums).slice(0, 8),
-      });
-    }
-
-    const oldest = records.oldest?.[0];
-    const newest = records.newest?.[0];
-    const travelers = people.widestTimeSpans || [];
-    if (oldest && newest) {
-      const traveler = travelers[0];
-      addStory({
-        kicker: "time machine",
-        title: `${releaseYear(oldest)} met ${releaseYear(newest)}.`,
-        lede: oldest.spotifyId === newest.spotifyId
-          ? `${oldest.name} set the room’s timestamp.`
-          : `The shelves stretched from ${oldest.name} by ${oldest.artistName} to ${newest.name} by ${newest.artistName}.`,
-        detail: traveler
-          ? travelers
-            .map((entry) => `${entry.person.username} covered ${entry.earliestYear}–${entry.latestYear}`)
-            .join("; ")
-            .concat(".")
-          : "",
-        records: oldest.spotifyId === newest.spotifyId ? [oldest] : [oldest, newest],
-      });
-    }
-
-    const artistThread = connections.artistThreads?.[0];
-    if (artistThread) {
-      addStory({
-        kicker: "same artist, different door",
-        title: `${artistThread.artist.name} had more than one way into the room.`,
-        lede: `${joinNames(artistThread.listeners)} chose ${plural(artistThread.albumCount, "different album")}.`,
-        records: artistThread.albums,
-      });
-    }
-
-    const pileOn = connections.favoritePileOns?.[0];
-    if (pileOn) {
-      addStory({
-        kicker: "same song, same little heart",
-        title: `${pileOn.track.name} got the group underline.`,
-        lede: `${joinNames(pileOn.listeners)} independently marked it as a favorite track.`,
-        records: pileOn.album ? [pileOn.album] : [],
-      });
-    }
-
-    const crossover = connections.standoutCrossovers?.[0];
-    if (crossover) {
-      addStory({
-        kicker: "single on one side, album on the other",
-        title: `${crossover.track.name} crossed the aisle.`,
-        lede: `${crossover.standoutListener.username} called out the song; ${joinNames(crossover.albumListeners)} chose the whole album.`,
-      });
+    if (!storyNumber) {
+      const empty = textParagraph("All caught up. Restore dismissed cards to read them again.", "wrapped-empty");
+      elements.stories.append(empty);
     }
   }
 
@@ -397,6 +329,7 @@
         return;
       }
       elements.memberName.textContent = session.user.username;
+      viewerId = session.user.id;
       const payload = await api("/api/wrapped");
       elements.loading.hidden = true;
       elements.gate.hidden = true;

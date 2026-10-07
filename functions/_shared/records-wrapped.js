@@ -1,4 +1,6 @@
-export const WRAPPED_ALGORITHM_VERSION = 1;
+import { generateWrappedCards } from "./wrapped-cards.js";
+
+export const WRAPPED_ALGORITHM_VERSION = 2;
 
 function compareText(left, right) {
   return String(left || "").localeCompare(String(right || ""), "en", { sensitivity: "base" });
@@ -361,5 +363,6 @@ export function generateWrappedStats({
       favoritePileOns: favoritePileOns.slice(0, 5),
       standoutCrossovers: standoutCrossovers.slice(0, 5),
     },
+    cards: generateWrappedCards({ season, members, picks: uniquePicks, standouts, albumArtists }),
   };
 }

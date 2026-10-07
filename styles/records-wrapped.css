@@ -141,7 +141,29 @@
 }
 
 .wrapped-stories {
-  margin-top: 2.2rem;
+  margin-top: 1rem;
+}
+
+.wrapped-card-controls {
+  margin-top: 1.2rem;
+  min-height: 1.4rem;
+}
+
+.wrapped-text-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--link-internal);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.wrapped-dismiss {
+  margin-top: 0.8rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
 }
 
 .wrapped-story {
@@ -227,6 +249,26 @@
 .wrapped-record-copy span {
   color: var(--color-text-muted);
   font-size: 0.82rem;
+}
+
+.wrapped-record-caption {
+  margin: 0.1rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.wrapped-more summary {
+  width: fit-content;
+  margin-top: 0.7rem;
+  color: var(--link-internal);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.wrapped-more summary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
 }
 
 .wrapped-empty {

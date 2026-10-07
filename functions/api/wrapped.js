@@ -65,7 +65,9 @@ async function loadWrappedRows(db, groupId) {
          a.release_date AS releaseDate,
          a.total_tracks AS totalTracks,
          a.total_duration_ms AS totalDurationMs,
-         a.metadata_enriched_at AS metadataEnrichedAt
+         a.metadata_enriched_at AS metadataEnrichedAt,
+         a.lastfm_listeners AS lastfmListeners,
+         a.lastfm_tags_json AS lastfmTagsJson
        FROM record_list_items li
        JOIN record_users u ON u.id = li.user_id
        JOIN record_albums a ON a.spotify_id = li.spotify_album_id

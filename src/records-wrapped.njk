@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Records Wrapped · Record Club
 permalink: "/records/wrapped/"
-pageStyles: "/styles/records-wrapped.css?v=first-edition"
-pageScript: "/assets/js/records-wrapped.js?v=first-edition"
+pageStyles: "/styles/records-wrapped.css?v=cards-v2"
+pageScript: "/assets/js/records-wrapped.js?v=cards-v2"
 bodyClass: "records-wrapped-page"
 ---
 
@@ -28,7 +28,7 @@ bodyClass: "records-wrapped-page"
     <header class="wrapped-masthead">
       <p class="wrapped-kicker"><span id="wrapped-group-name">Record Club</span> · <span id="wrapped-season">2026</span></p>
       <h1 id="wrapped-title">Records<br>Wrapped</h1>
-      <p class="wrapped-deck">The group’s listening year, told through the records and notes you left for one another. No podiums. No ranking. Just the little coincidences.</p>
+      <p class="wrapped-deck">The group’s listening year, told through the records and notes you left for one another. A few awards, a few coincidences, and plenty of room to disagree.</p>
       <p id="wrapped-edition-status" class="wrapped-edition-status"></p>
     </header>
 
@@ -36,10 +36,12 @@ bodyClass: "records-wrapped-page"
 
     <div id="wrapped-metadata" class="wrapped-metadata" role="status" aria-live="polite"></div>
 
-    <div id="wrapped-stories" class="wrapped-stories" aria-live="polite"></div>
+    <div id="wrapped-card-controls" class="wrapped-card-controls"></div>
+
+    <div id="wrapped-stories" class="wrapped-stories"></div>
 
     <footer class="wrapped-colophon">
-      <p>Made from this group’s album picks, standout tracks, track hearts, and notes.</p>
+      <p>Made from this group’s album picks, Last.fm tags and audience sizes, standout tracks, and notes.</p>
       <p><a href="/records/">Add to the year ←</a></p>
     </footer>
   </div>
