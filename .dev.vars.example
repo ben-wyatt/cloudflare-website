@@ -1,6 +1,7 @@
 # Copy this file to .dev.vars for local development. Never commit .dev.vars.
 SPOTIFY_CLIENT_ID="your-spotify-client-id"
 SPOTIFY_CLIENT_SECRET="your-spotify-client-secret"
+LASTFM_API_KEY="your-lastfm-api-key"
 DEV_ENVIRONMENT_ACCESS_CODE="the-code-for-synthetic-development-users"
 WYATT_FAM_ACCESS_CODE="the-code-for-wyatt-family"
 BADABING_ACCESS_CODE="the-original-badabing-code"

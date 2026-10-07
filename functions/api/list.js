@@ -8,6 +8,7 @@ import {
   requireDb,
 } from "../_shared/http.js";
 import { MAX_RECORD_ALBUMS, RECORD_SEASON } from "../_shared/records-config.js";
+import { enrichLastFmAlbum } from "../_shared/lastfm.js";
 import { getSpotifyAlbum, getSpotifyTrack } from "../_shared/spotify.js";
 
 const MAX_FAVORITE_TRACKS_PER_ALBUM = 50;
@@ -84,7 +85,7 @@ export async function onRequestGet({ request, env }) {
   }
 }
 
-export async function onRequestPut({ request, env }) {
+export async function onRequestPut({ request, env, context }) {
   try {
     assertSameOrigin(request);
     const user = await requireUser(env, request);
@@ -301,6 +302,23 @@ export async function onRequestPut({ request, env }) {
     }
 
     await db.batch(statements);
+    if (env.LASTFM_API_KEY && context?.waitUntil) {
+      context.waitUntil((async () => {
+        // Keep metadata requests off the save path and cap concurrent Last.fm calls.
+        const queue = [...albums];
+        await Promise.all(Array.from({ length: Math.min(2, queue.length) }, async () => {
+          while (queue.length) {
+            const album = queue.shift();
+            try {
+              await enrichLastFmAlbum(db, env, album);
+            } catch {
+              // A transient metadata failure must never affect a saved ballot.
+              console.warn("Last.fm album enrichment failed", album.spotifyId);
+            }
+          }
+        }));
+      })());
+    }
     return json({
       ok: true,
       season: RECORD_SEASON,
