@@ -81,6 +81,13 @@ function similarity(left, right) {
   return a && b ? dot / Math.sqrt(a * b) : null;
 }
 
+function tasteMix(vector) {
+  return [...vector].sort((a, b) => b[1] - a[1] || byName(a[0], b[0]))
+    .slice(0, 2)
+    .map(([genre, share]) => `${genre} ${Math.round(share * 100)}%`)
+    .join(", ");
+}
+
 function median(values) {
   const sorted = [...values].sort((a, b) => a - b);
   const middle = Math.floor(sorted.length / 2);
@@ -237,11 +244,13 @@ export function generateWrappedCards({ season, members = [], picks = [], standou
         records: [best.left, best.right].flatMap((listener) =>
           ordered(byPerson.get(listener.id).filter((row) =>
             genreByAlbum.get(row.spotifyId).some((genre) => overlap.includes(genre)))).slice(0, 3).map(album)) }));
-    const leftGenres = [...genreVectors.get(worst.left.id).vector.keys()];
-    const rightGenres = [...genreVectors.get(worst.right.id).vector.keys()];
+    const leftTaste = genreVectors.get(worst.left.id);
+    const rightTaste = genreVectors.get(worst.right.id);
+    const sharedGenres = [...leftTaste.vector.keys()]
+      .filter((genre) => rightTaste.vector.has(genre));
     if (pairs.length >= 2 && worst.score < best.score) cards.push(card("opposite-ends", "Opposite ends of the couch.",
-      `${worst.left.username} and ${worst.right.username} took the room in different directions.`,
-      { detail: `${worst.left.username}: ${leftGenres.join(", ")}. ${worst.right.username}: ${rightGenres.join(", ")}.`,
+      `${worst.left.username} and ${worst.right.username} have the least similar genre mix among the listeners with enough tagged picks.`,
+      { detail: `Weighted mix: ${worst.left.username} leans ${tasteMix(leftTaste.vector)} (${leftTaste.tagged} tagged records); ${worst.right.username} leans ${tasteMix(rightTaste.vector)} (${rightTaste.tagged} tagged records). ${sharedGenres.length ? `They still share ${sharedGenres.join(" and ")}. ` : ""}Similarity score: ${worst.score.toFixed(2)} (0 = no overlap, 1 = identical mix).`,
         records: [worst.left, worst.right].flatMap((listener) =>
           ordered(byPerson.get(listener.id).filter((row) =>
             genreByAlbum.get(row.spotifyId).length)).slice(0, 3).map(album)) }));

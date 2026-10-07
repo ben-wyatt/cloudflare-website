@@ -46,6 +46,9 @@ test("Wrapped includes note stories and clearly unfinished editorial awards", ()
   assert.match(cards.find((entry) => entry.id === "not-like-other-girls").lede, /alex/);
   assert.match(cards.find((entry) => entry.id === "most-basic").lede, /casey/);
   assert.match(cards.find((entry) => entry.id === "common-chord").lede, /rock|electronic/);
+  const opposite = cards.find((entry) => entry.id === "opposite-ends");
+  assert.match(opposite.lede, /least similar genre mix/);
+  assert.match(opposite.detail, /Weighted mix:.*tagged records.*Similarity score: 0\./);
   const sharedNotes = cards.find((entry) => entry.id === "same-record-different-reasons");
   assert.equal(sharedNotes.notes.length, 2);
   assert.equal(sharedNotes.notes[0].href, "/records/lists/#album-note-alex-shared");
