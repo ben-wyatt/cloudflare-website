@@ -479,6 +479,46 @@ code[class*="language-"] .token.italic { font-style: normal !important; }
   margin: 0.25rem 0;
 }
 
+/* Blog search stays within the reading column and leaves the post list visible. */
+.blog-search { margin: 1.5rem 0; }
+.blog-search label { display: block; font-weight: 700; margin-bottom: 0.25rem; }
+.blog-search-controls { display: flex; gap: 0.5rem; align-items: end; }
+.blog-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.45rem 0.1rem;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+}
+.blog-search button {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 4px;
+  background: var(--color-surface-soft);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+}
+.blog-search button:hover { border-color: var(--color-primary); }
+.blog-search-help, .blog-search-results #blog-search-status {
+  margin: 0.4rem 0;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+.blog-search-results { margin: 1rem 0 1.5rem; }
+.blog-search-list { list-style: none; margin: 0; padding: 0; }
+.blog-search-list li { padding: 0.6rem 0; border-top: 1px solid var(--color-border); }
+.blog-search-list p { margin: 0.2rem 0 0; }
+.blog-search-list .blog-search-context { color: var(--color-text-muted); font-size: 0.95rem; }
+@media (max-width: 390px) {
+  .blog-search-controls { align-items: stretch; flex-direction: column; }
+  .blog-search button { align-self: flex-start; }
+}
+
 /* Related posts */
 .related-posts { margin-top: 2rem; }
 .related-posts h2 { font-size: 1rem; opacity: 0.8; margin-bottom: 0.5rem; }
