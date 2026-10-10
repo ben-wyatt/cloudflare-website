@@ -1,0 +1,16 @@
+name = "spotify-playlist-mcp"
+main = "src/index.ts"
+compatibility_date = "2026-10-07"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+workers_dev = false
+
+[[routes]]
+pattern = "mcp.ben-wyatt.com"
+custom_domain = true
+
+[[kv_namespaces]]
+binding = "OAUTH_KV"
+id = "dc8c12b583584d40b13bda7c1a26e9d8"
+
+[secrets]
+required = ["SPOTIFY_CLIENT_ID", "SPOTIFY_CLIENT_SECRET", "TOKEN_ENCRYPTION_KEY"]
