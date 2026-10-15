@@ -25,7 +25,7 @@ bodyClass: "records-wrapped-page"
     <header class="wrapped-masthead">
       <p class="wrapped-kicker">record club · <span id="lists-season">2026</span></p>
       <h1 id="lists-title">The whole room</h1>
-      <p class="wrapped-deck">Every member’s records, notes, favorite tracks, and standout songs in one place.</p>
+      <p class="wrapped-deck">{{ recordCopy.listsIntroduction | safe }}</p>
     </header>
 
     <form id="lists-search-form" class="wrapped-list-search" role="search">

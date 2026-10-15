@@ -12,11 +12,7 @@ bodyClass: "records-page"
     <p class="records-kicker">private listening room · 2026</p>
     <h1 id="records-title"><em>Our</em> albums of the year</h1>
     <div id="records-intro" class="records-intro" hidden>
-      <p>I'm sharing this with a few friends. Add the albums that you found this year and a few words on how you connected to it if you'd like.</p>
-      <p>Your picks don't need to be albums that <em>came out</em> this year, just ones that you especially jammed to or connected with! I need at least 5; no more than 15. They are a set, not a ranking, and you can revisit them over the course of the year.</p>
-      <p>You can also keep a set of standout tracks—songs from albums you were generally meh on, or tracks you want to call out because they stayed in rotation. If an album is already in your album picks, use its tracklist hearts instead of adding one of its tracks as a standout.</p>
-      <p>I'll lock ballots on <strong>December 1st</strong> and then we'll play some NYTimes-style games with the album data.</p>
-      <p>For questions, comments, suggestions, feature requests feel free to text me.</p>
+      {{ recordCopy.ballotIntroduction | safe }}
     </div>
   </div>
 
@@ -132,7 +128,7 @@ bodyClass: "records-page"
             <h2 id="standout-title"><strong id="standout-owner-name">Your</strong>'s Standout Tracks</h2>
             <span id="standout-count" class="records-count">0 tracks</span>
           </div>
-          <p class="standout-intro">For the songs you loved from albums you were generally meh on, or the ones that stayed in rotation and deserve specific attention.</p>
+          <p class="standout-intro">{{ recordCopy.standoutExplanation | safe }}</p>
           <ul id="standout-list" class="pick-list" aria-label="Your standout tracks"></ul>
           <div id="empty-standouts" class="records-empty">
             <span aria-hidden="true">♪</span>

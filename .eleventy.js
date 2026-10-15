@@ -15,6 +15,7 @@ module.exports = function(eleventyConfig) {
   // Add a global `now` variable
   eleventyConfig.addGlobalData("now", new Date());
   eleventyConfig.addGlobalData("designGuideEnabled", designGuideEnabled);
+  eleventyConfig.addWatchTarget("src/_data/record-club-copy.md");
 
   // The visual design guide is a local design lab, not a public page.
   if (!designGuideEnabled) {

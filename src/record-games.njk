@@ -10,7 +10,7 @@ bodyClass: "games-page record-games-page"
   <div class="games-intro">
     <p class="games-kicker">record club · games</p>
     <h1 id="record-games-title">Games</h1>
-    <p>Play with the records your group has collected.</p>
+    <p>{{ recordCopy.gamesIntroduction | safe }}</p>
     <p><a href="/records/">← Back to your ballot</a></p>
   </div>
 
@@ -21,7 +21,7 @@ bodyClass: "games-page record-games-page"
           <span class="games-number" aria-hidden="true">01</span>
           <h2><a href="/records/game/">Who Picked It? <span aria-hidden="true">→</span></a></h2>
         </div>
-        <p>Match each mystery record to the person who picked it. Every miss unlocks another clue.</p>
+        <p>{{ recordCopy.whoPickedListing | safe }}</p>
         <p class="games-meta">music · friends · sign-in required</p>
       </article>
     </li>
@@ -31,7 +31,7 @@ bodyClass: "games-page record-games-page"
           <span class="games-number" aria-hidden="true">02</span>
           <h2><a href="/records/match/">Match The Record <span aria-hidden="true">→</span></a></h2>
         </div>
-        <p>Start with one listener and eight covers. Find the two records they picked.</p>
+        <p>{{ recordCopy.matchListing | safe }}</p>
         <p class="games-meta">album art · two picks · sign-in required</p>
       </article>
     </li>
@@ -41,7 +41,7 @@ bodyClass: "games-page record-games-page"
           <span class="games-number" aria-hidden="true">03</span>
           <h2><a href="/records/wrapped/">Records Wrapped <span aria-hidden="true">→</span></a></h2>
         </div>
-        <p>Not really a game: the little coincidences, shared favorites, long listens, and handwritten margins hiding in your group’s picks.</p>
+        <p>{{ recordCopy.wrappedListing | safe }}</p>
         <p class="games-meta">annual notes · shared taste · sign-in required</p>
       </article>
     </li>

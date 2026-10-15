@@ -28,7 +28,7 @@ bodyClass: "records-page record-game-page"
     <header class="game-masthead">
       <p class="records-eyebrow">a record club guessing game</p>
       <h1 id="game-title">Who Picked It?</h1>
-      <p class="game-deck">Match the mystery record to everyone who picked it. You get three misses; the first two unlock clues.</p>
+      <p class="game-deck">{{ recordCopy.whoPickedInstructions | safe }}</p>
       <div class="game-scoreboard" aria-label="Your game statistics">
         <div class="game-score-stat game-score-stat-primary">
           <strong id="game-total-points">0</strong>
@@ -43,7 +43,7 @@ bodyClass: "records-page record-game-page"
           <span>perfect</span>
         </div>
       </div>
-      <p class="game-scoring-rule"><strong>Accuracy pays:</strong> 0 misses 1,000 · 1 miss 750 · 2 misses 500</p>
+      <p class="game-scoring-rule">{{ recordCopy.whoPickedScoring | safe }}</p>
     </header>
 
     <section id="game-round" class="game-round" hidden aria-label="Current mystery record">
