@@ -8,23 +8,25 @@ The ballot introduction is shown only after sign-in. Save edits to the main bran
 
 I'm sharing this with a few friends. Add the albums that you found this year and a few words on how you connected to it if you'd like.
 
-Your picks don't need to be albums that *came out* this year, just ones that you especially jammed to or connected with! I need at least 5; no more than 15. They are a set, not a ranking, and you can revisit them over the course of the year.
+Your picks don't need to be albums that *came out* this year, just ones that you especially jammed to or connected with! I need at least 5; no more than 15. They are a set, not a ranking; order doesn’t mean anything. You can revisit them over the course of the year.
 
 You can also keep a set of standout tracks—songs from albums you were generally meh on, or tracks you want to call out because they stayed in rotation. If an album is already in your album picks, use its tracklist hearts instead of adding one of its tracks as a standout.
 
-I'll lock ballots on **December 1st** and then we'll play some NYTimes-style games with the album data.
+I'll lock ballots on **December 1st** and then we'll play some NYTimes-style games with the album data and do a group wrapped.
 
 For questions, comments, suggestions, feature requests feel free to text me.
 
 ## Standout tracks explanation
 
-For the songs you loved from albums you were generally meh on, or the ones that stayed in rotation and deserve specific attention.
+For the songs you loved from albums you were kinda meh on, or the ones that stayed in rotation and deserve specific attention.
 
 ## Games introduction
 
-Play with the records your group has collected.
+Some games before the wrapped!
 
 ## Who Picked It game listing
+
+<get rid of the three dotted words “music · friends · sign-in required” and do thr same for all the others>
 
 Match each mystery record to the person who picked it. Every miss unlocks another clue.
 
