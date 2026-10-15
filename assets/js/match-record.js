@@ -17,6 +17,12 @@
     totalMatches: document.getElementById("match-total-matches"),
     roundsPlayed: document.getElementById("match-rounds-played"),
     perfectRounds: document.getElementById("match-perfect-rounds"),
+    details: document.getElementById("match-details"),
+    detailsTitle: document.getElementById("match-details-title"),
+    detailsArtist: document.getElementById("match-details-artist"),
+    detailsSpotify: document.getElementById("match-details-spotify"),
+    detailsTracks: document.getElementById("match-details-tracks"),
+    detailsClose: document.getElementById("match-details-close"),
   };
 
   if (!elements.loading) return;
@@ -28,6 +34,8 @@
     selectedIds: new Set(),
     submitting: false,
     finished: false,
+    tracklists: new Map(),
+    detailsAlbumId: "",
   };
 
   const numberFormatter = new Intl.NumberFormat();
@@ -97,7 +105,7 @@
 
   function choiceLabel(choice, index, selected) {
     if (!state.finished) {
-      return `Album cover option ${index + 1}${selected ? ", selected" : ""}`;
+      return `Select option ${index + 1}: ${choice.name} by ${choice.artistName}${selected ? ", selected" : ""}`;
     }
     const result = choice.isAnswer
       ? "This was one of the listener's records"
@@ -108,8 +116,10 @@
   }
 
   function renderChoices() {
-    const buttons = state.choices.map((choice, index) => {
+    const cards = state.choices.map((choice, index) => {
       const selected = state.selectedIds.has(choice.spotifyId);
+      const card = document.createElement("div");
+      card.className = "match-choice-card";
       const button = document.createElement("button");
       button.type = "button";
       button.className = "match-choice";
@@ -124,9 +134,7 @@
 
       const image = document.createElement("img");
       image.src = choice.imageUrl;
-      image.alt = state.finished
-        ? `${choice.name} by ${choice.artistName} album cover`
-        : `Album cover option ${index + 1}`;
+      image.alt = `${choice.name} by ${choice.artistName} album cover`;
 
       const markerText = resultMarker(choice, selected);
       const marker = document.createElement("span");
@@ -136,21 +144,90 @@
       marker.hidden = !markerText;
       button.append(image, marker);
 
-      if (state.finished) {
-        const caption = document.createElement("span");
-        caption.className = "match-choice-caption";
-        const title = document.createElement("strong");
-        title.textContent = choice.name;
-        const artist = document.createElement("span");
-        artist.textContent = choice.artistName;
-        caption.append(title, artist);
-        button.append(caption);
-      }
+      const caption = document.createElement("div");
+      caption.className = "match-choice-caption";
+      const title = document.createElement("strong");
+      title.textContent = choice.name;
+      const artist = document.createElement("span");
+      artist.textContent = choice.artistName;
+      caption.append(title, artist);
+
+      const detailsButton = document.createElement("button");
+      detailsButton.type = "button";
+      detailsButton.className = "records-text-button match-details-button";
+      detailsButton.textContent = "Details + tracks";
+      detailsButton.setAttribute("aria-label", `Details and tracks for ${choice.name} by ${choice.artistName}`);
+      detailsButton.addEventListener("click", () => openDetails(choice));
 
       button.addEventListener("click", () => toggleChoice(choice.spotifyId));
-      return button;
+      card.append(button, caption, detailsButton);
+      return card;
     });
-    elements.choices.replaceChildren(...buttons);
+    elements.choices.replaceChildren(...cards);
+  }
+
+  function renderTracklist(albumId) {
+    const cached = state.tracklists.get(albumId);
+    elements.detailsTracks.replaceChildren();
+    if (!cached) {
+      elements.detailsTracks.textContent = "Loading tracks from Spotify…";
+      return;
+    }
+    if (cached.error) {
+      const message = document.createElement("p");
+      message.textContent = cached.error;
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "records-text-button";
+      retry.textContent = "Try again";
+      retry.addEventListener("click", () => loadTracklist(albumId, true));
+      elements.detailsTracks.append(message, retry);
+      return;
+    }
+    if (!cached.tracks.length) {
+      elements.detailsTracks.textContent = "Spotify did not return any tracks for this album.";
+      return;
+    }
+    const list = document.createElement("ol");
+    list.className = "match-track-list";
+    for (const track of cached.tracks) {
+      const item = document.createElement("li");
+      if (track.spotifyUrl) {
+        const link = document.createElement("a");
+        link.href = track.spotifyUrl;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = track.name;
+        item.append(link);
+      } else {
+        item.textContent = track.name;
+      }
+      list.append(item);
+    }
+    elements.detailsTracks.append(list);
+  }
+
+  async function loadTracklist(albumId, retry = false) {
+    if (!retry && state.tracklists.has(albumId)) return;
+    state.tracklists.delete(albumId);
+    if (state.detailsAlbumId === albumId) renderTracklist(albumId);
+    try {
+      const payload = await api(`/api/spotify/tracks?album=${encodeURIComponent(albumId)}`);
+      state.tracklists.set(albumId, { tracks: Array.isArray(payload.tracks) ? payload.tracks : [] });
+    } catch (error) {
+      state.tracklists.set(albumId, { error: error.message });
+    }
+    if (state.detailsAlbumId === albumId && elements.details.open) renderTracklist(albumId);
+  }
+
+  function openDetails(choice) {
+    state.detailsAlbumId = choice.spotifyId;
+    elements.detailsTitle.textContent = choice.name;
+    elements.detailsArtist.textContent = choice.artistName;
+    elements.detailsSpotify.href = choice.spotifyUrl || `https://open.spotify.com/album/${encodeURIComponent(choice.spotifyId)}`;
+    renderTracklist(choice.spotifyId);
+    elements.details.showModal();
+    if (!state.tracklists.has(choice.spotifyId)) void loadTracklist(choice.spotifyId);
   }
 
   function renderSelection() {
@@ -175,6 +252,8 @@
   }
 
   function resetRound(payload) {
+    if (elements.details.open) elements.details.close();
+    state.detailsAlbumId = "";
     state.roundId = payload.roundId;
     state.listenerName = String(payload.listener?.username || "");
     state.choices = Array.isArray(payload.choices) ? payload.choices : [];
@@ -269,6 +348,8 @@
 
   elements.submit.addEventListener("click", submitGuess);
   elements.next.addEventListener("click", startRound);
+  elements.detailsClose.addEventListener("click", () => elements.details.close());
+  elements.details.addEventListener("close", () => { state.detailsAlbumId = ""; });
 
   api("/api/auth/me")
     .then(async (payload) => {

@@ -110,7 +110,10 @@ async function createRound(db, player) {
     db.prepare(
       `SELECT
          album.spotify_id AS spotifyId,
-         album.image_url AS imageUrl
+         album.name,
+         album.artist_name AS artistName,
+         album.image_url AS imageUrl,
+         album.spotify_url AS spotifyUrl
        FROM record_list_items item
        JOIN record_albums album ON album.spotify_id = item.spotify_album_id
        WHERE item.user_id = ?
@@ -123,7 +126,10 @@ async function createRound(db, player) {
     db.prepare(
       `SELECT
          album.spotify_id AS spotifyId,
-         album.image_url AS imageUrl
+         album.name,
+         album.artist_name AS artistName,
+         album.image_url AS imageUrl,
+         album.spotify_url AS spotifyUrl
        FROM record_list_items item
        JOIN record_users source_user ON source_user.id = item.user_id
        JOIN record_albums album ON album.spotify_id = item.spotify_album_id
@@ -183,7 +189,10 @@ async function createRound(db, player) {
     listener: { username: target.username },
     choices: choices.map((choice) => ({
       spotifyId: choice.spotifyId,
+      name: choice.name,
+      artistName: choice.artistName,
       imageUrl: choice.imageUrl,
+      spotifyUrl: choice.spotifyUrl,
     })),
     pickCount: MATCH_RECORD_ANSWER_COUNT,
     scoreboard,

@@ -26,8 +26,6 @@ Some games before the wrapped!
 
 ## Who Picked It game listing
 
-<get rid of the three dotted words “music · friends · sign-in required” and do thr same for all the others>
-
 Match each mystery record to the person who picked it. Every miss unlocks another clue.
 
 ## Match The Record game listing
@@ -48,7 +46,7 @@ Match the mystery record to everyone who picked it. You get three misses; the fi
 
 ## Match The Record instructions
 
-One listener picked two of these eight records. Find both using only the covers.
+One listener picked two of these eight records. Explore the track lists, then find both picks.
 
 ## Match The Record round prompt
 

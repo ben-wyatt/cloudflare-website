@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Match The Record · Record Club
 permalink: "/records/match/"
-pageStyles: "/styles/records.css?v=match-the-record-touch"
-pageScript: "/assets/js/match-record.js?v=match-the-record"
+pageStyles: "/styles/records.css?v=match-details"
+pageScript: "/assets/js/match-record.js?v=match-details"
 bodyClass: "records-page record-game-page record-match-page"
 ---
 
@@ -52,7 +52,21 @@ bodyClass: "records-page record-game-page record-match-page"
         <p>{{ recordCopy.matchRoundPrompt | safe }}</p>
       </div>
 
-      <div id="match-choices" class="match-choices" role="group" aria-label="Eight album covers"></div>
+      <div id="match-choices" class="match-choices" role="group" aria-label="Eight album choices"></div>
+
+      <dialog id="match-details" class="match-details" aria-labelledby="match-details-title">
+        <div class="match-details-heading">
+          <div>
+            <p class="records-eyebrow">record details</p>
+            <h2 id="match-details-title"></h2>
+            <p id="match-details-artist" class="match-details-artist"></p>
+          </div>
+          <button id="match-details-close" class="records-text-button" type="button" aria-label="Close record details">Close ×</button>
+        </div>
+        <p><a id="match-details-spotify" href="#" target="_blank" rel="noopener noreferrer">Open album on Spotify ↗</a></p>
+        <h3>Track list</h3>
+        <div id="match-details-tracks" role="status" aria-live="polite"></div>
+      </dialog>
 
       <div class="match-controls">
         <p id="match-selection-count" class="match-selection-count">0 / 2 selected</p>

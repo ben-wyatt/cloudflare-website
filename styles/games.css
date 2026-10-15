@@ -61,11 +61,6 @@
   margin: 0.35rem 0 0 2.5rem;
 }
 
-.games-entry .games-meta {
-  color: var(--color-text-muted);
-  font-size: 0.82rem;
-}
-
 @media (max-width: 480px) {
   .games-entry-heading {
     grid-template-columns: 1.6rem minmax(0, 1fr);

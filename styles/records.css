@@ -1117,9 +1117,16 @@ button:disabled {
   gap: 0.75rem;
 }
 
+.match-choice-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .match-choice {
   position: relative;
   min-width: 0;
+  width: 100%;
   padding: 0;
   overflow: hidden;
   border: 1px solid var(--game-rule);
@@ -1207,10 +1214,8 @@ button:disabled {
 .match-choice-caption {
   display: grid;
   gap: 0.05rem;
-  min-height: 3.7rem;
   box-sizing: border-box;
-  padding: 0.45rem 0.55rem 0.5rem;
-  border-top: 1px solid var(--game-rule);
+  padding: 0.4rem 0.1rem 0;
   line-height: 1.2;
 }
 
@@ -1223,11 +1228,68 @@ button:disabled {
 
 .match-choice-caption strong {
   font-size: 0.86rem;
+  white-space: normal;
 }
 
 .match-choice-caption span {
   color: var(--em-color);
   font-size: 0.76rem;
+}
+
+.match-details-button {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 0.35rem 0.1rem;
+  font-size: 0.8rem;
+}
+
+.match-details {
+  box-sizing: border-box;
+  width: min(600px, calc(100vw - 2rem));
+  max-height: 82dvh;
+  padding: 1.2rem;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.match-details::backdrop {
+  background: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+.match-details-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.match-details-heading h2 {
+  margin: 0.25rem 0 0;
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
+}
+
+.match-details-artist {
+  margin: 0.15rem 0 0;
+  color: var(--color-text-muted);
+}
+
+.match-details h3 {
+  margin: 1.25rem 0 0.45rem;
+  font-size: 1rem;
+}
+
+.match-track-list {
+  margin: 0;
+  padding-left: 2rem;
+  line-height: 1.5;
+}
+
+.match-track-list li {
+  padding: 0.15rem 0;
 }
 
 .match-controls {
