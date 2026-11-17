@@ -5,8 +5,6 @@
     gateMessage: document.getElementById("wrapped-gate-message"),
     app: document.getElementById("wrapped-app"),
     memberName: document.getElementById("wrapped-member-name"),
-    groupName: document.getElementById("wrapped-group-name"),
-    season: document.getElementById("wrapped-season"),
     editionStatus: document.getElementById("wrapped-edition-status"),
     ledger: document.getElementById("wrapped-ledger"),
     metadata: document.getElementById("wrapped-metadata"),
@@ -319,28 +317,17 @@
       elements.metadata.textContent = "Spotify track lengths and artist credits are filled in.";
       return;
     }
-    const text = document.createElement("span");
-    text.textContent = `${plural(payload.metadataPending, "record")} still need full Spotify credits.`;
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = "Fill in two more";
-    button.addEventListener("click", () => {
-      void enrichBatch(false);
-    });
-    elements.metadata.append(text, button);
   }
 
   function renderPayload(payload) {
     currentPayload = payload;
-    elements.groupName.textContent = payload.group.name;
-    elements.season.textContent = payload.season;
     elements.editionStatus.textContent = payload.snapshot
       ? `Sealed edition · generated ${new Date(payload.generatedAt).toLocaleDateString()}`
       : payload.preparingSnapshot
         ? "Ballots are closed · preparing the sealed edition."
         : payload.seasonStatus === "locked"
           ? "Ballots are closed · final stories are taking shape."
-          : "Live draft · these stories change as the group saves picks.";
+          : "";
     renderLedger(payload.room);
     renderStories(payload);
     renderMetadata(payload);

@@ -47,9 +47,7 @@
 
 .wrapped-masthead {
   margin: 2.5rem 0 1.5rem;
-  padding: 1.2rem 0 1.35rem;
-  border-top: 4px double var(--wrapped-rule-strong);
-  border-bottom: 1px solid var(--wrapped-rule-strong);
+  padding: 0;
 }
 
 .wrapped-kicker,
@@ -74,6 +72,10 @@
   max-width: 58ch;
   margin: 1.1rem 0 0;
   font-size: 1rem;
+}
+
+.wrapped-edition-status:empty {
+  display: none;
 }
 
 .wrapped-edition-status {
