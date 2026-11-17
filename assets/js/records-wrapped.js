@@ -7,6 +7,7 @@
     memberName: document.getElementById("wrapped-member-name"),
     season: document.getElementById("wrapped-season"),
     listeners: document.getElementById("wrapped-listeners"),
+    castLabel: document.getElementById("wrapped-cast-label"),
     editionStatus: document.getElementById("wrapped-edition-status"),
     metadata: document.getElementById("wrapped-metadata"),
     cardControls: document.getElementById("wrapped-card-controls"),
@@ -305,6 +306,7 @@
     currentPayload = payload;
     elements.season.textContent = payload.season;
     elements.listeners.textContent = (payload.listeners || []).join(" · ");
+    elements.castLabel.hidden = !elements.listeners.textContent;
     elements.editionStatus.textContent = payload.snapshot
       ? `Sealed edition · generated ${new Date(payload.generatedAt).toLocaleDateString()}`
       : payload.preparingSnapshot
