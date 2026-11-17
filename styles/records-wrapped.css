@@ -69,99 +69,59 @@
   line-height: 0.95;
 }
 
+/* The deck fills one screen: the story takes the space, controls sit at the bottom. */
 .wrapped-deck {
-  max-width: 58ch;
-  margin: 1.1rem 0 0;
-  font-size: 1rem;
-}
-
-.wrapped-edition-status:empty {
-  display: none;
-}
-
-.wrapped-edition-status {
-  margin: 0.75rem 0 0;
-  color: var(--color-text-muted);
-  font-size: 0.8rem;
-}
-
-.wrapped-metadata {
-  min-height: 1.4rem;
-  margin: 0.75rem 0 0;
-  color: var(--color-text-muted);
-  font-size: 0.78rem;
-}
-
-.wrapped-metadata.is-error {
-  color: var(--color-danger);
-}
-
-.wrapped-metadata button {
-  margin-left: 0.45rem;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--link-internal);
-  font: inherit;
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: none;
+  margin: 0;
+  border-top: 1px solid var(--wrapped-rule);
+  scroll-margin-top: 0;
 }
 
 .wrapped-stories {
-  margin-top: 0;
-}
-
-.wrapped-metadata:empty {
-  display: none;
-}
-
-.wrapped-deck {
-  max-width: none;
-  margin: 0;
-  scroll-margin-top: 1rem;
+  flex: 1 0 auto;
 }
 
 .wrapped-deck-bar {
-  display: grid;
-  gap: 0.7rem;
-  padding: 0.9rem 0 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  padding: 0.6rem 0 calc(0.6rem + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--wrapped-rule);
+  background: var(--color-bg);
 }
 
-.wrapped-deck-progress {
-  display: flex;
-  gap: 3px;
+.wrapped-deck:fullscreen {
+  width: 100%;
+  height: 100%;
+  padding: 0 max(16px, calc((100vw - 780px) / 2));
+  overflow-y: auto;
+  border-top: 0;
+  background: var(--color-bg);
 }
 
-.wrapped-deck-segment {
-  flex: 1 1 0;
-  height: 0.9rem;
-  padding: 0;
-  border: 0;
-  background: linear-gradient(var(--wrapped-rule), var(--wrapped-rule)) center / 100% 3px no-repeat;
-  cursor: pointer;
+.wrapped-deck:fullscreen .wrapped-story {
+  padding-top: 2.5rem;
 }
 
-.wrapped-deck-segment.is-seen {
-  background-image: linear-gradient(var(--color-text-muted), var(--color-text-muted));
-}
-
-.wrapped-deck-segment.is-current {
-  background-image: linear-gradient(var(--wrapped-accent), var(--wrapped-accent));
-  background-size: 100% 5px;
-}
-
-.wrapped-deck-segment:focus-visible,
-.wrapped-deck-arrow:focus-visible {
-  outline: 2px solid var(--wrapped-accent);
-  outline-offset: 2px;
+.wrapped-deck::backdrop {
+  background: var(--color-bg);
 }
 
 .wrapped-deck-controls {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.wrapped-deck-middle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .wrapped-deck-count {
@@ -171,10 +131,13 @@
 }
 
 .wrapped-deck-arrow {
+  display: inline-grid;
+  place-items: center;
   min-width: 2.75rem;
   min-height: 2.75rem;
   padding: 0 0.6rem;
   border: 1px solid var(--wrapped-rule-strong);
+  border-radius: 4px;
   background: transparent;
   color: var(--link-internal);
   font: inherit;
@@ -182,8 +145,24 @@
   cursor: pointer;
 }
 
+.wrapped-deck-fullscreen {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  border-color: transparent;
+  color: var(--color-text-muted);
+}
+
+.wrapped-deck-fullscreen:hover {
+  color: var(--link-internal);
+}
+
 .wrapped-deck-arrow:hover:not(:disabled) {
   border-color: var(--wrapped-accent);
+}
+
+.wrapped-deck-arrow:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .wrapped-deck-arrow:disabled {
@@ -229,7 +208,6 @@
 }
 
 .wrapped-story {
-  min-height: 22rem;
   padding: 1.4rem 0 2rem;
 }
 
@@ -287,6 +265,7 @@
   font-size: 0.72rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  white-space: nowrap;
   cursor: pointer;
 }
 

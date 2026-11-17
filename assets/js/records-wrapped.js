@@ -300,30 +300,59 @@
     return button;
   }
 
+  const FULLSCREEN_ICONS = {
+    enter: '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+    exit: '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  };
+
+  function fullscreenSupported() {
+    return Boolean(document.fullscreenEnabled && elements.deck.requestFullscreen);
+  }
+
+  function isDeckFullscreen() {
+    return document.fullscreenElement === elements.deck;
+  }
+
+  function syncFullscreenButton() {
+    const button = deckButtons?.fullscreen;
+    if (!button) return;
+    const active = isDeckFullscreen();
+    button.innerHTML = active ? FULLSCREEN_ICONS.exit : FULLSCREEN_ICONS.enter;
+    button.setAttribute("aria-label", active ? "Exit full screen" : "Full screen");
+    button.setAttribute("aria-pressed", String(active));
+  }
+
+  async function toggleFullscreen() {
+    try {
+      if (isDeckFullscreen()) await document.exitFullscreen();
+      else await elements.deck.requestFullscreen();
+    } catch {
+      // Some browsers refuse full screen; the deck still fills the viewport.
+    }
+  }
+
   function buildDeckBar() {
     const previous = deckButton("Previous story", "←", () => showSlide(slideIndex - 1));
     const next = deckButton("Next story", "→", () => showSlide(slideIndex + 1));
     const count = document.createElement("span");
     count.className = "wrapped-deck-count";
     count.setAttribute("aria-live", "polite");
+    const middle = document.createElement("div");
+    middle.className = "wrapped-deck-middle";
+    middle.append(count);
+    let fullscreen = null;
+    if (fullscreenSupported()) {
+      fullscreen = deckButton("Full screen", "", toggleFullscreen);
+      fullscreen.classList.add("wrapped-deck-fullscreen");
+      middle.append(fullscreen);
+    }
     const controls = document.createElement("div");
     controls.className = "wrapped-deck-controls";
-    controls.append(previous, count, next);
-
-    const progress = document.createElement("div");
-    progress.className = "wrapped-deck-progress";
-    const segments = slides.map((slide, index) => {
-      const segment = document.createElement("button");
-      segment.type = "button";
-      segment.className = "wrapped-deck-segment";
-      segment.setAttribute("aria-label", `Story ${index + 1}: ${slide.querySelector("h2")?.textContent || ""}`);
-      segment.addEventListener("click", () => showSlide(index));
-      progress.append(segment);
-      return segment;
-    });
-    elements.deckBar.replaceChildren(progress, controls);
+    controls.append(previous, middle, next);
+    elements.deckBar.replaceChildren(controls);
     elements.deckBar.hidden = false;
-    deckButtons = { previous, next, count, segments };
+    deckButtons = { previous, next, count, fullscreen };
+    syncFullscreenButton();
   }
 
   function showSlide(index, { animate = true } = {}) {
@@ -343,18 +372,14 @@
     deckButtons.count.textContent = `${target + 1} / ${slides.length}`;
     deckButtons.previous.disabled = target === 0;
     deckButtons.next.disabled = target === slides.length - 1;
-    deckButtons.segments.forEach((segment, position) => {
-      segment.classList.toggle("is-seen", position < target);
-      segment.classList.toggle("is-current", position === target);
-      if (position === target) segment.setAttribute("aria-current", "step");
-      else segment.removeAttribute("aria-current");
-    });
     try {
       history.replaceState(null, "", target ? `#story-${target + 1}` : window.location.pathname + window.location.search);
     } catch {
       // The deck still works when the URL cannot change.
     }
-    if (moved && elements.deck.getBoundingClientRect().top < 0) {
+    if (!moved) return;
+    if (isDeckFullscreen()) elements.deck.scrollTop = 0;
+    else if (Math.abs(elements.deck.getBoundingClientRect().top) > 1) {
       elements.deck.scrollIntoView({ block: "start" });
     }
   }
@@ -365,6 +390,7 @@
   }
 
   function bindDeckGestures() {
+    document.addEventListener("fullscreenchange", syncFullscreenButton);
     document.addEventListener("keydown", (event) => {
       if (!slides.length || elements.app.hidden) return;
       if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || isTyping(event.target)) return;
