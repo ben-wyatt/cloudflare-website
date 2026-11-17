@@ -44,17 +44,17 @@ test("Wrapped includes note stories and clearly unfinished editorial awards", ()
   ]);
   assert.deepEqual(cards.find((entry) => entry.id === "shared-records").records[0].pickers,
     ["alex", "blair"]);
-  assert.match(cards.find((entry) => entry.id === "not-like-other-girls").lede, /alex/);
-  assert.match(cards.find((entry) => entry.id === "most-basic").lede, /casey/);
+  assert.equal(cards.find((entry) => entry.id === "not-like-other-girls").ranking.find((row) => row.highlight).name, "alex");
+  assert.equal(cards.find((entry) => entry.id === "most-basic").ranking.find((row) => row.highlight).name, "casey");
   const smallestAudience = cards.find((entry) => entry.id === "tiniest-violin");
   const biggestAudience = cards.find((entry) => entry.id === "biggest-tuba");
-  assert.match(smallestAudience.lede, /picked by alex, blair/);
+  assert.equal(smallestAudience.lede, "");
   assert.deepEqual(smallestAudience.records[0].pickers, ["alex", "blair"]);
-  assert.match(biggestAudience.lede, /picked by casey/);
+  assert.equal(biggestAudience.lede, "");
   assert.deepEqual(biggestAudience.records[0].pickers, ["casey"]);
-  assert.match(cards.find((entry) => entry.id === "common-chord").lede, /rock|electronic/);
+  assert.match(cards.find((entry) => entry.id === "common-chord").ranking.find((row) => row.highlight).name, /rock|electronic/);
   const opposite = cards.find((entry) => entry.id === "opposite-ends");
-  assert.match(opposite.lede, /least similar genre mix/);
+  assert.equal(opposite.ranking.find((row) => row.highlight).value, Math.min(...opposite.ranking.map((row) => row.value)));
   assert.equal(opposite.mix.length, 2);
   assert.match(opposite.stat.value, /^\d+%$/);
   const sharedNotes = cards.find((entry) => entry.id === "same-record-different-reasons");
