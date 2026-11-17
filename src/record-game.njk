@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Who Picked It? · Record Club
 permalink: "/records/game/"
-pageStyles: "/styles/records.css?v=one-pick"
-pageScript: "/assets/js/record-game.js?v=instant-guess"
+pageStyles: "/styles/records.css?v=side-by-side"
+pageScript: "/assets/js/record-game.js?v=side-by-side"
 bodyClass: "records-page record-game-page"
 ---
 
@@ -66,6 +66,7 @@ bodyClass: "records-page record-game-page"
           </div>
           <p id="game-selector-count" class="game-selector-count" hidden></p>
         </div>
+        <div id="game-album-slot" class="game-album-slot" aria-live="polite"></div>
       </div>
 
       <div class="game-round-play">

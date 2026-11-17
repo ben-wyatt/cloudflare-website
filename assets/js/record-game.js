@@ -9,6 +9,7 @@
     cover: document.getElementById("game-cover"),
     selectorCount: document.getElementById("game-selector-count"),
     clueList: document.getElementById("game-clue-list"),
+    albumSlot: document.getElementById("game-album-slot"),
     choices: document.getElementById("game-choices"),
     status: document.getElementById("game-status"),
     developerTools: document.getElementById("game-developer-tools"),
@@ -278,7 +279,9 @@
   function renderClues(clues = {}, revealedLevel = 0, revealedListenerIndex = -1) {
     const listenerClues = Array.isArray(clues.listeners) ? clues.listeners : [];
     const listenerCount = Math.max(state.selectorCount, listenerClues.length, 1);
-    const blocks = [renderAlbumClue(clues.album || null, revealedLevel === 1)];
+    // The album card sits under the cover; the listeners' clues sit beside it.
+    elements.albumSlot.replaceChildren(renderAlbumClue(clues.album || null, revealedLevel === 1));
+    const blocks = [];
 
     for (let index = 0; index < listenerCount; index += 1) {
       const label = state.listenerNames.get(index)

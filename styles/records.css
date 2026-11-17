@@ -1194,6 +1194,51 @@ button:disabled {
   text-align: right;
 }
 
+/* The album card, under the cover. */
+.game-album-slot {
+  min-width: 0;
+  border-top: 1px solid var(--game-ink);
+}
+
+.game-album-slot .game-clue {
+  min-height: 0;
+  padding: 0.5rem 0 0;
+  border-bottom: 0;
+}
+
+.game-album-slot .game-clue-value {
+  font-size: 1rem;
+}
+
+/* Top tracks as one wrapping line, so a long list costs a few lines, not one each. */
+.game-round .game-track-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0.1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.game-round .game-track-list li {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.game-round .game-listener-clues .game-clue-value {
+  font-size: 0.98rem;
+  line-height: 1.4;
+}
+
+.game-round .game-listener-clues .game-clue {
+  padding: 0.2rem 0 0.45rem;
+}
+
+.game-round .game-track-list li:not(:last-child)::after {
+  content: "·";
+  margin: 0 0.45rem;
+  color: var(--em-color);
+}
+
 .game-round-play {
   display: flex;
   flex-direction: column;
@@ -1229,7 +1274,6 @@ button:disabled {
 }
 
 .game-round .game-listener-clues .game-clue {
-  padding-top: 0.25rem;
   border-bottom: 0;
 }
 
@@ -1318,7 +1362,8 @@ button:disabled {
 @media (min-width: 761px) and (min-height: 540px) {
   .game-round {
     --round-height: calc(100dvh - var(--game-top, 16rem) - 0.5rem);
-    --cover: clamp(200px, calc(var(--round-height) - 6.5rem), 360px);
+    /* Leave room under the cover for the progress dots and the album card. */
+    --cover: clamp(190px, calc(var(--round-height) - 12rem), 330px);
     box-sizing: border-box;
     grid-template-rows: minmax(0, 1fr);
     height: var(--round-height);
@@ -1326,6 +1371,26 @@ button:disabled {
 
   .game-round-play {
     height: 100%;
+  }
+
+  .game-round-cover {
+    grid-template-rows: auto auto minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+  }
+
+  .game-album-slot {
+    overflow-y: auto;
+  }
+
+  /* The names speak for themselves; the heading stays for screen readers. */
+  .game-round .game-choices-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .game-round .game-clue-list {
@@ -1352,7 +1417,8 @@ button:disabled {
     padding-top: 1rem;
   }
 
-  .game-round-cover {
+  .game-round-cover .game-cover-frame,
+  .game-round-cover .game-cover-meta {
     width: min(64vw, 240px);
     justify-self: center;
   }
@@ -1388,8 +1454,26 @@ button:disabled {
 }
 
 .match-shell {
-  max-width: 920px;
+  max-width: 1040px;
+  container-type: inline-size;
 }
+
+.match-round-end {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.match-round-end .game-status {
+  margin: 0;
+}
+
+.match-round-end .game-next {
+  flex: none;
+}
+
+
 
 .match-round {
   padding: 0.35rem 0 2rem;
@@ -1627,6 +1711,90 @@ button:disabled {
   text-align: center;
 }
 
+/* Long album titles stop at two lines so every card keeps the same height. */
+.match-choice-caption strong {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* Desktop: the round fits one screen. Prompt, notes and status on the left; the eight
+   covers on the right, sized to the height (and width) that is left. */
+@media (min-width: 761px) and (min-height: 540px) {
+  .match-round {
+    --round-height: calc(100dvh - var(--game-top, 14rem) - 0.5rem);
+    --card: clamp(96px, min(calc((var(--round-height) - 14rem) / 2), calc((100cqw - 20.5rem) / 4)), 170px);
+    display: grid;
+    grid-template-columns: minmax(16rem, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 2rem;
+    box-sizing: border-box;
+    height: var(--round-height);
+    padding: 1rem 0 0.5rem;
+  }
+
+  .match-side {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 0;
+  }
+
+  .match-side .match-prompt {
+    margin: 0;
+    text-align: left;
+  }
+
+  .match-side .match-clues {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    overflow-y: auto;
+  }
+
+  .match-round-end {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: auto;
+  }
+
+  .match-round .match-choices {
+    grid-template-columns: repeat(4, var(--card));
+    align-content: start;
+  }
+}
+
+/* Phones: prompt and notes, then the covers, then the status under them. */
+@media (max-width: 760px) {
+  .match-round {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .match-side {
+    display: contents;
+  }
+
+  .match-round .match-choices {
+    order: 1;
+  }
+
+  .match-round-end {
+    order: 2;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
+  .match-round-end .game-status {
+    text-align: center;
+  }
+}
+
 /* Notes unlocked by misses: they don't say which record they belong to. */
 .match-clues {
   display: grid;
@@ -1640,12 +1808,52 @@ button:disabled {
 .match-clue {
   padding-left: 0.75rem;
   border-left: 2px solid var(--game-primary);
+}
+
+.match-clue.is-entering {
   animation: game-round-in 320ms ease-out both;
 }
 
 .match-clue p {
   margin: 0.1rem 0 0;
   line-height: 1.45;
+}
+
+/* A note whose record is found carries that cover. */
+.match-clue.is-matched {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: start;
+  border-left-color: var(--game-correct);
+}
+
+.match-clue.is-matched.is-missed {
+  border-left-style: dashed;
+}
+
+.match-clue-cover {
+  display: block;
+  width: 2.75rem;
+  aspect-ratio: 1;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+/* The moment a found record meets its note: both glow together, and the cover pops in. */
+.match-clue.is-linking,
+.match-choice.is-linking {
+  animation: match-link-glow 1200ms ease-out;
+}
+
+.match-clue.is-linking .match-clue-cover {
+  animation: game-choice-correct 560ms cubic-bezier(0.2, 0.9, 0.25, 1.25);
+}
+
+@keyframes match-link-glow {
+  0% { box-shadow: 0 0 0 0 transparent; }
+  25% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--game-correct) 45%, transparent); }
+  100% { box-shadow: 0 0 0 3px transparent; }
 }
 
 .match-choice:disabled {
@@ -1723,8 +1931,11 @@ button:disabled {
 
   .game-round.is-entering,
   .match-round.is-entering,
-  .match-clue,
+  .match-clue.is-entering,
   .match-choice.is-new,
+  .match-clue.is-linking,
+  .match-clue.is-linking .match-clue-cover,
+  .match-choice.is-linking,
   .game-round.is-solved .game-cover-wrap,
   .game-choice.is-pending,
   .game-choice.is-new-wrong,

@@ -32,8 +32,11 @@
     choices: [],
     // albumId -> true (one of theirs) or false (a miss), as soon as the page knows.
     picks: new Map(),
-    notes: new Map(),
-    clues: [],
+    // The listener's notes so far: [{ note, spotifyId? }]. spotifyId appears once the record is found.
+    notes: [],
+    // Records whose note has already been tied to them on screen, so the link animates once.
+    linkedIds: new Set(),
+    linkingId: "",
     answerKeys: new Set(),
     maxMisses: 3,
     pending: false,
@@ -130,7 +133,8 @@
   }
 
   function noteFor(choice) {
-    return state.notes.get(choice.spotifyId) || (state.finished && choice.isAnswer ? choice.note || "" : "");
+    const shown = state.notes.find((item) => item.spotifyId === choice.spotifyId);
+    return shown ? shown.note : state.finished && choice.isAnswer ? choice.note || "" : "";
   }
 
   // A found record shows the listener's note; after the round, each decoy shows who picked it.
@@ -141,14 +145,8 @@
     return pickers.length ? `Picked by ${listFormatter.format(pickers)}` : "";
   }
 
+  // Notes live in the list above the board; under a cover, only a decoy's pickers, after the round.
   function revealElement(choice) {
-    const noteText = noteFor(choice);
-    if (noteText) {
-      const note = document.createElement("p");
-      note.className = "match-reveal match-reveal-note";
-      note.textContent = noteText;
-      return note;
-    }
     const pickers = state.finished && Array.isArray(choice.pickedBy) ? choice.pickedBy : [];
     if (choice.isAnswer || !pickers.length) return null;
     const owner = document.createElement("p");
@@ -157,20 +155,52 @@
     return owner;
   }
 
+  // One entry per note shown. Once its record is found, the note carries that cover and
+  // name, and the note and the cover glow together the first time.
   function renderClues() {
-    const items = state.clues.map((clue, index) => {
+    let clueNumber = 0;
+    // Only notes that weren't on screen before fade in.
+    const shownBefore = elements.clues.children.length;
+    const items = state.notes.map((entry, index) => {
       const item = document.createElement("li");
       item.className = "match-clue";
+      item.classList.toggle("is-entering", index >= shownBefore);
+      const choice = entry.spotifyId && state.choices.find((option) => option.spotifyId === entry.spotifyId);
+      const text = document.createElement("p");
+      text.textContent = entry.note || "No note.";
+      if (!choice) {
+        clueNumber += 1;
+        const label = document.createElement("span");
+        label.className = "records-eyebrow";
+        label.textContent = `note ${clueNumber}`;
+        item.append(label, text);
+        return item;
+      }
+      item.classList.add("is-matched");
+      item.classList.toggle("is-linking", choice.spotifyId === state.linkingId);
+      item.classList.toggle("is-missed", state.finished && !state.picks.get(choice.spotifyId));
+      const thumb = document.createElement("img");
+      thumb.className = "match-clue-cover";
+      thumb.src = choice.imageUrl;
+      thumb.alt = "";
+      const body = document.createElement("div");
       const label = document.createElement("span");
       label.className = "records-eyebrow";
-      label.textContent = `note ${index + 1}`;
-      const text = document.createElement("p");
-      text.textContent = clue.note || "No note.";
-      item.append(label, text);
+      label.textContent = choice.name;
+      body.append(label, text);
+      item.append(thumb, body);
       return item;
     });
     elements.clues.replaceChildren(...items);
     elements.clues.hidden = !items.length;
+  }
+
+  // Marks the first record whose note just became tied to it, for the glow.
+  function takeNewLink() {
+    const fresh = state.notes.find((item) => item.spotifyId
+      && !state.linkedIds.has(item.spotifyId) && state.picks.get(item.spotifyId) === true);
+    state.notes.forEach((item) => { if (item.spotifyId) state.linkedIds.add(item.spotifyId); });
+    state.linkingId = fresh ? fresh.spotifyId : "";
   }
 
   function renderChoices() {
@@ -189,6 +219,7 @@
       button.classList.toggle("is-missed", state.finished && choice.isAnswer && !picked);
       button.classList.toggle("is-wrong", picked && !(state.finished ? choice.isAnswer : correct));
       button.classList.toggle("is-new", choice.spotifyId === state.feedbackAlbumId);
+      button.classList.toggle("is-linking", choice.spotifyId === state.linkingId);
 
       const image = document.createElement("img");
       image.src = choice.imageUrl;
@@ -300,8 +331,9 @@
     state.listenerName = String(payload.listener?.username || "");
     state.choices = Array.isArray(payload.choices) ? payload.choices : [];
     state.picks = new Map();
-    state.notes = new Map();
-    state.clues = [];
+    state.notes = [];
+    state.linkedIds = new Set();
+    state.linkingId = "";
     state.answerKeys = new Set(payload.answerKeys || []);
     state.maxMisses = Number(payload.maxMisses) || 3;
     state.pending = false;
@@ -316,9 +348,27 @@
     elements.next.hidden = true;
     setStatus();
     renderScoreboard(payload.scoreboard);
+    elements.clues.replaceChildren();
     renderClues();
     renderChoices();
+    measureRoundTop();
   }
+
+  // On desktop the round fills the screen under the masthead; CSS reads --game-top.
+  function measureRoundTop() {
+    const container = document.fullscreenElement || document.documentElement;
+    // Measure the masthead, not the round: the round slides in with a transform.
+    const masthead = elements.app.querySelector(".game-masthead");
+    if (!masthead) return;
+    const top = masthead.getBoundingClientRect().bottom - container.getBoundingClientRect().top
+      + (container === document.documentElement ? 0 : container.scrollTop);
+    const gap = parseFloat(getComputedStyle(elements.round).marginTop) || 0;
+    if (top > 0) elements.app.style.setProperty("--game-top", `${Math.round(top + gap)}px`);
+  }
+
+  window.addEventListener("resize", measureRoundTop);
+  document.addEventListener("fullscreenchange", () => requestAnimationFrame(measureRoundTop));
+  document.fonts?.ready.then(measureRoundTop);
 
   async function startRound() {
     elements.next.disabled = true;
@@ -360,7 +410,7 @@
     }
   }
 
-  function statusAfterPick(payload) {
+  function statusAfterPick(payload, newNote) {
     if (payload.solved) {
       return [payload.misses === 0
         ? `Perfect — both records belong to ${state.listenerName}.`
@@ -371,9 +421,10 @@
     }
     if (payload.correct) return [`Yes — one of ${state.listenerName}'s. One more to find.`, "correct"];
     const left = payload.maxMisses - 1 - payload.misses;
+    const unlocked = newNote ? " A note is unlocked —" : "";
     return [left > 0
-      ? `Not that one. A note is unlocked — ${left} ${left === 1 ? "miss" : "misses"} left.`
-      : "Not that one. A note is unlocked — the next miss ends the round.", "wrong"];
+      ? `Not that one.${unlocked} ${left} ${left === 1 ? "miss" : "misses"} left.`
+      : `Not that one.${unlocked} the next miss ends the round.`, "wrong"];
   }
 
   async function pick(albumId) {
@@ -385,6 +436,7 @@
     }
     state.pending = true;
     state.feedbackAlbumId = "";
+    state.linkingId = "";
     elements.choices.setAttribute("aria-busy", "true");
     const markedLocally = await markLocally(albumId);
     if (!markedLocally) setStatus("Checking…");
@@ -395,8 +447,8 @@
         body: { action: "pick", roundId: state.roundId, albumId },
       });
       state.picks.set(albumId, Boolean(payload.correct));
-      (payload.found || []).forEach((item) => state.notes.set(item.spotifyId, String(item.note || "")));
-      state.clues = Array.isArray(payload.clues) ? payload.clues : [];
+      const notesBefore = state.notes.length;
+      state.notes = Array.isArray(payload.notes) ? payload.notes : [];
       state.finished = Boolean(payload.finished);
       // The shake or pop already played when the page marked the tap.
       state.feedbackAlbumId = markedLocally ? "" : albumId;
@@ -409,9 +461,10 @@
         elements.next.hidden = false;
         renderScoreboard(payload.scoreboard);
       }
+      takeNewLink();
       renderClues();
       renderChoices();
-      setStatus(...statusAfterPick(payload));
+      setStatus(...statusAfterPick(payload, state.notes.length > notesBefore));
     } catch (error) {
       if (markedLocally && error.code !== "duplicate_match_pick") {
         state.picks.delete(albumId);

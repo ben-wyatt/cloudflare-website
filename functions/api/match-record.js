@@ -14,6 +14,7 @@ import {
   matchRoundProgress,
   nextMatchNote,
   normalizeMatchAlbumId,
+  visibleMatchNotes,
 } from "../_shared/match-record-game.js";
 import { answerKey } from "../_shared/record-game-clues.js";
 import { RECORD_SEASON } from "../_shared/records-config.js";
@@ -368,16 +369,9 @@ async function pickRound(db, player, body) {
     solved: progress.solved,
     finished: progress.finished,
     maxMisses: MATCH_RECORD_MAX_MISSES,
-    // Records found so far, with the listener's note on each.
-    found: choices
-      .filter((item) => item.isAnswer && item.pickedAt)
-      .map((item) => ({ spotifyId: item.spotifyId, note: item.note })),
     foundCount: progress.found,
-    // Unlocked notes, in the order they were unlocked. They don't say which record.
-    clues: choices
-      .filter((item) => item.noteRevealedAt)
-      .sort((a, b) => a.noteRevealedAt.localeCompare(b.noteRevealedAt) || a.displayOrder - b.displayOrder)
-      .map((item) => ({ note: item.note })),
+    // The listener's notes so far: unlocked by misses, or by finding the record.
+    notes: visibleMatchNotes(choices, progress.finished),
   };
   if (progress.finished) {
     response.choices = await revealChoices(db, player, round, choices);

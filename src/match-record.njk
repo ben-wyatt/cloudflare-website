@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Match The Record · Record Club
 permalink: "/records/match/"
-pageStyles: "/styles/records.css?v=one-pick"
-pageScript: "/assets/js/match-record.js?v=one-pick"
+pageStyles: "/styles/records.css?v=side-by-side"
+pageScript: "/assets/js/match-record.js?v=side-by-side"
 bodyClass: "records-page record-game-page record-match-page"
 ---
 
@@ -28,10 +28,11 @@ bodyClass: "records-page record-game-page record-match-page"
       </div>
     </div>
 
-    <header class="game-masthead">
-      <p class="records-eyebrow">a record club guessing game</p>
-      <h1 id="match-title">Match The Record</h1>
-      <p class="game-deck">{{ recordCopy.matchInstructions | safe }}</p>
+    <header class="game-masthead game-masthead-compact">
+      <div class="game-masthead-copy">
+        <h1 id="match-title">Match The Record</h1>
+        <p class="game-deck">{{ recordCopy.matchInstructions | safe }}</p>
+      </div>
       <div class="game-scoreboard" aria-label="Your Match The Record statistics">
         <div class="game-score-stat game-score-stat-primary">
           <strong id="match-total-matches">0</strong>
@@ -49,12 +50,18 @@ bodyClass: "records-page record-game-page record-match-page"
     </header>
 
     <section id="match-round" class="match-round" hidden aria-labelledby="match-listener-prompt">
-      <div class="match-prompt">
-        <p class="records-eyebrow">this listener chose two</p>
-        <h2 id="match-listener-prompt"><span id="match-listener-name"></span>'s records</h2>
-        <p>{{ recordCopy.matchRoundPrompt | safe }}</p>
+      <div class="match-side">
+        <div class="match-prompt">
+          <p class="records-eyebrow">this listener chose two</p>
+          <h2 id="match-listener-prompt"><span id="match-listener-name"></span>'s records</h2>
+          <p>{{ recordCopy.matchRoundPrompt | safe }}</p>
+        </div>
+        <ol id="match-clues" class="match-clues" aria-live="polite" hidden></ol>
+        <div class="match-round-end">
+          <p id="match-status" class="game-status match-status" role="status" aria-live="polite"></p>
+          <button id="match-next" class="records-text-button game-next" type="button" hidden>Next listener <kbd aria-hidden="true">↵</kbd></button>
+        </div>
       </div>
-      <ol id="match-clues" class="match-clues" aria-live="polite" hidden></ol>
 
       <div id="match-choices" class="match-choices" role="group" aria-label="Eight album choices"></div>
 
@@ -73,12 +80,8 @@ bodyClass: "records-page record-game-page record-match-page"
         <div id="match-details-tracks" role="status" aria-live="polite"></div>
       </dialog>
 
-      <p id="match-status" class="game-status match-status" role="status" aria-live="polite"></p>
     </section>
 
-    <div class="game-footer">
-      <button id="match-next" class="records-text-button game-next" type="button" hidden>Next listener <kbd aria-hidden="true">↵</kbd></button>
-    </div>
   </div>
 </section>
 <script src="/assets/js/game-fullscreen.js?v=fullscreen" defer></script>

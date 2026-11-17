@@ -17,11 +17,26 @@ export function matchRoundProgress(choices) {
   return { found, misses, solved, finished: solved || misses >= MATCH_RECORD_MAX_MISSES };
 }
 
-// The answer whose note a miss unlocks: one the player has not found yet, and one
-// with a note, before the rest. Returns null once every answer's note is shown.
+// The answer whose note a miss unlocks: one the player has not found (a found record
+// shows its note anyway), with a note before one without. Null when none is left.
 export function nextMatchNote(choices) {
-  const rank = (choice) => (choice.pickedAt ? 2 : 0) + (String(choice.note || "").trim() ? 0 : 1);
+  const rank = (choice) => (String(choice.note || "").trim() ? 0 : 1);
   return choices
-    .filter((choice) => Boolean(choice.isAnswer) && !choice.noteRevealedAt)
+    .filter((choice) => Boolean(choice.isAnswer) && !choice.noteRevealedAt && !choice.pickedAt)
     .sort((a, b) => rank(a) - rank(b) || Number(a.displayOrder) - Number(b.displayOrder))[0] || null;
+}
+
+// The listener's notes the player can see, in the order they appeared: notes unlocked by
+// misses, and the note of every record found. A note names its record only once that
+// record is found, or once the round is over.
+export function visibleMatchNotes(choices, finished = false) {
+  // Timestamps compare as plain strings; a note never shown sorts last.
+  const shownAt = (choice) => [choice.noteRevealedAt, choice.pickedAt].filter(Boolean).sort()[0] || "\uffff";
+  const order = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+  return choices
+    .filter((choice) => Boolean(choice.isAnswer) && (finished || choice.noteRevealedAt || choice.pickedAt))
+    .sort((a, b) => order(shownAt(a), shownAt(b)) || Number(a.displayOrder) - Number(b.displayOrder))
+    .map((choice) => (choice.pickedAt || finished
+      ? { note: String(choice.note || ""), spotifyId: choice.spotifyId }
+      : { note: String(choice.note || "") }));
 }
