@@ -333,12 +333,10 @@
     renderMetadata(payload);
   }
 
-  async function enrichBatch(automatic) {
+  async function enrichBatch() {
     if (enriching || !currentPayload?.metadataPending || currentPayload.snapshot) return;
     enriching = true;
-    renderMetadata(currentPayload, automatic
-      ? "Quietly adding full Spotify credits for two records…"
-      : "Adding full Spotify credits for two records…");
+    renderMetadata(currentPayload);
     try {
       await api("/api/wrapped", { method: "POST", body: { action: "enrich" } });
       const payload = await api("/api/wrapped");
@@ -373,7 +371,7 @@
       elements.gate.hidden = true;
       elements.app.hidden = false;
       renderPayload(payload);
-      if (payload.metadataPending && !payload.snapshot) void enrichBatch(true);
+      if (payload.metadataPending && !payload.snapshot) void enrichBatch();
     } catch (error) {
       showGate(error.message);
     }
