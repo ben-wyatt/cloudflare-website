@@ -46,7 +46,7 @@
 }
 
 .wrapped-masthead {
-  margin: 2.5rem 0 1.5rem;
+  margin: 2.5rem 0 1rem;
   padding: 0;
   text-align: center;
 }
@@ -127,7 +127,12 @@
 }
 
 .wrapped-stories {
-  margin-top: 1rem;
+  margin-top: 0;
+}
+
+.wrapped-metadata:empty,
+.wrapped-card-controls:empty {
+  display: none;
 }
 
 .wrapped-card-controls {
