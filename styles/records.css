@@ -700,7 +700,8 @@ button:disabled {
 .game-app:fullscreen {
   width: 100%;
   height: 100%;
-  padding: 0 max(16px, calc((100vw - 760px) / 2)) max(1.5rem, env(safe-area-inset-bottom));
+  /* Keep each game's own width in full screen (--game-max, set by its shell). */
+  padding: 0 max(16px, calc((100vw - var(--game-max, 760px)) / 2)) max(1.5rem, env(safe-area-inset-bottom));
   overflow-y: auto;
   background: var(--color-bg);
 }
@@ -1161,7 +1162,8 @@ button:disabled {
 }
 
 .record-game-page:not(.record-match-page) .game-shell {
-  max-width: 960px;
+  --game-max: 960px;
+  max-width: var(--game-max);
 }
 
 .game-round {
@@ -1454,7 +1456,12 @@ button:disabled {
 }
 
 .match-shell {
-  max-width: 1040px;
+  --game-max: 1040px;
+  max-width: var(--game-max);
+}
+
+/* Cover sizes read the game's own width (100cqw), in the page and in full screen. */
+.record-match-page .game-app {
   container-type: inline-size;
 }
 
