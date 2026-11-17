@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Who Picked It? · Record Club
 permalink: "/records/game/"
-pageStyles: "/styles/records.css?v=developer-round-source"
-pageScript: "/assets/js/record-game.js?v=developer-round-source"
+pageStyles: "/styles/records.css?v=fullscreen"
+pageScript: "/assets/js/record-game.js?v=fullscreen"
 bodyClass: "records-page record-game-page"
 ---
 
@@ -19,10 +19,13 @@ bodyClass: "records-page record-game-page"
     <a class="records-primary game-back-link" href="/records/">Go to Record Club</a>
   </section>
 
-  <div id="game-app" hidden>
+  <div id="game-app" class="game-app" hidden data-fullscreen-target>
     <div class="records-member-bar game-member-bar">
       <p>Playing as <strong id="game-member-name"></strong></p>
-      <a class="game-back-link" href="/records/games/">Back to games</a>
+      <div class="game-member-actions">
+        <button class="game-fullscreen" type="button" data-fullscreen-toggle hidden aria-label="Full screen"></button>
+        <a class="game-back-link" href="/records/games/">Back to games</a>
+      </div>
     </div>
 
     <header class="game-masthead">
@@ -84,3 +87,4 @@ bodyClass: "records-page record-game-page"
     </div>
   </div>
 </section>
+<script src="/assets/js/game-fullscreen.js?v=fullscreen" defer></script>

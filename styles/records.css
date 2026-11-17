@@ -661,7 +661,52 @@ button:disabled {
 }
 
 .game-member-bar {
+  align-items: center;
   margin-top: 1.25rem;
+}
+
+.game-member-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.game-fullscreen {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.game-fullscreen[hidden] {
+  display: none;
+}
+
+.game-fullscreen:hover {
+  color: var(--link-internal);
+}
+
+.game-fullscreen:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Full screen: the game fills the screen on the page background and scrolls if it must. */
+.game-app:fullscreen {
+  width: 100%;
+  height: 100%;
+  padding: 0 max(16px, calc((100vw - 760px) / 2)) max(1.5rem, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: var(--color-bg);
+}
+
+.game-app::backdrop {
+  background: var(--color-bg);
 }
 
 .game-back-link {

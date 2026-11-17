@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Match The Record · Record Club
 permalink: "/records/match/"
-pageStyles: "/styles/records.css?v=match-details"
-pageScript: "/assets/js/match-record.js?v=match-details"
+pageStyles: "/styles/records.css?v=fullscreen"
+pageScript: "/assets/js/match-record.js?v=fullscreen"
 bodyClass: "records-page record-game-page record-match-page"
 ---
 
@@ -19,10 +19,13 @@ bodyClass: "records-page record-game-page record-match-page"
     <a class="records-primary game-back-link" href="/records/">Go to Record Club</a>
   </section>
 
-  <div id="match-app" hidden>
+  <div id="match-app" class="game-app" hidden data-fullscreen-target>
     <div class="records-member-bar game-member-bar">
       <p>Playing as <strong id="match-member-name"></strong></p>
-      <a class="game-back-link" href="/records/games/">Back to games</a>
+      <div class="game-member-actions">
+        <button class="game-fullscreen" type="button" data-fullscreen-toggle hidden aria-label="Full screen"></button>
+        <a class="game-back-link" href="/records/games/">Back to games</a>
+      </div>
     </div>
 
     <header class="game-masthead">
@@ -80,3 +83,4 @@ bodyClass: "records-page record-game-page record-match-page"
     </div>
   </div>
 </section>
+<script src="/assets/js/game-fullscreen.js?v=fullscreen" defer></script>
