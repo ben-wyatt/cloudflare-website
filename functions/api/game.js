@@ -11,7 +11,7 @@ import {
   readJson,
   requireDb,
 } from "../_shared/http.js";
-import { getListenerClueVisibility } from "../_shared/record-game-clues.js";
+import { albumClue, getListenerClueVisibility, isAlbumClueVisible } from "../_shared/record-game-clues.js";
 import { RECORD_SEASON } from "../_shared/records-config.js";
 import { getSpotifyAlbumTracks } from "../_shared/spotify.js";
 
@@ -153,7 +153,7 @@ async function cluesFor(db, env, round, answers, clueLevel, foundUserIds) {
     }
   });
 
-  return { listeners };
+  return isAlbumClueVisible(clueLevel) ? { album: albumClue(round), listeners } : { listeners };
 }
 
 async function createRound(db, player, body) {
@@ -277,7 +277,14 @@ async function getRound(db, roundId, player) {
        r.expires_at AS expiresAt,
        li.spotify_album_id AS spotifyAlbumId,
        a.name AS albumName,
-       a.artist_name AS artistName
+       a.artist_name AS artistName,
+       a.spotify_url AS spotifyUrl,
+       a.release_date AS releaseDate,
+       a.album_type AS albumType,
+       a.total_tracks AS totalTracks,
+       a.total_duration_ms AS totalDurationMs,
+       a.lastfm_listeners AS lastfmListeners,
+       a.lastfm_tags_json AS lastfmTagsJson
      FROM record_game_rounds r
      JOIN record_list_items li ON li.id = r.answer_list_item_id
      JOIN record_albums a ON a.spotify_id = li.spotify_album_id

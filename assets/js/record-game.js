@@ -211,44 +211,80 @@
     return { clue, value };
   }
 
+  function textElement(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    node.textContent = text;
+    return node;
+  }
+
+  const compactFormatter = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
+
+  function renderAlbumClue(album, revealing) {
+    const { clue, value } = createClue("The album");
+    clue.classList.add("game-album-clue");
+    clue.classList.toggle("is-revealing", revealing);
+    if (!album) {
+      value.classList.add("is-locked");
+      value.textContent = "Unlocks after one miss";
+      return clue;
+    }
+    const title = document.createElement("a");
+    title.className = "game-album-title";
+    title.href = album.spotifyUrl;
+    title.target = "_blank";
+    title.rel = "noopener";
+    title.append(document.createTextNode(`${album.name} `), textElement("span", "", "↗"));
+    title.lastChild.setAttribute("aria-hidden", "true");
+    const byline = [album.artistName, album.year].filter(Boolean).join(" · ");
+    value.append(title, textElement("p", "game-album-byline", byline));
+    if (album.genres?.length) {
+      const genres = document.createElement("ul");
+      genres.className = "game-album-genres";
+      for (const genre of album.genres) genres.append(textElement("li", "", genre));
+      value.append(genres);
+    }
+    const facts = [
+      album.albumType && album.albumType !== "album" ? album.albumType : "",
+      album.totalTracks ? `${album.totalTracks} ${album.totalTracks === 1 ? "track" : "tracks"}` : "",
+      album.totalDurationMs ? `${Math.round(album.totalDurationMs / 60000)} min` : "",
+      album.listeners ? `${compactFormatter.format(album.listeners)} Last.fm listeners` : "",
+    ].filter(Boolean);
+    if (facts.length) value.append(textElement("p", "game-album-facts", facts.join(" · ")));
+    return clue;
+  }
+
+  function renderListenerClue(listener, label, revealing) {
+    const group = document.createElement("section");
+    group.className = "game-listener-clues";
+    group.setAttribute("aria-label", `${label} clues`);
+    group.classList.toggle("is-revealing", revealing);
+    group.append(textElement("p", "game-listener-label", label));
+    const revealed = Array.isArray(listener.favoriteTracks) || typeof listener.review === "string";
+    if (!revealed) {
+      group.append(textElement("p", "game-clue-value is-locked", "Top tracks and note unlock after two misses"));
+      return group;
+    }
+    const tracks = createClue("Top tracks");
+    renderFavoriteTracksClue(tracks.value, listener.favoriteTracks);
+    const review = createClue("Note");
+    setTextClue(review.value, listener.review, "No note.");
+    group.append(tracks.clue, review.clue);
+    return group;
+  }
+
   function renderClues(clues = {}, revealedLevel = 0, revealedListenerIndex = -1) {
     const listenerClues = Array.isArray(clues.listeners) ? clues.listeners : [];
     const listenerCount = Math.max(state.selectorCount, listenerClues.length, 1);
-    const clueGroups = [];
+    const blocks = [renderAlbumClue(clues.album || null, revealedLevel === 1)];
 
     for (let index = 0; index < listenerCount; index += 1) {
-      const listener = listenerClues[index] || {};
-      const group = document.createElement("section");
-      group.className = "game-listener-clues";
-      group.setAttribute("aria-label", listenerCount > 1
-        ? `Mystery listener ${index + 1} clues`
-        : "Mystery listener clues");
-
-      if (listenerCount > 1) {
-        const label = document.createElement("p");
-        label.className = "game-listener-label";
-        label.textContent = state.listenerNames.get(index) || `Listener ${index + 1}`;
-        group.append(label);
-      }
-
-      const favoriteTracks = createClue("Their favorite tracks");
-      renderFavoriteTracksClue(favoriteTracks.value, listener.favoriteTracks);
-      favoriteTracks.clue.classList.toggle(
-        "is-revealing",
-        revealedLevel === 1 || index === revealedListenerIndex,
-      );
-
-      const review = createClue("Their note");
-      setTextClue(review.value, listener.review, "Unlocks after two misses");
-      review.clue.classList.toggle(
-        "is-revealing",
-        revealedLevel === 2 || index === revealedListenerIndex,
-      );
-
-      group.append(favoriteTracks.clue, review.clue);
-      clueGroups.push(group);
+      const label = state.listenerNames.get(index)
+        || (listenerCount > 1 ? `Listener ${index + 1}` : "The listener");
+      blocks.push(renderListenerClue(listenerClues[index] || {}, label,
+        revealedLevel === 2 || index === revealedListenerIndex));
     }
-    elements.clueList.replaceChildren(...clueGroups);
+    elements.clueList.replaceChildren(...blocks);
 
     const dots = [...elements.progress.children];
     dots.forEach((dot, index) => {
@@ -350,6 +386,7 @@
     renderClues({});
     renderChoices();
     renderScoreboard(payload.scoreboard);
+    measureRoundTop();
   }
 
   async function startRound() {
@@ -481,6 +518,30 @@
   }
 
   elements.next.addEventListener("click", startRound);
+
+  // Enter starts the next record once a round is over (a focused button or link keeps its own Enter).
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    if (!state.finished || elements.next.hidden || elements.next.disabled || elements.app.hidden) return;
+    if (event.target instanceof Element && event.target.closest("a, button, input, select, textarea, [contenteditable]")) return;
+    event.preventDefault();
+    startRound();
+  });
+
+  // The round fills the screen below the masthead; tell the CSS where the round starts.
+  function measureRoundTop() {
+    const container = document.fullscreenElement || document.documentElement;
+    // Measure the masthead, not the round: the round slides in with a transform.
+    const masthead = elements.app.querySelector(".game-masthead");
+    if (!masthead) return;
+    const top = masthead.getBoundingClientRect().bottom - container.getBoundingClientRect().top
+      + (container === document.documentElement ? 0 : container.scrollTop);
+    const gap = parseFloat(getComputedStyle(elements.round).marginTop) || 0;
+    if (top > 0) elements.app.style.setProperty("--game-top", `${Math.round(top + gap)}px`);
+  }
+  window.addEventListener("resize", measureRoundTop);
+  document.addEventListener("fullscreenchange", () => requestAnimationFrame(measureRoundTop));
+  document.fonts?.ready.then(measureRoundTop);
 
   api("/api/auth/me")
     .then(async (payload) => {

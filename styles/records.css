@@ -1122,6 +1122,261 @@ button:disabled {
   text-decoration-color: color-mix(in srgb, currentColor 82%, transparent);
 }
 
+/* Who Picked It? round. On desktop the whole round fits one screen: the cover sizes to
+   the height left under the masthead (--game-top, set by the script) and long clues
+   scroll inside their own column, so the choices never drop below the fold. */
+.game-masthead-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin: 0.6rem 0 0;
+  padding: 0.6rem 0;
+  text-align: left;
+}
+
+.game-masthead-compact h1 {
+  margin: 0 0 0.2rem;
+  font-size: clamp(2rem, 5vw, 2.4rem);
+}
+
+.game-masthead-compact .game-deck {
+  max-width: none;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.game-masthead-compact .game-scoring-rule {
+  margin: 0.15rem 0 0;
+}
+
+.game-masthead-compact .game-scoreboard {
+  flex: none;
+  width: min(100%, 260px);
+  margin: 0;
+}
+
+.record-game-page:not(.record-match-page) .game-shell {
+  max-width: 960px;
+}
+
+.game-round {
+  --cover: 340px;
+  grid-template-columns: var(--cover) minmax(0, 1fr);
+  gap: clamp(1.25rem, 4vw, 2.5rem);
+  padding: 1.25rem 0 1rem;
+}
+
+.game-round-cover {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.game-cover-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.game-cover-meta .game-progress {
+  margin: 0;
+}
+
+.game-cover-meta .game-selector-count {
+  margin: 0;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.game-round-play {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+  min-height: 0;
+}
+
+.game-round .game-clue-list {
+  display: block;
+  margin: 0;
+  border-top: 1px solid var(--game-ink);
+  scrollbar-gutter: stable;
+}
+
+.game-round .game-clue {
+  min-height: 0;
+  padding: 0.6rem 0;
+}
+
+.game-round .game-listener-clues {
+  padding-top: 0.15rem;
+  border-top: 0;
+  border-bottom: 1px solid var(--game-rule);
+}
+
+.game-round .game-listener-clues + .game-listener-clues {
+  margin-top: 0;
+}
+
+.game-round .game-listener-clues > .is-locked {
+  margin: 0 0 0.6rem;
+}
+
+.game-round .game-listener-clues .game-clue {
+  padding-top: 0.25rem;
+  border-bottom: 0;
+}
+
+.game-album-title {
+  font-weight: 700;
+  text-underline-offset: 0.2em;
+}
+
+.game-album-byline,
+.game-album-facts {
+  margin: 0.1rem 0 0;
+  color: var(--em-color);
+  font-size: 0.86rem;
+}
+
+.game-album-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.game-album-genres li {
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--game-rule);
+  border-radius: 999px;
+  font-size: 0.78rem;
+}
+
+.game-listener-clues.is-revealing {
+  animation: game-clue-reveal 520ms ease-out both;
+}
+
+.game-round-guess {
+  flex: none;
+}
+
+.game-round .game-choices-title {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.game-round .game-choices {
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: 0.4rem;
+}
+
+.game-round .game-choice {
+  min-height: 38px;
+  padding-block: 0.35rem;
+  font-size: 0.92rem;
+}
+
+.game-round-end {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.game-round .game-status {
+  margin: 0;
+}
+
+.game-round .game-next {
+  flex: none;
+}
+
+.game-next kbd {
+  margin-left: 0.2rem;
+  padding: 0 0.3rem;
+  border: 1px solid var(--game-rule);
+  border-radius: 3px;
+  font: inherit;
+  font-size: 0.8em;
+}
+
+.game-app > .game-developer-tools {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--game-rule);
+}
+
+@media (min-width: 761px) and (min-height: 540px) {
+  .game-round {
+    --round-height: calc(100dvh - var(--game-top, 16rem) - 0.5rem);
+    --cover: clamp(200px, calc(var(--round-height) - 6.5rem), 360px);
+    box-sizing: border-box;
+    grid-template-rows: minmax(0, 1fr);
+    height: var(--round-height);
+  }
+
+  .game-round-play {
+    height: 100%;
+  }
+
+  .game-round .game-clue-list {
+    flex: 1 1 auto;
+    min-height: 7.5rem;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .game-masthead-compact {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .game-masthead-compact .game-scoreboard {
+    width: 100%;
+  }
+
+  .game-round {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    padding-top: 1rem;
+  }
+
+  .game-round-cover {
+    width: min(64vw, 240px);
+    justify-self: center;
+  }
+
+  .records-member-bar.game-member-bar {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .game-masthead-compact .game-deck,
+  .game-masthead-compact .game-scoring-rule {
+    font-size: 0.78rem;
+  }
+
+  .game-round .game-choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .game-round-end {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .game-round .game-next {
+    align-self: center;
+  }
+}
+
 /* Match The Record */
 
 .record-match-page {
@@ -1424,6 +1679,7 @@ button:disabled {
   .game-choice.is-new-correct,
   .game-clue.is-revealing,
   .game-clue.is-revealing .game-clue-value,
+  .game-listener-clues.is-revealing,
   .game-points-burst.is-showing,
   .game-score-stat.is-updating strong {
     animation: none;

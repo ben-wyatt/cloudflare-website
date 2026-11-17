@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Who Picked It? · Record Club
 permalink: "/records/game/"
-pageStyles: "/styles/records.css?v=fullscreen"
-pageScript: "/assets/js/record-game.js?v=fullscreen"
+pageStyles: "/styles/records.css?v=one-screen"
+pageScript: "/assets/js/record-game.js?v=one-screen"
 bodyClass: "records-page record-game-page"
 ---
 
@@ -28,10 +28,12 @@ bodyClass: "records-page record-game-page"
       </div>
     </div>
 
-    <header class="game-masthead">
-      <p class="records-eyebrow">a record club guessing game</p>
-      <h1 id="game-title">Who Picked It?</h1>
-      <p class="game-deck">{{ recordCopy.whoPickedInstructions | safe }}</p>
+    <header class="game-masthead game-masthead-compact">
+      <div class="game-masthead-copy">
+        <h1 id="game-title">Who Picked It?</h1>
+        <p class="game-deck">{{ recordCopy.whoPickedInstructions | safe }}</p>
+        <p class="game-scoring-rule">{{ recordCopy.whoPickedScoring | safe }}</p>
+      </div>
       <div class="game-scoreboard" aria-label="Your game statistics">
         <div class="game-score-stat game-score-stat-primary">
           <strong id="game-total-points">0</strong>
@@ -46,13 +48,10 @@ bodyClass: "records-page record-game-page"
           <span>perfect</span>
         </div>
       </div>
-      <p class="game-scoring-rule">{{ recordCopy.whoPickedScoring | safe }}</p>
     </header>
 
     <section id="game-round" class="game-round" hidden aria-label="Current mystery record">
-      <p id="game-selector-count" class="game-selector-count" hidden></p>
-
-      <div>
+      <div class="game-round-cover">
         <figure class="game-cover-frame">
           <div class="game-cover-wrap">
             <img id="game-cover" class="game-cover" src="" alt="Mystery album cover">
@@ -60,30 +59,35 @@ bodyClass: "records-page record-game-page"
           </div>
           <figcaption class="sr-only">A randomly selected cover from the group’s album picks.</figcaption>
         </figure>
-        <div id="game-progress" class="game-progress" aria-label="Clues revealed">
-          <span aria-hidden="true"></span>
-          <span aria-hidden="true"></span>
+        <div class="game-cover-meta">
+          <div id="game-progress" class="game-progress" aria-label="Clues revealed">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+          </div>
+          <p id="game-selector-count" class="game-selector-count" hidden></p>
         </div>
       </div>
 
-      <div>
+      <div class="game-round-play">
         <div id="game-clue-list" class="game-clue-list" aria-label="Unlocked clues"></div>
 
-        <h2 class="game-choices-title">Choose a listener</h2>
-        <div id="game-choices" class="game-choices" role="group" aria-label="Record Club members"></div>
-        <p id="game-status" class="game-status" role="status" aria-live="polite"></p>
+        <div class="game-round-guess">
+          <h2 class="game-choices-title">Choose a listener</h2>
+          <div id="game-choices" class="game-choices" role="group" aria-label="Record Club members"></div>
+          <div class="game-round-end">
+            <p id="game-status" class="game-status" role="status" aria-live="polite"></p>
+            <button id="game-next" class="records-text-button game-next" type="button" hidden>Next album <kbd>↵</kbd></button>
+          </div>
+        </div>
       </div>
     </section>
 
-    <div class="game-footer">
-      <div id="game-developer-tools" class="game-developer-tools" hidden>
-        <span class="records-eyebrow" aria-hidden="true">developer draw</span>
-        <label for="game-developer-source">Next album from</label>
-        <select id="game-developer-source" name="game-developer-source">
-          <option value="">Anyone (random)</option>
-        </select>
-      </div>
-      <button id="game-next" class="records-text-button game-next" type="button" hidden>Next Album -&gt;</button>
+    <div id="game-developer-tools" class="game-footer game-developer-tools" hidden>
+      <span class="records-eyebrow" aria-hidden="true">developer draw</span>
+      <label for="game-developer-source">Next album from</label>
+      <select id="game-developer-source" name="game-developer-source">
+        <option value="">Anyone (random)</option>
+      </select>
     </div>
   </div>
 </section>
