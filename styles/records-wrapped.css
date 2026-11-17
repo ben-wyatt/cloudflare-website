@@ -811,6 +811,11 @@ button.wrapped-rank-row:focus-visible {
   background: var(--wrapped-accent);
 }
 
+/* Bars grow once when a slide first appears, not again when a reader re-sorts or picks a row. */
+.is-settled .wrapped-meter::after {
+  animation: none;
+}
+
 @keyframes wrapped-meter-grow {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }

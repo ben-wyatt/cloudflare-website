@@ -345,6 +345,7 @@
       button.textContent = label;
       button.addEventListener("click", () => {
         sortKey = key;
+        table.classList.add("is-settled");
         render();
       });
       cell.append(button);
@@ -613,6 +614,7 @@
       const scrollTop = window.scrollY;
       const deckScrollTop = elements.deck.scrollTop;
       const next = buildSlide(card, index, choice);
+      next.classList.add("is-settled");
       next.hidden = slides[index].hidden;
       elements.stories.replaceChild(next, slides[index]);
       slides[index] = next;
