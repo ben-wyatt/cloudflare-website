@@ -33,6 +33,8 @@
     clueLevel: 0,
     missCount: 0,
     guessing: false,
+    answerKeys: new Set(),
+    queuedChoice: null,
     finished: false,
     solved: false,
     pendingUserId: "",
@@ -315,7 +317,9 @@
       button.classList.toggle("is-new-correct", correct && choice.userId === state.feedbackUserId);
       if (guessed && !correct) button.setAttribute("aria-label", `${choice.username}, incorrect guess`);
       if (correct) button.setAttribute("aria-label", `${choice.username}, correct selection`);
-      button.disabled = state.guessing || state.finished || guessed;
+      // While the server confirms a guess the page already marked, the other names stay
+      // live: a tap waits in line instead of being lost.
+      button.disabled = Boolean(state.pendingUserId) || state.finished || guessed;
       button.addEventListener("click", () => makeGuess(choice));
       return button;
     });
@@ -370,6 +374,8 @@
     state.solved = false;
     state.pendingUserId = "";
     state.feedbackUserId = "";
+    state.answerKeys = new Set(payload.answerKeys || []);
+    state.queuedChoice = null;
     elements.choices.setAttribute("aria-busy", "false");
     elements.cover.src = payload.coverUrl;
     elements.cover.alt = "Mystery album cover";
@@ -427,14 +433,45 @@
       : `${formattedNames} selected it`;
   }
 
+  // Marks a guess right or wrong at once from the round's answer fingerprints.
+  // Returns false when the page cannot tell (no fingerprints or no Web Crypto).
+  async function markGuessLocally(choice) {
+    if (!state.answerKeys.size || !globalThis.crypto?.subtle) return false;
+    let key;
+    try {
+      const bytes = new TextEncoder().encode(`${state.roundId}:${choice.userId}`);
+      const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+      key = [...digest.slice(0, 8)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+    } catch {
+      return false;
+    }
+    const correct = state.answerKeys.has(key);
+    state.guessedUserIds.add(choice.userId);
+    if (correct) state.correctUserIds.add(choice.userId);
+    state.feedbackUserId = choice.userId;
+    const found = state.correctUserIds.size;
+    const misses = state.missCount + (correct ? 0 : 1);
+    if ((correct && found >= state.answerKeys.size) || misses >= 3) state.finished = true;
+    renderChoices();
+    setStatus(correct ? `Correct — ${choice.username} selected it.` : `Not ${choice.username}.`, correct ? "correct" : "wrong");
+    return true;
+  }
+
   async function makeGuess(choice) {
-    if (state.guessing || state.finished || state.guessedUserIds.has(choice.userId)) return;
+    if (state.finished || state.guessedUserIds.has(choice.userId)) return;
+    if (state.guessing) {
+      state.queuedChoice ||= choice;
+      return;
+    }
     state.guessing = true;
-    state.pendingUserId = choice.userId;
     state.feedbackUserId = "";
     elements.choices.setAttribute("aria-busy", "true");
-    renderChoices();
-    setStatus("Checking…");
+    const markedLocally = await markGuessLocally(choice);
+    if (!markedLocally) {
+      state.pendingUserId = choice.userId;
+      renderChoices();
+      setStatus("Checking…");
+    }
 
     try {
       const payload = await api("/api/game", {
@@ -461,7 +498,8 @@
       state.solved = payload.solved;
       state.guessing = false;
       state.pendingUserId = "";
-      state.feedbackUserId = choice.userId;
+      // The shake or pop already played when the page marked the guess; don't replay it.
+      state.feedbackUserId = markedLocally ? "" : choice.userId;
       elements.choices.setAttribute("aria-busy", "false");
       elements.selectorCount.textContent = `${state.selectorCount} people selected this album`;
       elements.selectorCount.hidden = state.selectorCount <= 1;
@@ -502,6 +540,12 @@
         setStatus(`Not ${choice.username}. A new clue is unlocked — ${missesLeft} ${missesLeft === 1 ? "miss" : "misses"} left.`, "wrong");
       }
     } catch (error) {
+      if (markedLocally && error.code !== "duplicate_guess") {
+        state.guessedUserIds.delete(choice.userId);
+        state.correctUserIds.delete(choice.userId);
+        state.finished = false;
+      }
+      state.queuedChoice = null;
       state.guessing = false;
       state.pendingUserId = "";
       state.feedbackUserId = "";
@@ -515,6 +559,10 @@
       }
       renderChoices();
     }
+
+    const queued = state.queuedChoice;
+    state.queuedChoice = null;
+    if (queued) void makeGuess(queued);
   }
 
   elements.next.addEventListener("click", startRound);

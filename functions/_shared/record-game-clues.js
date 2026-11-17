@@ -53,3 +53,11 @@ export function albumClue(round) {
     genres: genreTags(round.lastfmTagsJson, round.artistName),
   };
 }
+
+// A short fingerprint of "this listener picked this round's album". The page gets one per
+// picker so it can mark a guess right or wrong at once, while the server still keeps score.
+export async function answerKey(roundId, userId) {
+  const bytes = new TextEncoder().encode(`${roundId}:${userId}`);
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+  return [...digest.slice(0, 8)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}

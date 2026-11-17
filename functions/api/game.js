@@ -11,7 +11,7 @@ import {
   readJson,
   requireDb,
 } from "../_shared/http.js";
-import { albumClue, getListenerClueVisibility, isAlbumClueVisible } from "../_shared/record-game-clues.js";
+import { albumClue, answerKey, getListenerClueVisibility, isAlbumClueVisible } from "../_shared/record-game-clues.js";
 import { RECORD_SEASON } from "../_shared/records-config.js";
 import { getSpotifyAlbumTracks } from "../_shared/spotify.js";
 
@@ -193,7 +193,8 @@ async function createRound(db, player, body) {
     `SELECT
        MIN(li.id) AS listItemId,
        a.image_url AS coverUrl,
-       COUNT(DISTINCT li.user_id) AS selectorCount
+       COUNT(DISTINCT li.user_id) AS selectorCount,
+       GROUP_CONCAT(DISTINCT li.user_id) AS selectorIds
      FROM record_list_items li
      JOIN record_users u ON u.id = li.user_id
      JOIN record_albums a ON a.spotify_id = li.spotify_album_id
@@ -260,6 +261,9 @@ async function createRound(db, player, body) {
     clues: {},
     choices: users.results || [],
     selectorCount: Number(answer.selectorCount || 1),
+    answerKeys: (await Promise.all(
+      String(answer.selectorIds || "").split(",").filter(Boolean).map((userId) => answerKey(roundId, userId)),
+    )).sort(),
     scoreboard,
     developerTools: canChooseRoundSource(player)
       ? { sources: developerSources }

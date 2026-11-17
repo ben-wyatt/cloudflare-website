@@ -1002,10 +1002,14 @@ button:disabled {
   transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
 }
 
-.game-choice:hover:not(:disabled) {
-  border-color: var(--game-primary);
-  background: color-mix(in srgb, var(--game-primary) 9%, transparent);
-  transform: translateY(-1px);
+/* Only real pointers get hover. On a phone, :hover sticks to whatever sits under the last
+   tap, so when a new clue pushes the names down it would light up a different listener. */
+@media (hover: hover) {
+  .game-choice:hover:not(:disabled) {
+    border-color: var(--game-primary);
+    background: color-mix(in srgb, var(--game-primary) 9%, transparent);
+    transform: translateY(-1px);
+  }
 }
 
 .game-choice:focus-visible {

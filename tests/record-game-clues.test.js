@@ -56,3 +56,11 @@ test("the album clue carries a safe Spotify link and the year", () => {
   assert.equal(clue.year, 2020);
   assert.equal(clue.totalTracks, 11);
 });
+
+test("answerKey is a stable 16-character fingerprint per round and listener", async () => {
+  const { answerKey } = await import("../functions/_shared/record-game-clues.js");
+  const key = await answerKey("round-1", "user-1");
+  assert.match(key, /^[0-9a-f]{16}$/);
+  assert.equal(key, await answerKey("round-1", "user-1"));
+  assert.notEqual(key, await answerKey("round-2", "user-1"));
+});
