@@ -1,6 +1,7 @@
 import {
   createSession,
   hashPassword,
+  isRecordClubOwner,
   normalizeUsername,
   resolveAccessGroup,
   validateUsername,
@@ -68,7 +69,7 @@ export async function onRequestPost({ request, env }) {
 
     const cookie = await createSession(env, request, userId);
     return json({
-      user: { id: userId, username, groupId: accessGroup.groupId },
+      user: { id: userId, username, groupId: accessGroup.groupId, recordClubOwner: isRecordClubOwner({ username }) },
     }, 201, { "set-cookie": cookie });
   } catch (error) {
     return handleApiError(error);

@@ -1,4 +1,4 @@
-import { createSession, normalizeUsername, verifyPassword } from "../../_shared/auth.js";
+import { createSession, isRecordClubOwner, normalizeUsername, verifyPassword } from "../../_shared/auth.js";
 import { HttpError, assertSameOrigin, handleApiError, json, readJson, requireDb } from "../../_shared/http.js";
 
 export async function onRequestPost({ request, env }) {
@@ -25,7 +25,12 @@ export async function onRequestPost({ request, env }) {
 
     const cookie = await createSession(env, request, user.id);
     return json({
-      user: { id: user.id, username: user.username, groupId: user.groupId },
+      user: {
+        id: user.id,
+        username: user.username,
+        groupId: user.groupId,
+        recordClubOwner: isRecordClubOwner(user),
+      },
     }, 200, { "set-cookie": cookie });
   } catch (error) {
     return handleApiError(error);
