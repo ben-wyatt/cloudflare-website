@@ -363,6 +363,6 @@ export function generateWrappedStats({
       favoritePileOns: favoritePileOns.slice(0, 5),
       standoutCrossovers: standoutCrossovers.slice(0, 5),
     },
-    cards: generateWrappedCards({ season, members, picks: uniquePicks, standouts, albumArtists }),
+    cards: generateWrappedCards({ season, members, picks: uniquePicks, standouts, favorites, albumArtists }),
   };
 }

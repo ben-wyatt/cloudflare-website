@@ -6,8 +6,6 @@
     app: document.getElementById("wrapped-app"),
     memberName: document.getElementById("wrapped-member-name"),
     season: document.getElementById("wrapped-season"),
-    listeners: document.getElementById("wrapped-listeners"),
-    castLabel: document.getElementById("wrapped-cast-label"),
     editionStatus: document.getElementById("wrapped-edition-status"),
     metadata: document.getElementById("wrapped-metadata"),
     deck: document.getElementById("wrapped-deck"),
@@ -138,7 +136,37 @@
     return fragment;
   }
 
-  function buildStory({ title, lede, detail = "", records = [], notes = [], wordMap = [], links = [], status = "" }) {
+  function castTable(cast) {
+    const table = document.createElement("table");
+    table.className = "wrapped-cast";
+    const head = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    for (const label of ["Listener", "Records", "Tracks", "Notes"]) {
+      const cell = document.createElement("th");
+      cell.scope = "col";
+      cell.textContent = label;
+      headRow.append(cell);
+    }
+    head.append(headRow);
+    const body = document.createElement("tbody");
+    for (const listener of cast) {
+      const row = document.createElement("tr");
+      const name = document.createElement("th");
+      name.scope = "row";
+      name.textContent = listener.username;
+      row.append(name);
+      for (const value of [listener.records, listener.tracks, listener.notes]) {
+        const cell = document.createElement("td");
+        cell.textContent = Number(value || 0).toLocaleString();
+        row.append(cell);
+      }
+      body.append(row);
+    }
+    table.append(head, body);
+    return table;
+  }
+
+  function buildStory({ title, lede, detail = "", records = [], notes = [], wordMap = [], links = [], status = "", cast = [] }) {
     const article = document.createElement("article");
     article.className = "wrapped-story";
     article.setAttribute("aria-roledescription", "slide");
@@ -149,8 +177,9 @@
     heading.textContent = title;
     copy.append(heading);
     if (status) copy.append(textParagraph(status, "wrapped-story-status"));
-    copy.append(textParagraph(lede, "wrapped-story-lede"));
+    if (lede) copy.append(textParagraph(lede, "wrapped-story-lede"));
     if (detail) copy.append(textParagraph(detail, "wrapped-story-detail"));
+    if (cast.length) copy.append(castTable(cast));
     if (records.length) copy.append(recordList(records));
     if (notes.length) {
       const noteList = document.createElement("div");
@@ -353,8 +382,6 @@
   function renderPayload(payload) {
     currentPayload = payload;
     elements.season.textContent = payload.season;
-    elements.listeners.textContent = (payload.listeners || []).join(" · ");
-    elements.castLabel.hidden = !elements.listeners.textContent;
     elements.editionStatus.textContent = payload.snapshot
       ? `Sealed edition · generated ${new Date(payload.generatedAt).toLocaleDateString()}`
       : payload.preparingSnapshot

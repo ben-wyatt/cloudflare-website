@@ -51,24 +51,6 @@
   text-align: center;
 }
 
-.wrapped-cast-label {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: 0.74rem;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-}
-
-.wrapped-listeners {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: 1rem;
-}
-
-.wrapped-listeners:empty {
-  display: none;
-}
-
 .wrapped-kicker,
 .wrapped-story-kicker {
   margin: 0;
@@ -268,6 +250,39 @@
 
 .wrapped-story-detail {
   color: var(--color-text-muted);
+}
+
+.wrapped-cast {
+  width: 100%;
+  max-width: 34rem;
+  margin: 1rem 0 0;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.wrapped-cast th,
+.wrapped-cast td {
+  padding: 0.5rem 0.4rem;
+  border-top: 1px solid var(--wrapped-rule);
+  text-align: right;
+}
+
+.wrapped-cast th:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.wrapped-cast tbody th {
+  font-weight: 700;
+}
+
+.wrapped-cast thead th {
+  border-top: 0;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .wrapped-records {

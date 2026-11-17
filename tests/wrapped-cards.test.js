@@ -36,7 +36,7 @@ const picks = [
 test("Wrapped includes note stories and clearly unfinished editorial awards", () => {
   const cards = generateWrappedCards({ season: 2026, picks });
   assert.deepEqual(cards.map((entry) => entry.id), [
-    "shared-records", "same-record-different-reasons", "artist-echo", "music-besties", "opposite-ends",
+    "cast", "shared-records", "same-record-different-reasons", "artist-echo", "music-besties", "opposite-ends",
     "most-basic", "not-like-other-girls", "tiniest-violin", "biggest-tuba",
     "common-chord", "unexpected-detour", "genre-passport", "time-traveler",
     "fresh-off-press", "word-map", "hill-worth-dying-on", "one-sentence-liner-note", "written-margins",

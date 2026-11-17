@@ -102,9 +102,40 @@ function top(rows, score, descending = true) {
 }
 
 function card(id, title, lede, {
-  detail = "", records = [], notes = [], wordMap = [], links = [], status = "",
+  detail = "", records = [], notes = [], wordMap = [], links = [], status = "", cast = [],
 } = {}) {
-  return { id, title, lede, detail, records, notes, wordMap, links, status };
+  return { id, title, lede, detail, records, notes, wordMap, links, status, cast };
+}
+
+const hasNote = (row) => Boolean(String(row.review || "").trim());
+
+function castRoster(members, picks, standouts, favorites) {
+  const roster = new Map();
+  const entry = (row) => {
+    if (!row.userId) return null;
+    if (!roster.has(row.userId)) {
+      roster.set(row.userId, { username: row.username || "", records: 0, tracks: 0, notes: 0 });
+    }
+    return roster.get(row.userId);
+  };
+  for (const member of members) entry(member);
+  for (const row of picks) {
+    const listener = entry(row);
+    if (!listener) continue;
+    listener.records += 1;
+    if (hasNote(row)) listener.notes += 1;
+  }
+  for (const row of standouts) {
+    const listener = entry(row);
+    if (!listener) continue;
+    listener.tracks += 1;
+    if (hasNote(row)) listener.notes += 1;
+  }
+  for (const row of favorites) {
+    const listener = entry(row);
+    if (listener) listener.tracks += 1;
+  }
+  return [...roster.values()].sort((a, b) => byName(a.username, b.username));
 }
 
 const noteHref = (row, kind = "album") =>
@@ -134,9 +165,12 @@ function noteWordMap(rows) {
     .map(([word, count]) => ({ word, count }));
 }
 
-export function generateWrappedCards({ season, members = [], picks = [], standouts = [], albumArtists = [] }) {
+export function generateWrappedCards({
+  season, members = [], picks = [], standouts = [], favorites = [], albumArtists = [],
+}) {
   const cards = [];
   if (!picks.length) return cards;
+  cards.push(card("cast", "The cast.", "", { cast: castRoster(members, picks, standouts, favorites) }));
   picks = [...picks].sort((a, b) => byName(a.username || "", b.username || "")
     || byName(a.artistName || "", b.artistName || "")
     || byName(a.name || "", b.name || "")
