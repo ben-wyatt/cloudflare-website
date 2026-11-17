@@ -139,6 +139,7 @@ function makePayload(season, groupId, seasonInfo, rows, generatedAt) {
     seasonStatus: seasonInfo.status,
     locksAt: seasonInfo.locksAt,
     wrappedAt: seasonInfo.wrappedAt,
+    listeners: (rows.members || []).map((member) => member.username),
     ...generateWrappedStats({ season, ...rows }),
   };
 }

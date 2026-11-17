@@ -5,6 +5,8 @@
     gateMessage: document.getElementById("wrapped-gate-message"),
     app: document.getElementById("wrapped-app"),
     memberName: document.getElementById("wrapped-member-name"),
+    season: document.getElementById("wrapped-season"),
+    listeners: document.getElementById("wrapped-listeners"),
     editionStatus: document.getElementById("wrapped-edition-status"),
     metadata: document.getElementById("wrapped-metadata"),
     cardControls: document.getElementById("wrapped-card-controls"),
@@ -301,6 +303,8 @@
 
   function renderPayload(payload) {
     currentPayload = payload;
+    elements.season.textContent = payload.season;
+    elements.listeners.textContent = (payload.listeners || []).join(" · ");
     elements.editionStatus.textContent = payload.snapshot
       ? `Sealed edition · generated ${new Date(payload.generatedAt).toLocaleDateString()}`
       : payload.preparingSnapshot
