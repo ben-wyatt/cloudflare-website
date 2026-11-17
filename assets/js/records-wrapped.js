@@ -18,6 +18,7 @@
   let slideIndex = readSlideFromHash();
   let deckButtons = null;
   let viewerId = "";
+  let viewerName = "";
   let currentPayload = null;
   let enriching = false;
 
@@ -117,6 +118,14 @@
     const year = releaseYear(record);
     copy.append(title, element("span", "wrapped-record-meta", `${record.artistName}${year ? ` · ${year}` : ""}`));
     if (record.caption) copy.append(element("span", "wrapped-record-caption", record.caption));
+    if (record.pickers?.length) {
+      const pickers = element("ul", "wrapped-record-pickers");
+      pickers.setAttribute("aria-label", "Picked by");
+      for (const name of record.pickers) {
+        pickers.append(element("li", name === viewerName ? "is-viewer" : "", name));
+      }
+      copy.append(pickers);
+    }
     return copy;
   }
 
@@ -142,6 +151,7 @@
     if (layout === "grid") {
       list.style.setProperty("--columns", String(records.length));
       list.style.setProperty("--tile", records.length <= 4 ? "12rem" : "8.5rem");
+      list.style.setProperty("--phone-columns", String(records.length === 4 ? 2 : Math.min(records.length, 3)));
     }
     const hidden = element("ul", "wrapped-records wrapped-records-list");
     records.forEach((record, index) => {
@@ -171,27 +181,38 @@
     return block;
   }
 
-  function rankingBlock(ranking) {
+  function rankingBlock(ranking, selected = -1, onSelect = null) {
     const maximum = Math.max(...ranking.map((row) => Number(row.value) || 0)) || 1;
     const list = element("ol", "wrapped-ranking");
     ranking.forEach((row, index) => {
-      const item = element("li", `wrapped-rank${row.highlight ? " is-highlight" : ""}`);
-      item.append(element("span", "wrapped-rank-number", String(index + 1)));
+      const item = element("li", "wrapped-rank");
+      if (row.highlight) item.classList.add("is-highlight");
+      if (index === selected) item.classList.add("is-selected");
+      const interactive = Boolean(row.view && onSelect);
+      const line = element(interactive ? "button" : "div", "wrapped-rank-row");
+      if (interactive) {
+        line.type = "button";
+        line.setAttribute("aria-pressed", String(index === selected));
+        line.addEventListener("click", () => onSelect(index));
+        item.classList.add("is-interactive");
+      }
+      line.append(element("span", "wrapped-rank-number", String(index + 1)));
       if (row.imageUrl) {
         const thumb = document.createElement("img");
         thumb.className = "wrapped-rank-thumb";
         thumb.src = row.imageUrl;
         thumb.alt = "";
         thumb.loading = "lazy";
-        item.append(thumb);
+        line.append(thumb);
       }
       const label = element("span", "wrapped-rank-label");
       label.append(element("span", "wrapped-rank-name", row.name));
       if (row.sub) label.append(element("span", "wrapped-rank-sub", row.sub));
       const value = element("span", "wrapped-rank-value");
       value.append(element("span", "wrapped-rank-display", row.display),
-        meter((Number(row.value) || 0) / maximum, row.highlight));
-      item.append(label, value);
+        meter((Number(row.value) || 0) / maximum, index === selected || row.highlight));
+      line.append(label, value);
+      item.append(line);
       list.append(item);
     });
     return list;
@@ -379,10 +400,17 @@
     return table;
   }
 
-  function buildStory({
-    id = "", title, lede, detail = "", records = [], notes = [], wordMap = [], links = [], status = "",
-    cast = [], stat = null, ranking = [], mix = [], timeline = null, chips = [], fact = "",
-  }) {
+  function defaultSelection(card) {
+    return (card.ranking || []).findIndex((row) => row.highlight && row.view);
+  }
+
+  // A selected ranking row swaps its own view (stat, records, mix…) into the slide.
+  function buildStory(card, selected = defaultSelection(card), onSelect = null) {
+    const view = selected >= 0 ? card.ranking?.[selected]?.view || {} : {};
+    const {
+      id = "", title, lede, detail = "", records = [], notes = [], wordMap = [], links = [], status = "",
+      cast = [], stat = null, ranking = [], mix = [], timeline = null, chips = [], fact = "",
+    } = { ...card, ...view };
     const article = element("article", "wrapped-story");
     article.setAttribute("aria-roledescription", "slide");
     if (id) article.dataset.card = id;
@@ -406,7 +434,7 @@
     if (cast?.length) main.append(castTable(cast));
     if (wordMap?.length) main.append(wordMapBlock(wordMap));
     if (notes?.length) main.append(notesBlock(notes));
-    if (ranking?.length) main.append(rankingBlock(ranking));
+    if (ranking?.length) main.append(rankingBlock(ranking, selected, onSelect));
     if (links?.length) main.append(linksBlock(links));
 
     const unique = uniqueRecords(records);
@@ -581,7 +609,18 @@
       elements.stories.append(empty);
       return;
     }
-    slides = cards.map((card) => buildStory(card));
+    const buildSlide = (card, index, selected = defaultSelection(card)) => buildStory(card, selected, (choice) => {
+      const scrollTop = window.scrollY;
+      const deckScrollTop = elements.deck.scrollTop;
+      const next = buildSlide(card, index, choice);
+      next.hidden = slides[index].hidden;
+      elements.stories.replaceChild(next, slides[index]);
+      slides[index] = next;
+      next.querySelectorAll(".wrapped-rank-row")[choice]?.focus({ preventScroll: true });
+      window.scrollTo({ top: scrollTop });
+      elements.deck.scrollTop = deckScrollTop;
+    });
+    slides = cards.map((card, index) => buildSlide(card, index));
     elements.stories.append(...slides);
     buildDeckBar();
     showSlide(slideIndex, { animate: false });
@@ -647,6 +686,7 @@
       }
       elements.memberName.textContent = session.user.username;
       viewerId = session.user.id;
+      viewerName = session.user.username;
       const payload = await api("/api/wrapped");
       elements.loading.hidden = true;
       elements.gate.hidden = true;

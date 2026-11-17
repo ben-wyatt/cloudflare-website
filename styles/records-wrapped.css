@@ -303,13 +303,31 @@
 }
 
 .wrapped-rank {
+  border-top: 1px solid var(--wrapped-rule);
+  transition: background-color 120ms ease-out;
+}
+
+.wrapped-rank-row {
   display: grid;
   grid-template-columns: 1.4rem auto minmax(0, 1fr) minmax(5.5rem, 30%);
   gap: 0.6rem;
   align-items: center;
+  width: 100%;
   padding: 0.45rem 0.4rem 0.45rem 0;
-  border-top: 1px solid var(--wrapped-rule);
-  transition: background-color 120ms ease-out;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+button.wrapped-rank-row {
+  cursor: pointer;
+}
+
+button.wrapped-rank-row:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
 }
 
 .wrapped-rank:last-child {
@@ -320,7 +338,7 @@
   background: var(--color-surface-soft);
 }
 
-.wrapped-rank.is-highlight {
+.wrapped-rank.is-selected {
   background: var(--color-surface-sunken);
   box-shadow: inset 3px 0 0 var(--wrapped-accent);
 }
@@ -339,7 +357,7 @@
   background: var(--color-surface-soft);
 }
 
-.wrapped-rank:not(:has(.wrapped-rank-thumb)) {
+.wrapped-rank-row:not(:has(.wrapped-rank-thumb)) {
   grid-template-columns: 1.4rem minmax(0, 1fr) minmax(5.5rem, 30%);
 }
 
@@ -360,7 +378,36 @@
 }
 
 .wrapped-rank.is-highlight .wrapped-rank-name,
-.wrapped-rank.is-highlight .wrapped-rank-display {
+.wrapped-rank.is-highlight .wrapped-rank-display,
+.wrapped-rank.is-selected .wrapped-rank-name,
+.wrapped-rank.is-selected .wrapped-rank-display {
+  color: var(--wrapped-accent);
+}
+
+/* Who picked each record: one name per line, the reader's own name in the accent. */
+.wrapped-record-pickers {
+  display: grid;
+  gap: 0.1rem;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-weight: 700;
+}
+
+.wrapped-record-pickers li {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wrapped-record-pickers li::before {
+  margin-right: 0.45rem;
+  color: var(--color-text-subtle);
+  content: "•";
+  font-weight: 400;
+}
+
+.wrapped-record-pickers li.is-viewer {
   color: var(--wrapped-accent);
 }
 
@@ -542,7 +589,7 @@
   min-width: 0;
 }
 
-.wrapped-record-copy > * {
+.wrapped-record-copy > :not(.wrapped-record-pickers) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -630,7 +677,7 @@
   }
 
   .wrapped-records-grid {
-    grid-template-columns: repeat(min(var(--columns, 3), 3), minmax(0, 1fr));
+    grid-template-columns: repeat(var(--phone-columns, 3), minmax(0, 1fr));
   }
 
 }

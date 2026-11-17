@@ -42,16 +42,16 @@ test("Wrapped includes note stories and clearly unfinished editorial awards", ()
     "common-chord", "unexpected-detour", "genre-passport", "time-traveler",
     "fresh-off-press", "word-map", "hill-worth-dying-on", "one-sentence-liner-note", "written-margins",
   ]);
-  assert.equal(cards.find((entry) => entry.id === "shared-records").records[0].caption,
-    "Picked by alex, blair");
+  assert.deepEqual(cards.find((entry) => entry.id === "shared-records").records[0].pickers,
+    ["alex", "blair"]);
   assert.match(cards.find((entry) => entry.id === "not-like-other-girls").lede, /alex/);
   assert.match(cards.find((entry) => entry.id === "most-basic").lede, /casey/);
   const smallestAudience = cards.find((entry) => entry.id === "tiniest-violin");
   const biggestAudience = cards.find((entry) => entry.id === "biggest-tuba");
   assert.match(smallestAudience.lede, /picked by alex, blair/);
-  assert.equal(smallestAudience.records[0].caption, "Picked by alex, blair");
+  assert.deepEqual(smallestAudience.records[0].pickers, ["alex", "blair"]);
   assert.match(biggestAudience.lede, /picked by casey/);
-  assert.equal(biggestAudience.records[0].caption, "Picked by casey");
+  assert.deepEqual(biggestAudience.records[0].pickers, ["casey"]);
   assert.match(cards.find((entry) => entry.id === "common-chord").lede, /rock|electronic/);
   const opposite = cards.find((entry) => entry.id === "opposite-ends");
   assert.match(opposite.lede, /least similar genre mix/);
