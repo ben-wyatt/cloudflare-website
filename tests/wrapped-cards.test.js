@@ -38,7 +38,7 @@ test("Wrapped includes note stories and clearly unfinished editorial awards", ()
   const cards = generateWrappedCards({ season: 2026, picks });
   assert.deepEqual(cards.map((entry) => entry.id), [
     "cast", "shared-records", "same-record-different-reasons", "artist-echo", "music-besties", "opposite-ends",
-    "most-basic", "not-like-other-girls", "tiniest-violin", "biggest-tuba",
+    "most-basic", "not-like-other-girls", "biggest-tuba", "tiniest-violin",
     "common-chord", "unexpected-detour", "genre-passport", "time-traveler",
     "fresh-off-press", "word-map", "hill-worth-dying-on", "one-sentence-liner-note", "written-margins",
   ]);
@@ -48,9 +48,9 @@ test("Wrapped includes note stories and clearly unfinished editorial awards", ()
   assert.equal(cards.find((entry) => entry.id === "most-basic").ranking.find((row) => row.highlight).name, "casey");
   const smallestAudience = cards.find((entry) => entry.id === "tiniest-violin");
   const biggestAudience = cards.find((entry) => entry.id === "biggest-tuba");
-  assert.equal(smallestAudience.lede, "");
+  assert.equal(smallestAudience.lede, "Least popular single record.");
   assert.deepEqual(smallestAudience.records[0].pickers, ["alex", "blair"]);
-  assert.equal(biggestAudience.lede, "");
+  assert.equal(biggestAudience.lede, "Most popular single record.");
   assert.deepEqual(biggestAudience.records[0].pickers, ["casey"]);
   assert.match(cards.find((entry) => entry.id === "common-chord").ranking.find((row) => row.highlight).name, /rock|electronic/);
   const opposite = cards.find((entry) => entry.id === "opposite-ends");

@@ -1,6 +1,6 @@
 import { generateWrappedCards } from "./wrapped-cards.js";
 
-export const WRAPPED_ALGORITHM_VERSION = 3;
+export const WRAPPED_ALGORITHM_VERSION = 4;
 
 function compareText(left, right) {
   return String(left || "").localeCompare(String(right || ""), "en", { sensitivity: "base" });

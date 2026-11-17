@@ -281,7 +281,12 @@
   text-transform: uppercase;
 }
 
+.wrapped-fact.is-empty {
+  border-left-color: transparent;
+}
+
 .wrapped-fact {
+  min-height: 2lh;
   max-width: 48ch;
   padding-left: 0.8rem;
   border-left: 3px solid var(--color-secondary);
@@ -503,10 +508,6 @@ button.wrapped-rank-row:focus-visible {
   background: var(--wrapped-accent);
 }
 
-.wrapped-timeline-span.is-echo {
-  background: repeating-linear-gradient(90deg, var(--color-secondary) 0 6px, transparent 6px 10px);
-}
-
 .wrapped-timeline-dot {
   position: absolute;
   bottom: calc(6px + var(--level, 0) * 12px);
@@ -538,10 +539,6 @@ button.wrapped-rank-row:focus-visible {
 
 .wrapped-timeline-tick.is-end {
   translate: -100% 0;
-}
-
-.wrapped-timeline-tick.is-echo {
-  color: var(--color-secondary);
 }
 
 /* Records: one or two get big covers beside the story; more become a grid, then a list. */
@@ -581,6 +578,7 @@ button.wrapped-rank-row:focus-visible {
 
 .wrapped-record-copy {
   display: grid;
+  align-content: start;
   min-width: 0;
 }
 
@@ -628,6 +626,8 @@ button.wrapped-rank-row:focus-visible {
 
 .wrapped-records-grid .wrapped-record {
   display: grid;
+  grid-template-rows: auto 1fr;
+  align-content: start;
   gap: 0.45rem;
 }
 

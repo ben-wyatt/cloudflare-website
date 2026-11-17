@@ -117,6 +117,15 @@ function rankRow(name, value, display, { highlight = false, sub = "", imageUrl =
   return { name, value, display, highlight, sub, imageUrl, view };
 }
 
+// "ben is the Most Basic Bitch." / "ben and eman are the Most Basic Bitches."
+function crown(winners, singular, plural = singular) {
+  const people = winners.map((name) => String(name || "")).filter(Boolean);
+  if (people.length <= 1) return `${people[0] || "Someone"} ${singular}.`;
+  const list = people.length === 2 ? people.join(" and ")
+    : `${people.slice(0, -1).join(", ")} and ${people.at(-1)}`;
+  return `${list} ${plural}.`;
+}
+
 const percent = (value) => `${Math.round(value * 100)}%`;
 const thousands = (value) => Math.round(value).toLocaleString("en-US");
 
@@ -224,9 +233,10 @@ export function generateWrappedCards({
   const shared = [...byAlbum.values()].filter((rows) => rows.length >= 2)
     .sort((a, b) => b.length - a.length || byName(a[0].name, b[0].name));
   if (shared.length) {
-    cards.push(card("shared-records", "The records that found more than one home.",
+    cards.push(card("shared-records", "Album polycules.",
       "",
-      { stat: { value: shared.length, unit: shared.length === 1 ? "record" : "records" },
+      { stat: { value: shared.length,
+        unit: `${shared.length === 1 ? "record" : "records"} selected by multiple people` },
         records: shared.map((rows) => ({
           ...album(rows[0]), pickers: rows.map((row) => row.username).sort(byName),
         })) }));
@@ -266,14 +276,15 @@ export function generateWrappedCards({
     .sort((a, b) => b.people.size - a.people.size || b.albumIds.size - a.albumIds.size || byName(a.name, b.name));
   if (artistEchoes.length) {
     const entry = artistEchoes[0];
-    cards.push(card("artist-echo", "Same artist, different door.",
+    const echoUnit = (echo) => `unique ${echo.name} albums were chosen by listeners`;
+    cards.push(card("artist-echo", "Repeating artists.",
       "",
-      { stat: { value: entry.albumIds.size, unit: `${entry.name} records` },
+      { stat: { value: entry.albumIds.size, unit: echoUnit(entry) },
         records: ordered([...entry.albumIds].map((id) => albumRows.get(id))).map(picked),
         ranking: artistEchoes.length >= 2 ? artistEchoes.slice(0, 5).map((echo) =>
           rankRow(echo.name, echo.albumIds.size, `${echo.albumIds.size} records`, {
             highlight: echo === entry, sub: names([...echo.people.values()]),
-            view: { stat: { value: echo.albumIds.size, unit: `${echo.name} records` },
+            view: { stat: { value: echo.albumIds.size, unit: echoUnit(echo) },
               records: ordered([...echo.albumIds].map((id) => albumRows.get(id))).map(picked) },
           })) : [] }));
   }
@@ -321,7 +332,7 @@ export function generateWrappedCards({
       .filter((genre) => genreVectors.get(best.right.id).vector.has(genre));
     const byScore = [...pairs].sort((a, b) => b.score - a.score || byName(a.label, b.label));
     if (best.score > 0) cards.push(card("music-besties", "Music besties.",
-      "",
+      "Listeners with the most similar genre distributions.",
       { stat: { value: percent(best.score), unit: "genre match" },
         mix: mixFor(best.left, best.right),
         ranking: pairs.length >= 2 ? pairRanking(byScore, best) : [],
@@ -330,7 +341,7 @@ export function generateWrappedCards({
             genreByAlbum.get(row.spotifyId).some((genre) => overlap.includes(genre)))).slice(0, 3)
             .map((row) => ({ ...album(row), pickers: [listener.username] }))) }));
     if (pairs.length >= 2 && worst.score < best.score) cards.push(card("opposite-ends", "Opposite ends of the couch.",
-      "",
+      "Listeners with the least similar genre distributions.",
       { stat: { value: percent(worst.score), unit: "genre match" },
         mix: mixFor(worst.left, worst.right),
         ranking: pairRanking([...byScore].reverse(), worst),
@@ -358,13 +369,15 @@ export function generateWrappedCards({
           records: [...entry.rows].sort((a, b) => descending ? listenersOf(b) - listenersOf(a) : listenersOf(a) - listenersOf(b))
             .slice(0, 4).map(withCount) } }));
   if (audiencePeople.length >= 2 && basic[0].median > obscure[0].median) {
-    cards.push(card("most-basic", "Most basic bitch.",
-      "",
+    cards.push(card("most-basic", crown(basic.map((entry) => entry.username),
+      "is the Most Basic Bitch", "are the Most Basic Bitches"),
+      "Highest median record popularity.",
       { stat: { value: thousands(basic[0].median), unit: "median Last.fm listeners" },
         ranking: audienceRanking(true, basic),
         records: [...basic[0].rows].sort((a, b) => listenersOf(b) - listenersOf(a)).slice(0, 4).map(withCount) }));
-    cards.push(card("not-like-other-girls", "Not like other girls.",
-      "",
+    cards.push(card("not-like-other-girls", crown(obscure.map((entry) => entry.username),
+      "is Not Like Other Girls", "are Not Like Other Girls"),
+      "Lowest median record popularity.",
       { stat: { value: thousands(obscure[0].median), unit: "median Last.fm listeners" },
         ranking: audienceRanking(false, obscure),
         records: [...obscure[0].rows].sort((a, b) => listenersOf(a) - listenersOf(b)).slice(0, 4).map(withCount) }));
@@ -382,16 +395,16 @@ export function generateWrappedCards({
       imageUrl: row.imageUrl || null,
       view: { stat: { value: thousands(listenersOf(row)), unit: "Last.fm listeners" }, records: [picked(row)] } }));
   if (withAudience.length >= 2 && listenersOf(biggest[0].row) > listenersOf(tiniest[0].row)) {
-    cards.push(card("tiniest-violin", "Tiniest violin award.",
-      "",
-      { stat: { value: thousands(listenersOf(tiniest[0].row)), unit: "Last.fm listeners" },
-        ranking: albumRanking(false, tiniest),
-        records: tiniest.map((entry) => picked(entry.row)) }));
     cards.push(card("biggest-tuba", "Biggest tuba award.",
-      "",
+      "Most popular single record.",
       { stat: { value: thousands(listenersOf(biggest[0].row)), unit: "Last.fm listeners" },
         ranking: albumRanking(true, biggest),
         records: biggest.map((entry) => picked(entry.row)) }));
+    cards.push(card("tiniest-violin", "Tiniest violin award.",
+      "Least popular single record.",
+      { stat: { value: thousands(listenersOf(tiniest[0].row)), unit: "Last.fm listeners" },
+        ranking: albumRanking(false, tiniest),
+        records: tiniest.map((entry) => picked(entry.row)) }));
   }
 
   const genrePeople = new Map();
@@ -406,7 +419,7 @@ export function generateWrappedCards({
   const common = top(genreRows, (entry) => entry.count);
   if (common.length && common[0].count >= 2) {
     cards.push(card("common-chord", "The common chord.",
-      "",
+      "Most common genre.",
       { stat: { value: common[0].count, unit: "listeners" },
         ranking: [...genreRows].sort((a, b) => b.count - a.count || byName(a.genre, b.genre)).slice(0, 6)
           .map((entry) => rankRow(entry.genre, entry.count, String(entry.count),
@@ -445,7 +458,7 @@ export function generateWrappedCards({
     const detourRecord = (entry) => ({ ...album(entry.row), pickers: [entry.listener.username],
       caption: genreByAlbum.get(entry.row.spotifyId).join(" · ") });
     cards.push(card("unexpected-detour", "Unexpected detour.",
-      "",
+      "Pick furthest from its listener's usual genres.",
       { stat: { value: percent(detour.score), unit: "off course" },
         records: detourWinners.map(detourRecord),
         ranking: bestPerListener.size > detourWinners.length ? [...bestPerListener.values()].slice(0, 6).map((entry) =>
@@ -463,8 +476,9 @@ export function generateWrappedCards({
   }).filter((entry) => entry.rows.length >= 3 && entry.tagged >= 3
     && entry.tagged / entry.rows.length >= 0.5);
   const passport = top(passports, (entry) => entry.genres.length);
-  if (passports.length >= 2 && passport.length) cards.push(card("genre-passport", "Genre passport.",
-    "",
+  if (passports.length >= 2 && passport.length) cards.push(card("genre-passport",
+    crown(passport.map((entry) => entry.label), "earned their Genre Passport", "earned their Genre Passports"),
+    "Most genres represented.",
     { stat: { value: passport[0].genres.length, unit: "genres" },
       chips: passport[0].genres,
       ranking: [...passports].sort((a, b) => b.genres.length - a.genres.length || byName(a.label, b.label))
@@ -482,25 +496,28 @@ export function generateWrappedCards({
   }).filter((entry) => entry.rows.length >= 3 && Number.isFinite(entry.span) && entry.span > 0);
   const travelersTop = top(travelers, (entry) => entry.span);
   if (travelersTop.length) {
+    // Every listener shares one axis (the group's oldest to newest record) so the
+    // slide keeps its shape when a reader clicks through the ranking.
+    const axisFrom = Math.min(...releaseYears);
+    const axisTo = Math.max(...releaseYears);
     const travelView = (entry) => {
       const echo = closerThanNow(entry.first, entry.last);
+      const dated = ordered(entry.rows.filter((row) => year(row.releaseDate)));
+      const ends = [entry.first, entry.last].map((end) => dated.find((row) => year(row.releaseDate) === end));
       return {
         stat: { value: entry.span, unit: "years" },
         fact: echo ? `${entry.first} was closer to ${echo.event} (${echo.year}) than to ${entry.last}.` : "",
         timeline: {
-          from: entry.first, to: entry.last, echo,
-          points: ordered(entry.rows.filter((row) => year(row.releaseDate)))
-            .map((row) => ({ year: year(row.releaseDate), name: row.name, artistName: row.artistName })),
+          from: entry.first, to: entry.last, axisFrom, axisTo,
+          points: dated.map((row) => ({ year: year(row.releaseDate), name: row.name, artistName: row.artistName })),
         },
-        records: ordered(entry.rows.filter((row) => [entry.first, entry.last].includes(year(row.releaseDate))))
-          .sort((a, b) => year(a.releaseDate) - year(b.releaseDate))
-          .map((row) => ({ ...album(row), pickers: [entry.label] })),
+        records: ends.map((row) => ({ ...album(row), pickers: [entry.label] })),
       };
     };
-    const traveler = travelersTop[0];
-    cards.push(card("time-traveler", "The time traveler.",
-      "",
-      { ...travelView(traveler),
+    cards.push(card("time-traveler",
+      crown(travelersTop.map((entry) => entry.label), "is the Time Traveller", "are the Time Travellers"),
+      "Widest span of release years.",
+      { ...travelView(travelersTop[0]),
         ranking: travelers.length >= 2 ? [...travelers].sort((a, b) => b.span - a.span || byName(a.label, b.label))
           .slice(0, 5).map((entry) => rankRow(entry.label, entry.span, `${entry.first}–${entry.last}`,
             { highlight: travelersTop.includes(entry), view: travelView(entry) })) : [] }));

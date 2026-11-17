@@ -238,19 +238,15 @@
     return block;
   }
 
+  // The axis spans the whole group's release years, so it stays put between listeners.
   function timelineBlock(timeline) {
-    const start = Math.min(timeline.from, timeline.echo?.year ?? timeline.from);
-    const span = Math.max(1, timeline.to - start);
+    const start = timeline.axisFrom ?? timeline.from;
+    const end = timeline.axisTo ?? timeline.to;
+    const span = Math.max(1, end - start);
     const at = (year) => `${((year - start) / span) * 100}%`;
     const block = element("div", "wrapped-timeline");
     block.setAttribute("aria-hidden", "true");
     const axis = element("div", "wrapped-timeline-axis");
-    if (timeline.echo) {
-      const before = element("span", "wrapped-timeline-span is-echo");
-      before.style.left = at(timeline.echo.year);
-      before.style.width = `calc(${at(timeline.from)} - ${at(timeline.echo.year)})`;
-      axis.append(before);
-    }
     const reach = element("span", "wrapped-timeline-span");
     reach.style.left = at(timeline.from);
     reach.style.width = `calc(${at(timeline.to)} - ${at(timeline.from)})`;
@@ -265,12 +261,8 @@
       dot.title = `${point.name} · ${point.artistName} · ${point.year}`;
       axis.append(dot);
     }
-    const ticks = [[timeline.from, ""], [timeline.to, ""]];
-    if (timeline.echo) ticks.unshift([timeline.echo.year, "is-echo"]);
-    ticks[0][1] += " is-start";
-    ticks[ticks.length - 1][1] += " is-end";
-    for (const [year, className] of ticks) {
-      const tick = element("span", `wrapped-timeline-tick ${className}`.trim(), String(year));
+    for (const [year, className] of [[start, "is-start"], [end, "is-end"]]) {
+      const tick = element("span", `wrapped-timeline-tick ${className}`, String(year));
       tick.style.left = at(year);
       axis.append(tick);
     }
@@ -497,7 +489,8 @@
 
     const main = element("div", "wrapped-story-main");
     if (stat) main.append(statBlock(stat));
-    if (fact) main.append(element("p", "wrapped-fact", fact));
+    // A timeline slide always keeps the fact's room, so switching listeners does not jump.
+    if (fact || timeline) main.append(element("p", `wrapped-fact${fact ? "" : " is-empty"}`, fact));
     if (timeline?.points?.length) main.append(timelineBlock(timeline));
     if (mix?.length) main.append(mixBlock(mix));
     if (chips?.length) {
