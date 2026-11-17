@@ -6,7 +6,6 @@
     app: document.getElementById("wrapped-app"),
     memberName: document.getElementById("wrapped-member-name"),
     editionStatus: document.getElementById("wrapped-edition-status"),
-    ledger: document.getElementById("wrapped-ledger"),
     metadata: document.getElementById("wrapped-metadata"),
     cardControls: document.getElementById("wrapped-card-controls"),
     stories: document.getElementById("wrapped-stories"),
@@ -213,25 +212,6 @@
     elements.stories.append(article);
   }
 
-  function renderLedger(room) {
-    const values = [
-      [room.contributorCount, "listeners"],
-      [room.pickCount, "picks"],
-      [room.uniqueAlbumCount, "different records"],
-      [room.noteWordCount, "words in the margins"],
-    ];
-    elements.ledger.replaceChildren(...values.map(([value, label]) => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "wrapped-stat";
-      const term = document.createElement("dt");
-      term.textContent = label;
-      const description = document.createElement("dd");
-      description.textContent = Number(value || 0).toLocaleString();
-      wrapper.append(term, description);
-      return wrapper;
-    }));
-  }
-
   function dismissalKey(payload) {
     return `records-wrapped-dismissed-v2:${payload.group.id}:${payload.season}:${viewerId}`;
   }
@@ -328,7 +308,6 @@
         : payload.seasonStatus === "locked"
           ? "Ballots are closed · final stories are taking shape."
           : "";
-    renderLedger(payload.room);
     renderStories(payload);
     renderMetadata(payload);
   }

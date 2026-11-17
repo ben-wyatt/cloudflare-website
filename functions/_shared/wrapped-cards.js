@@ -162,12 +162,6 @@ export function generateWrappedCards({ season, members = [], picks = [], standou
     [id, vectorFor(rows, genreByAlbum)]));
   const releaseYears = unique.map((row) => year(row.releaseDate)).filter(Boolean);
 
-  cards.push(card("room", "The room in one breath.",
-    `${contributors.length} listeners brought ${picks.length} picks and ${unique.length} different records to ${season}.`,
-    { detail: releaseYears.length
-      ? `The shelves stretch from ${Math.min(...releaseYears)} to ${Math.max(...releaseYears)}.`
-      : "" }));
-
   const shared = [...byAlbum.values()].filter((rows) => rows.length >= 2)
     .sort((a, b) => b.length - a.length || byName(a[0].name, b[0].name));
   if (shared.length) {
