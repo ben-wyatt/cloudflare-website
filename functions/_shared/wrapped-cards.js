@@ -114,7 +114,7 @@ function castRoster(members, picks, standouts, favorites) {
   const entry = (row) => {
     if (!row.userId) return null;
     if (!roster.has(row.userId)) {
-      roster.set(row.userId, { username: row.username || "", records: 0, tracks: 0, notes: 0 });
+      roster.set(row.userId, { userId: row.userId, username: row.username || "", records: 0, tracks: 0, notes: 0 });
     }
     return roster.get(row.userId);
   };

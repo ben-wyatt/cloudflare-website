@@ -254,7 +254,6 @@
 
 .wrapped-cast {
   width: 100%;
-  max-width: 34rem;
   margin: 1rem 0 0;
   border-collapse: collapse;
   font-variant-numeric: tabular-nums;
@@ -262,27 +261,134 @@
 
 .wrapped-cast th,
 .wrapped-cast td {
-  padding: 0.5rem 0.4rem;
+  padding: 0.55rem 0.5rem;
   border-top: 1px solid var(--wrapped-rule);
   text-align: right;
+  vertical-align: middle;
 }
 
 .wrapped-cast th:first-child {
-  padding-left: 0;
+  padding-left: 0.4rem;
   text-align: left;
+}
+
+.wrapped-cast thead th {
+  padding-top: 0;
+  padding-bottom: 0.35rem;
+  border-top: 0;
+}
+
+.wrapped-cast-sort {
+  padding: 0.2rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.wrapped-cast-sort:hover {
+  color: var(--color-text);
+}
+
+.wrapped-cast-sort:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Sorted column: the arrow carries the state alongside color. */
+.wrapped-cast th[aria-sort] .wrapped-cast-sort {
+  color: var(--wrapped-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+.wrapped-cast th[aria-sort="descending"] .wrapped-cast-sort::after {
+  content: " ↓";
+}
+
+.wrapped-cast th[aria-sort="ascending"] .wrapped-cast-sort::after {
+  content: " ↑";
+}
+
+.wrapped-cast tbody tr {
+  transition: background-color 120ms ease-out;
+}
+
+.wrapped-cast tbody tr:hover {
+  background: var(--color-surface-soft);
+}
+
+.wrapped-cast tbody tr.is-viewer {
+  background: var(--color-surface-sunken);
+  box-shadow: inset 3px 0 0 var(--wrapped-accent);
 }
 
 .wrapped-cast tbody th {
   font-weight: 700;
 }
 
-.wrapped-cast thead th {
-  border-top: 0;
-  color: var(--color-text-muted);
-  font-size: 0.72rem;
-  font-weight: 400;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+.wrapped-cast tbody th a {
+  text-decoration: none;
+}
+
+.wrapped-cast tbody th a:hover,
+.wrapped-cast tbody th a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.wrapped-cast td {
+  width: 22%;
+}
+
+.wrapped-cast-value {
+  display: block;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Bars encode each value against the column maximum. */
+.wrapped-meter {
+  display: block;
+  height: 4px;
+  margin-top: 0.3rem;
+  background: var(--color-surface-soft);
+}
+
+.wrapped-meter::after {
+  display: block;
+  width: calc(var(--fill, 0) * 100%);
+  height: 100%;
+  margin-left: auto;
+  background: var(--color-text-subtle);
+  content: "";
+  transform-origin: right;
+  animation: wrapped-meter-grow 420ms ease-out;
+  transition: background-color 120ms ease-out;
+}
+
+.wrapped-cast[data-sort="records"] td[data-column="records"] .wrapped-meter::after,
+.wrapped-cast[data-sort="tracks"] td[data-column="tracks"] .wrapped-meter::after,
+.wrapped-cast[data-sort="notes"] td[data-column="notes"] .wrapped-meter::after,
+.wrapped-cast tbody tr:hover .wrapped-meter::after {
+  background: var(--wrapped-accent);
+}
+
+@keyframes wrapped-meter-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrapped-meter::after,
+  .wrapped-cast tbody tr {
+    animation: none;
+    transition: none;
+  }
 }
 
 .wrapped-records {

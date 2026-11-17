@@ -17,6 +17,7 @@
   let slides = [];
   let slideIndex = readSlideFromHash();
   let deckButtons = null;
+  let viewerId = "";
   let currentPayload = null;
   let enriching = false;
 
@@ -136,32 +137,82 @@
     return fragment;
   }
 
+  const CAST_COLUMNS = [
+    { key: "username", label: "Listener" },
+    { key: "records", label: "Records" },
+    { key: "tracks", label: "Tracks" },
+    { key: "notes", label: "Notes" },
+  ];
+
   function castTable(cast) {
     const table = document.createElement("table");
     table.className = "wrapped-cast";
+    const maxima = Object.fromEntries(CAST_COLUMNS.slice(1).map(({ key }) =>
+      [key, Math.max(1, ...cast.map((listener) => Number(listener[key] || 0)))]));
+    let sortKey = "records";
+
     const head = document.createElement("thead");
     const headRow = document.createElement("tr");
-    for (const label of ["Listener", "Records", "Tracks", "Notes"]) {
+    const headers = CAST_COLUMNS.map(({ key, label }) => {
       const cell = document.createElement("th");
       cell.scope = "col";
-      cell.textContent = label;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "wrapped-cast-sort";
+      button.textContent = label;
+      button.addEventListener("click", () => {
+        sortKey = key;
+        render();
+      });
+      cell.append(button);
       headRow.append(cell);
-    }
+      return { key, cell };
+    });
     head.append(headRow);
-    const body = document.createElement("tbody");
-    for (const listener of cast) {
+
+    const rows = cast.map((listener) => {
       const row = document.createElement("tr");
+      if (listener.userId && listener.userId === viewerId) row.classList.add("is-viewer");
       const name = document.createElement("th");
       name.scope = "row";
-      name.textContent = listener.username;
+      const link = document.createElement("a");
+      link.href = listener.userId ? `/records/lists/#member-${encodeURIComponent(listener.userId)}` : "/records/lists/";
+      link.textContent = listener.username;
+      name.append(link);
       row.append(name);
-      for (const value of [listener.records, listener.tracks, listener.notes]) {
+      for (const { key } of CAST_COLUMNS.slice(1)) {
+        const value = Number(listener[key] || 0);
         const cell = document.createElement("td");
-        cell.textContent = Number(value || 0).toLocaleString();
+        cell.dataset.column = key;
+        const figure = document.createElement("span");
+        figure.className = "wrapped-cast-value";
+        figure.textContent = value.toLocaleString();
+        const meter = document.createElement("span");
+        meter.className = "wrapped-meter";
+        meter.setAttribute("aria-hidden", "true");
+        meter.style.setProperty("--fill", String(value / maxima[key]));
+        cell.append(figure, meter);
         row.append(cell);
       }
-      body.append(row);
+      return { listener, row };
+    });
+    const body = document.createElement("tbody");
+
+    function render() {
+      const sorted = [...rows].sort((a, b) => {
+        if (sortKey === "username") return a.listener.username.localeCompare(b.listener.username, "en", { sensitivity: "base" });
+        return Number(b.listener[sortKey] || 0) - Number(a.listener[sortKey] || 0)
+          || a.listener.username.localeCompare(b.listener.username, "en", { sensitivity: "base" });
+      });
+      body.replaceChildren(...sorted.map(({ row }) => row));
+      table.dataset.sort = sortKey;
+      for (const { key, cell } of headers) {
+        if (key === sortKey) cell.setAttribute("aria-sort", key === "username" ? "ascending" : "descending");
+        else cell.removeAttribute("aria-sort");
+      }
     }
+
+    render();
     table.append(head, body);
     return table;
   }
@@ -425,6 +476,7 @@
         return;
       }
       elements.memberName.textContent = session.user.username;
+      viewerId = session.user.id;
       const payload = await api("/api/wrapped");
       elements.loading.hidden = true;
       elements.gate.hidden = true;
