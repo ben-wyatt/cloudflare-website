@@ -10,16 +10,17 @@
     castLabel: document.getElementById("wrapped-cast-label"),
     editionStatus: document.getElementById("wrapped-edition-status"),
     metadata: document.getElementById("wrapped-metadata"),
-    cardControls: document.getElementById("wrapped-card-controls"),
+    deck: document.getElementById("wrapped-deck"),
+    deckBar: document.getElementById("wrapped-deck-bar"),
     stories: document.getElementById("wrapped-stories"),
   };
   if (!elements.loading) return;
 
-  let storyNumber = 0;
+  let slides = [];
+  let slideIndex = readSlideFromHash();
+  let deckButtons = null;
   let currentPayload = null;
   let enriching = false;
-  let viewerId = "";
-  const dismissalsInMemory = new Map();
 
   class ApiError extends Error {
     constructor(message, status, code) {
@@ -137,14 +138,10 @@
     return fragment;
   }
 
-  function addStory({ title, lede, detail = "", records = [], notes = [], wordMap = [], links = [], status = "" }, onDismiss) {
-    storyNumber += 1;
+  function buildStory({ title, lede, detail = "", records = [], notes = [], wordMap = [], links = [], status = "" }) {
     const article = document.createElement("article");
     article.className = "wrapped-story";
-    const number = document.createElement("span");
-    number.className = "wrapped-story-number";
-    number.setAttribute("aria-hidden", "true");
-    number.textContent = String(storyNumber).padStart(2, "0");
+    article.setAttribute("aria-roledescription", "slide");
 
     const copy = document.createElement("div");
     copy.className = "wrapped-story-copy";
@@ -204,49 +201,123 @@
       }
       copy.append(navigation);
     }
-    const dismiss = document.createElement("button");
-    dismiss.type = "button";
-    dismiss.className = "wrapped-text-button wrapped-dismiss";
-    dismiss.textContent = "Dismiss";
-    dismiss.setAttribute("aria-label", `Dismiss ${title}`);
-    dismiss.addEventListener("click", onDismiss);
-    copy.append(dismiss);
-    article.append(number, copy);
-    elements.stories.append(article);
+    article.append(copy);
+    return article;
   }
 
-  function dismissalKey(payload) {
-    return `records-wrapped-dismissed-v2:${payload.group.id}:${payload.season}:${viewerId}`;
+  function readSlideFromHash() {
+    const match = /^#story-(\d+)$/.exec(window.location.hash);
+    return match ? Math.max(0, Number(match[1]) - 1) : 0;
   }
 
-  function readDismissed(payload) {
-    const key = dismissalKey(payload);
-    if (dismissalsInMemory.has(key)) return new Set(dismissalsInMemory.get(key));
+  function deckButton(label, text, onClick) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "wrapped-deck-arrow";
+    button.setAttribute("aria-label", label);
+    button.textContent = text;
+    button.addEventListener("click", onClick);
+    return button;
+  }
+
+  function buildDeckBar() {
+    const previous = deckButton("Previous story", "←", () => showSlide(slideIndex - 1));
+    const next = deckButton("Next story", "→", () => showSlide(slideIndex + 1));
+    const count = document.createElement("span");
+    count.className = "wrapped-deck-count";
+    count.setAttribute("aria-live", "polite");
+    const controls = document.createElement("div");
+    controls.className = "wrapped-deck-controls";
+    controls.append(previous, count, next);
+
+    const progress = document.createElement("div");
+    progress.className = "wrapped-deck-progress";
+    const segments = slides.map((slide, index) => {
+      const segment = document.createElement("button");
+      segment.type = "button";
+      segment.className = "wrapped-deck-segment";
+      segment.setAttribute("aria-label", `Story ${index + 1}: ${slide.querySelector("h2")?.textContent || ""}`);
+      segment.addEventListener("click", () => showSlide(index));
+      progress.append(segment);
+      return segment;
+    });
+    elements.deckBar.replaceChildren(progress, controls);
+    elements.deckBar.hidden = false;
+    deckButtons = { previous, next, count, segments };
+  }
+
+  function showSlide(index, { animate = true } = {}) {
+    if (!slides.length) return;
+    const target = Math.max(0, Math.min(slides.length - 1, index));
+    const direction = target >= slideIndex ? "forward" : "back";
+    const moved = target !== slideIndex;
+    slideIndex = target;
+    slides.forEach((slide, position) => {
+      slide.hidden = position !== target;
+      slide.classList.remove("is-entering-forward", "is-entering-back");
+    });
+    if (animate && moved) {
+      void slides[target].offsetWidth;
+      slides[target].classList.add(`is-entering-${direction}`);
+    }
+    deckButtons.count.textContent = `${target + 1} / ${slides.length}`;
+    deckButtons.previous.disabled = target === 0;
+    deckButtons.next.disabled = target === slides.length - 1;
+    deckButtons.segments.forEach((segment, position) => {
+      segment.classList.toggle("is-seen", position < target);
+      segment.classList.toggle("is-current", position === target);
+      if (position === target) segment.setAttribute("aria-current", "step");
+      else segment.removeAttribute("aria-current");
+    });
     try {
-      const stored = JSON.parse(localStorage.getItem(key) || "[]");
-      const dismissed = new Set(Array.isArray(stored) ? stored.filter((id) => typeof id === "string") : []);
-      dismissalsInMemory.set(key, dismissed);
-      return new Set(dismissed);
+      history.replaceState(null, "", target ? `#story-${target + 1}` : window.location.pathname + window.location.search);
     } catch {
-      return new Set();
+      // The deck still works when the URL cannot change.
+    }
+    if (moved && elements.deck.getBoundingClientRect().top < 0) {
+      elements.deck.scrollIntoView({ block: "start" });
     }
   }
 
-  function saveDismissed(payload, dismissed) {
-    dismissalsInMemory.set(dismissalKey(payload), new Set(dismissed));
-    try {
-      localStorage.setItem(dismissalKey(payload), JSON.stringify([...dismissed]));
-    } catch {
-      // Dismissal still works for this render when storage is unavailable.
-    }
+  function isTyping(target) {
+    return target instanceof HTMLElement
+      && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+  }
+
+  function bindDeckGestures() {
+    document.addEventListener("keydown", (event) => {
+      if (!slides.length || elements.app.hidden) return;
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || isTyping(event.target)) return;
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        showSlide(slideIndex + 1);
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        showSlide(slideIndex - 1);
+      }
+    });
+    let touchStart = null;
+    elements.stories.addEventListener("touchstart", (event) => {
+      const touch = event.changedTouches[0];
+      touchStart = { x: touch.clientX, y: touch.clientY };
+    }, { passive: true });
+    elements.stories.addEventListener("touchend", (event) => {
+      if (!touchStart) return;
+      const touch = event.changedTouches[0];
+      const dx = touch.clientX - touchStart.x;
+      const dy = touch.clientY - touchStart.y;
+      touchStart = null;
+      if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      showSlide(slideIndex + (dx < 0 ? 1 : -1));
+    }, { passive: true });
   }
 
   function renderStories(payload) {
-    storyNumber = 0;
     elements.stories.replaceChildren();
-    elements.cardControls.replaceChildren();
     const cards = payload.cards || [];
     if (!cards.length) {
+      slides = [];
+      elements.deckBar.hidden = true;
       const empty = document.createElement("section");
       empty.className = "wrapped-empty";
       const heading = document.createElement("h2");
@@ -256,33 +327,10 @@
       elements.stories.append(empty);
       return;
     }
-    const dismissed = readDismissed(payload);
-    const availableIds = new Set(cards.map((card) => card.id));
-    for (const id of dismissed) if (!availableIds.has(id)) dismissed.delete(id);
-    if (dismissed.size) {
-      const restore = document.createElement("button");
-      restore.type = "button";
-      restore.className = "wrapped-text-button";
-      restore.textContent = `Restore dismissed cards (${dismissed.size})`;
-      restore.addEventListener("click", () => {
-        dismissed.clear();
-        saveDismissed(payload, dismissed);
-        renderStories(payload);
-      });
-      elements.cardControls.append(restore);
-    }
-    for (const card of cards) {
-      if (dismissed.has(card.id)) continue;
-      addStory(card, () => {
-        dismissed.add(card.id);
-        saveDismissed(payload, dismissed);
-        renderStories(payload);
-      });
-    }
-    if (!storyNumber) {
-      const empty = textParagraph("All caught up. Restore dismissed cards to read them again.", "wrapped-empty");
-      elements.stories.append(empty);
-    }
+    slides = cards.map((card) => buildStory(card));
+    elements.stories.append(...slides);
+    buildDeckBar();
+    showSlide(slideIndex, { animate: false });
   }
 
   function renderMetadata(payload, message = "") {
@@ -350,7 +398,6 @@
         return;
       }
       elements.memberName.textContent = session.user.username;
-      viewerId = session.user.id;
       const payload = await api("/api/wrapped");
       elements.loading.hidden = true;
       elements.gate.hidden = true;
@@ -362,5 +409,6 @@
     }
   }
 
+  bindDeckGestures();
   void start();
 })();

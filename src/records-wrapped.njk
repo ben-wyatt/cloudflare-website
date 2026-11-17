@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Records Wrapped · Record Club
 permalink: "/records/wrapped/"
-pageStyles: "/styles/records-wrapped.css?v=tight-masthead"
-pageScript: "/assets/js/records-wrapped.js?v=tight-masthead"
+pageStyles: "/styles/records-wrapped.css?v=slide-deck"
+pageScript: "/assets/js/records-wrapped.js?v=slide-deck"
 bodyClass: "records-wrapped-page"
 ---
 
@@ -34,9 +34,10 @@ bodyClass: "records-wrapped-page"
 
     <div id="wrapped-metadata" class="wrapped-metadata" role="status" aria-live="polite"></div>
 
-    <div id="wrapped-card-controls" class="wrapped-card-controls"></div>
-
-    <div id="wrapped-stories" class="wrapped-stories"></div>
+    <section id="wrapped-deck" class="wrapped-deck" aria-roledescription="carousel" aria-label="Wrapped stories">
+      <div id="wrapped-deck-bar" class="wrapped-deck-bar" hidden></div>
+      <div id="wrapped-stories" class="wrapped-stories"></div>
+    </section>
 
     <footer class="wrapped-colophon">
       <p>{{ recordCopy.wrappedSourceNote | safe }}</p>
