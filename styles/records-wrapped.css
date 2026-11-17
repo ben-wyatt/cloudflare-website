@@ -81,10 +81,6 @@
   scroll-margin-top: 0;
 }
 
-.wrapped-stories {
-  flex: 1 0 auto;
-}
-
 .wrapped-deck-bar {
   position: sticky;
   bottom: 0;
@@ -207,27 +203,436 @@
   cursor: pointer;
 }
 
+.wrapped-stories {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+}
+
 .wrapped-story {
-  padding: 1.4rem 0 2rem;
+  padding: 1.6rem 0 2rem;
+}
+
+/* Sparse slides sit in the middle of the screen; dense ones start at the top. */
+.wrapped-story[data-density="sparse"] {
+  margin-block: auto;
 }
 
 .wrapped-story h2 {
-  margin: 0.3rem 0 0.55rem;
-  font-size: clamp(1.55rem, 5vw, 2.1rem);
-  line-height: 1.02;
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
-.wrapped-story-copy > p {
+.wrapped-story-head > p {
   max-width: 62ch;
   margin: 0.4rem 0 0;
 }
 
-.wrapped-story-lede {
-  font-size: 1rem;
-}
-
 .wrapped-story-detail {
   color: var(--color-text-muted);
+}
+
+.wrapped-story-body {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+}
+
+.wrapped-story-body.has-side {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.wrapped-story-main {
+  display: grid;
+  align-content: start;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.wrapped-story-main > * {
+  margin: 0;
+}
+
+/* Display exception: one headline number per slide, scoped to Wrapped. */
+.wrapped-hero-stat {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.wrapped-hero-value {
+  color: var(--wrapped-accent);
+  font-size: clamp(2.6rem, 8vw, 4.2rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.wrapped-story[data-density="sparse"] .wrapped-hero-value {
+  font-size: clamp(3rem, 11vw, 5.4rem);
+}
+
+.wrapped-story[data-density="dense"] .wrapped-hero-value {
+  font-size: clamp(2.2rem, 6vw, 3.2rem);
+}
+
+.wrapped-hero-unit {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.wrapped-fact {
+  max-width: 48ch;
+  padding-left: 0.8rem;
+  border-left: 3px solid var(--color-secondary);
+  font-size: 1.05rem;
+}
+
+/* Ranking: the winner carries the accent, runner-ups stay quiet. */
+.wrapped-ranking {
+  display: grid;
+  max-width: 34rem;
+  padding: 0;
+  list-style: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.wrapped-rank {
+  display: grid;
+  grid-template-columns: 1.4rem auto minmax(0, 1fr) minmax(5.5rem, 30%);
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.45rem 0.4rem 0.45rem 0;
+  border-top: 1px solid var(--wrapped-rule);
+  transition: background-color 120ms ease-out;
+}
+
+.wrapped-rank:last-child {
+  border-bottom: 1px solid var(--wrapped-rule);
+}
+
+.wrapped-rank:hover {
+  background: var(--color-surface-soft);
+}
+
+.wrapped-rank.is-highlight {
+  background: var(--color-surface-sunken);
+  box-shadow: inset 3px 0 0 var(--wrapped-accent);
+}
+
+.wrapped-rank-number {
+  padding-left: 0.4rem;
+  color: var(--color-text-subtle);
+  font-size: 0.78rem;
+}
+
+.wrapped-rank-thumb {
+  display: block;
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  background: var(--color-surface-soft);
+}
+
+.wrapped-rank:not(:has(.wrapped-rank-thumb)) {
+  grid-template-columns: 1.4rem minmax(0, 1fr) minmax(5.5rem, 30%);
+}
+
+.wrapped-rank-label {
+  display: grid;
+  min-width: 0;
+}
+
+.wrapped-rank-name,
+.wrapped-rank-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wrapped-rank-name {
+  font-weight: 700;
+}
+
+.wrapped-rank.is-highlight .wrapped-rank-name,
+.wrapped-rank.is-highlight .wrapped-rank-display {
+  color: var(--wrapped-accent);
+}
+
+.wrapped-rank-sub {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.wrapped-rank-value {
+  display: grid;
+  text-align: right;
+}
+
+.wrapped-rank-display {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Genre mix: shared genres light up in both columns. */
+.wrapped-mix {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  max-width: 40rem;
+}
+
+.wrapped-mix-name {
+  margin: 0 0 0.4rem;
+  font-weight: 700;
+}
+
+.wrapped-mix-genres {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wrapped-mix-genres li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.wrapped-mix-genres li.is-shared {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.wrapped-mix-genres .wrapped-meter {
+  grid-column: 1 / -1;
+  margin-top: 0.2rem;
+}
+
+.wrapped-mix-genres .wrapped-meter::after {
+  margin-left: 0;
+  transform-origin: left;
+}
+
+.wrapped-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.1rem;
+  max-width: 40rem;
+  padding: 0;
+  list-style: none;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.wrapped-chips li + li::before {
+  margin-right: 1.1rem;
+  margin-left: -1.1rem;
+  color: var(--color-text-subtle);
+  content: "·";
+  font-weight: 400;
+  translate: 0.55rem 0;
+}
+
+/* Timeline: picks as dots on one axis; the dashed span is the landmark comparison. */
+.wrapped-timeline {
+  max-width: 40rem;
+  padding: 4.2rem 0 1.8rem;
+}
+
+.wrapped-timeline-axis {
+  position: relative;
+  height: 2px;
+  background: var(--wrapped-rule);
+}
+
+.wrapped-timeline-span {
+  position: absolute;
+  top: -1px;
+  height: 4px;
+  background: var(--wrapped-accent);
+}
+
+.wrapped-timeline-span.is-echo {
+  background: repeating-linear-gradient(90deg, var(--color-secondary) 0 6px, transparent 6px 10px);
+}
+
+.wrapped-timeline-dot {
+  position: absolute;
+  bottom: calc(6px + var(--level, 0) * 12px);
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--color-bg);
+  border-radius: 50%;
+  background: var(--wrapped-accent);
+  translate: -50% 0;
+  cursor: help;
+}
+
+.wrapped-timeline-dot:hover {
+  background: var(--color-text);
+}
+
+.wrapped-timeline-tick {
+  position: absolute;
+  top: 0.55rem;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  translate: -50% 0;
+}
+
+.wrapped-timeline-tick.is-start {
+  translate: 0 0;
+}
+
+.wrapped-timeline-tick.is-end {
+  translate: -100% 0;
+}
+
+.wrapped-timeline-tick.is-echo {
+  color: var(--color-secondary);
+}
+
+/* Records: one or two get big covers beside the story; more become a grid, then a list. */
+.wrapped-story .wrapped-records {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wrapped-story .wrapped-record-placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--color-text-subtle);
+  font-size: 0.7rem;
+}
+
+.wrapped-cover {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 1;
+  background: var(--color-surface-soft);
+}
+
+.wrapped-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 160ms ease-out;
+}
+
+.wrapped-cover:hover img {
+  transform: scale(1.03);
+}
+
+.wrapped-record-copy {
+  display: grid;
+  min-width: 0;
+}
+
+.wrapped-record-copy > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wrapped-record-meta,
+.wrapped-record-caption {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.wrapped-records-feature .wrapped-record,
+.wrapped-records-pair .wrapped-record {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.wrapped-records-feature {
+  width: clamp(12rem, 30vw, 16.5rem);
+}
+
+.wrapped-records-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  width: clamp(16rem, 38vw, 21rem);
+}
+
+.wrapped-records-feature .wrapped-record-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.wrapped-records-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--columns, 3), minmax(0, 1fr));
+  max-width: calc(var(--columns, 3) * var(--tile, 12rem));
+  gap: 1.1rem 0.9rem;
+  margin-top: 1.5rem !important;
+}
+
+.wrapped-records-grid .wrapped-record {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.wrapped-records-grid .wrapped-record-title {
+  font-size: 0.9rem;
+}
+
+.wrapped-records-list {
+  display: grid;
+  margin-top: 1.5rem !important;
+  border-bottom: 1px solid var(--wrapped-rule);
+}
+
+.wrapped-records-list .wrapped-record {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--wrapped-rule);
+}
+
+@media (max-width: 640px) {
+  .wrapped-story-body.has-side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .wrapped-story-side {
+    order: -1;
+  }
+
+  .wrapped-records-feature {
+    width: min(100%, 15rem);
+  }
+
+  .wrapped-records-pair {
+    width: 100%;
+  }
+
+  .wrapped-mix {
+    gap: 1rem;
+  }
+
+  .wrapped-records-grid {
+    grid-template-columns: repeat(min(var(--columns, 3), 3), minmax(0, 1fr));
+  }
+
 }
 
 .wrapped-cast {
@@ -353,7 +758,9 @@
 .wrapped-cast[data-sort="records"] td[data-column="records"] .wrapped-meter::after,
 .wrapped-cast[data-sort="tracks"] td[data-column="tracks"] .wrapped-meter::after,
 .wrapped-cast[data-sort="notes"] td[data-column="notes"] .wrapped-meter::after,
-.wrapped-cast tbody tr:hover .wrapped-meter::after {
+.wrapped-cast tbody tr:hover .wrapped-meter::after,
+.wrapped-meter.is-highlight::after,
+.wrapped-rank:hover .wrapped-meter::after {
   background: var(--wrapped-accent);
 }
 
@@ -364,68 +771,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .wrapped-meter::after,
-  .wrapped-cast tbody tr {
+  .wrapped-cast tbody tr,
+  .wrapped-rank,
+  .wrapped-cover img {
     animation: none;
     transition: none;
   }
-}
-
-.wrapped-records {
-  display: grid;
-  gap: 0;
-  margin: 1rem 0 0;
-  padding: 0;
-  border-bottom: 1px solid var(--wrapped-rule);
-  list-style: none;
-}
-
-.wrapped-record {
-  display: grid;
-  grid-template-columns: 54px minmax(0, 1fr);
-  gap: 0.7rem;
-  align-items: center;
-  padding: 0.55rem 0;
-  border-top: 1px solid var(--wrapped-rule);
-}
-
-.wrapped-record img,
-.wrapped-record-placeholder {
-  display: block;
-  width: 54px;
-  aspect-ratio: 1;
-  object-fit: contain;
-  background: var(--color-surface-soft);
-}
-
-.wrapped-record-placeholder {
-  display: grid;
-  place-items: center;
-  color: var(--color-text-subtle);
-  font-size: 0.65rem;
-}
-
-.wrapped-record-copy {
-  display: grid;
-  min-width: 0;
-}
-
-.wrapped-record-copy a,
-.wrapped-record-copy strong,
-.wrapped-record-copy span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.wrapped-record-copy span {
-  color: var(--color-text-muted);
-  font-size: 0.82rem;
-}
-
-.wrapped-record-caption {
-  margin: 0.1rem 0 0;
-  color: var(--color-text-muted);
-  font-size: 0.82rem;
 }
 
 .wrapped-more summary {
@@ -492,10 +843,10 @@
   text-decoration-thickness: 1px;
 }
 
-.wrapped-word-1 { font-size: 0.9rem; }
-.wrapped-word-2 { font-size: 1.1rem; }
-.wrapped-word-3 { font-size: 1.35rem; }
-.wrapped-word-4 { font-size: 1.65rem; }
+.wrapped-word-1 { font-size: 1rem; }
+.wrapped-word-2 { font-size: 1.3rem; }
+.wrapped-word-3 { font-size: 1.7rem; }
+.wrapped-word-4 { font-size: 2.2rem; font-weight: 700; }
 
 .wrapped-story-links {
   display: flex;

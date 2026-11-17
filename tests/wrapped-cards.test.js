@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { generateWrappedCards } from "../functions/_shared/wrapped-cards.js";
+import { closerThanNow } from "../functions/_shared/history-events.js";
 
 function pick(userId, spotifyId, name, artistName, genres, audience, releaseDate, review = "") {
   return {
@@ -54,7 +55,8 @@ test("Wrapped includes note stories and clearly unfinished editorial awards", ()
   assert.match(cards.find((entry) => entry.id === "common-chord").lede, /rock|electronic/);
   const opposite = cards.find((entry) => entry.id === "opposite-ends");
   assert.match(opposite.lede, /least similar genre mix/);
-  assert.match(opposite.detail, /Weighted mix:.*tagged records.*Similarity score: 0\./);
+  assert.equal(opposite.mix.length, 2);
+  assert.match(opposite.stat.value, /^\d+%$/);
   const sharedNotes = cards.find((entry) => entry.id === "same-record-different-reasons");
   assert.equal(sharedNotes.notes.length, 2);
   assert.equal(sharedNotes.notes[0].href, "/records/lists/#album-note-alex-shared");
@@ -87,4 +89,10 @@ test("card winners do not depend on database row order", () => {
   const forward = generateWrappedCards({ season: 2026, picks });
   const reverse = generateWrappedCards({ season: 2026, picks: [...picks].reverse() });
   assert.deepEqual(reverse, forward);
+});
+
+test("time traveler comparison finds the earliest landmark the old year is closer to", () => {
+  assert.deepEqual(closerThanNow(1967, 2026), { year: 1912, event: "the sinking of the Titanic" });
+  assert.equal(closerThanNow(2025, 2026), null);
+  assert.equal(closerThanNow(2026, 2026), null);
 });

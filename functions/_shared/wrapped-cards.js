@@ -1,3 +1,5 @@
+import { closerThanNow } from "./history-events.js";
+
 const GENRES = [
   ["hip-hop", /hip.?hop|rap|boom bap|trap|drumless|plugg/i],
   ["r&b", /r.?n.?b|rhythm and blues|neo.?soul/i],
@@ -103,9 +105,18 @@ function top(rows, score, descending = true) {
 
 function card(id, title, lede, {
   detail = "", records = [], notes = [], wordMap = [], links = [], status = "", cast = [],
+  stat = null, ranking = [], mix = [], timeline = null, chips = [], fact = "",
 } = {}) {
-  return { id, title, lede, detail, records, notes, wordMap, links, status, cast };
+  return { id, title, lede, detail, records, notes, wordMap, links, status, cast,
+    stat, ranking, mix, timeline, chips, fact };
 }
+
+function rankRow(name, value, display, { highlight = false, sub = "", imageUrl = null } = {}) {
+  return { name, value, display, highlight, sub, imageUrl };
+}
+
+const percent = (value) => `${Math.round(value * 100)}%`;
+const thousands = (value) => Math.round(value).toLocaleString("en-US");
 
 const hasNote = (row) => Boolean(String(row.review || "").trim());
 
@@ -196,26 +207,29 @@ export function generateWrappedCards({
     [id, vectorFor(rows, genreByAlbum)]));
   const releaseYears = unique.map((row) => year(row.releaseDate)).filter(Boolean);
 
+  const pickersFor = (row) => names(byAlbum.get(row.spotifyId).map(person));
+  const picked = (row) => ({ ...album(row), caption: `Picked by ${pickersFor(row)}` });
+  const listenersOf = (row) => number(row.lastfmListeners);
+
   const shared = [...byAlbum.values()].filter((rows) => rows.length >= 2)
     .sort((a, b) => b.length - a.length || byName(a[0].name, b[0].name));
   if (shared.length) {
     cards.push(card("shared-records", "The records that found more than one home.",
-      `${shared.length} ${shared.length === 1 ? "record appears" : "records appear"} on at least two lists.`,
-      { records: shared.map((rows) => ({
-        ...album(rows[0]), caption: `Picked by ${names(rows.map(person))}`,
-      })) }));
+      "On at least two lists.",
+      { stat: { value: shared.length, unit: shared.length === 1 ? "record" : "records" },
+        records: shared.map((rows) => ({
+          ...album(rows[0]), caption: `Picked by ${names(rows.map(person))}`,
+        })) }));
     const withNotes = shared.find((rows) => rows.filter((row) => row.review?.trim()).length >= 2);
-    const rows = withNotes || shared[0];
-    const noteRows = rows.filter((row) => row.review?.trim());
-    cards.push(card("same-record-different-reasons", "Same record, different reasons.",
-      withNotes
-        ? `${noteRows.length} people wrote about ${rows[0].name}; each heard something of their own.`
-        : `${rows[0].name} found more than one home. Its notes are still waiting for two different takes.`,
-      { records: [album(rows[0])],
-        notes: withNotes ? noteRows.map((row) => ({
-          author: row.username, text: row.review.trim(), href: noteHref(row),
-        })) : [],
-        links: [{ href: "/records/lists/", label: "Explore the full lists →" }] }));
+    if (withNotes) {
+      const noteRows = withNotes.filter((row) => row.review?.trim());
+      cards.push(card("same-record-different-reasons", "Same record, different reasons.",
+        `${noteRows.length} people wrote about ${withNotes[0].name}.`,
+        { records: [album(withNotes[0])],
+          notes: noteRows.map((row) => ({
+            author: row.username, text: row.review.trim(), href: noteHref(row),
+          })) }));
+    }
   }
 
   const artistNames = new Map();
@@ -243,8 +257,13 @@ export function generateWrappedCards({
   if (artistEchoes.length) {
     const entry = artistEchoes[0];
     cards.push(card("artist-echo", "Same artist, different door.",
-      `${names([...entry.people.values()])} brought ${entry.albumIds.size} different ${entry.name} records.`,
-      { records: ordered([...entry.albumIds].map((id) => albumRows.get(id))).map(album) }));
+      `${names([...entry.people.values()])} each brought a different ${entry.name} record.`,
+      { stat: { value: entry.albumIds.size, unit: `${entry.name} records` },
+        records: ordered([...entry.albumIds].map((id) => albumRows.get(id))).map(picked),
+        ranking: artistEchoes.length >= 2 ? artistEchoes.slice(0, 5).map((echo) =>
+          rankRow(echo.name, echo.albumIds.size, `${echo.albumIds.size} records`, {
+            highlight: echo === entry, sub: names([...echo.people.values()]),
+          })) : [] }));
   }
 
   const eligibleTaste = contributors.filter((listener) => {
@@ -261,57 +280,91 @@ export function generateWrappedCards({
       if (score !== null) pairs.push({ left, right, score, label: `${left.username}/${right.username}` });
     }
   }
+  const mixFor = (a, b) => [a, b].map((listener) => {
+    const own = genreVectors.get(listener.id);
+    const other = genreVectors.get((listener === a ? b : a).id).vector;
+    return { name: listener.username, tagged: own.tagged,
+      genres: [...own.vector].sort((x, y) => y[1] - x[1] || byName(x[0], y[0])).slice(0, 5)
+        .map(([genre, share]) => ({ genre, share, shared: other.has(genre) })) };
+  });
+  const pairRanking = (sorted, winner) => sorted.slice(0, 5).map((pair) =>
+    rankRow(`${pair.left.username} + ${pair.right.username}`, pair.score, percent(pair.score),
+      { highlight: pair === winner }));
   if (pairs.length) {
     const best = top(pairs, (entry) => entry.score)[0];
     const worst = top(pairs, (entry) => entry.score, false)[0];
     const overlap = [...genreVectors.get(best.left.id).vector.keys()]
       .filter((genre) => genreVectors.get(best.right.id).vector.has(genre));
+    const byScore = [...pairs].sort((a, b) => b.score - a.score || byName(a.label, b.label));
     if (best.score > 0) cards.push(card("music-besties", "Music besties.",
       `${best.left.username} and ${best.right.username} kept reaching for similar sounds.`,
-      { detail: `Their common ground: ${overlap.join(", ")}.`,
+      { stat: { value: percent(best.score), unit: "genre match" },
+        mix: mixFor(best.left, best.right),
+        ranking: pairs.length >= 2 ? pairRanking(byScore, best) : [],
         records: [best.left, best.right].flatMap((listener) =>
           ordered(byPerson.get(listener.id).filter((row) =>
-            genreByAlbum.get(row.spotifyId).some((genre) => overlap.includes(genre)))).slice(0, 3).map(album)) }));
-    const leftTaste = genreVectors.get(worst.left.id);
-    const rightTaste = genreVectors.get(worst.right.id);
-    const sharedGenres = [...leftTaste.vector.keys()]
-      .filter((genre) => rightTaste.vector.has(genre));
+            genreByAlbum.get(row.spotifyId).some((genre) => overlap.includes(genre)))).slice(0, 3)
+            .map((row) => ({ ...album(row), caption: listener.username }))) }));
     if (pairs.length >= 2 && worst.score < best.score) cards.push(card("opposite-ends", "Opposite ends of the couch.",
-      `${worst.left.username} and ${worst.right.username} have the least similar genre mix among the listeners with enough tagged picks.`,
-      { detail: `Weighted mix: ${worst.left.username} leans ${tasteMix(leftTaste.vector)} (${leftTaste.tagged} tagged records); ${worst.right.username} leans ${tasteMix(rightTaste.vector)} (${rightTaste.tagged} tagged records). ${sharedGenres.length ? `They still share ${sharedGenres.join(" and ")}. ` : ""}Similarity score: ${worst.score.toFixed(2)} (0 = no overlap, 1 = identical mix).`,
+      `${worst.left.username} and ${worst.right.username} have the least similar genre mix.`,
+      { stat: { value: percent(worst.score), unit: "genre match" },
+        mix: mixFor(worst.left, worst.right),
+        ranking: pairRanking([...byScore].reverse(), worst),
         records: [worst.left, worst.right].flatMap((listener) =>
           ordered(byPerson.get(listener.id).filter((row) =>
-            genreByAlbum.get(row.spotifyId).length)).slice(0, 3).map(album)) }));
+            genreByAlbum.get(row.spotifyId).length)).slice(0, 3)
+            .map((row) => ({ ...album(row), caption: listener.username }))) }));
   }
 
   const audiencePeople = contributors.map((listener) => {
     const rows = byPerson.get(listener.id);
-    const audiences = rows.map((row) => number(row.lastfmListeners)).filter((value) => value > 0);
+    const audiences = rows.map(listenersOf).filter((value) => value > 0);
     return { ...listener, label: listener.username, rows, median: audiences.length ? median(audiences) : null };
   }).filter((entry) => entry.rows.length >= 3 && entry.median !== null
-    && entry.rows.filter((row) => number(row.lastfmListeners) > 0).length / entry.rows.length >= 0.8);
+    && entry.rows.filter((row) => listenersOf(row) > 0).length / entry.rows.length >= 0.8);
   const basic = top(audiencePeople, (entry) => entry.median);
   const obscure = top(audiencePeople, (entry) => entry.median, false);
-  if (audiencePeople.length >= 2 && basic[0].median > obscure[0].median) cards.push(card("most-basic", "Most basic bitch.",
-    `${names(basic)} brought the biggest crowds, by median Last.fm audience size.`,
-    { detail: `Median audience size: ${Math.round(basic[0].median).toLocaleString()} listeners per album.`,
-      records: [...basic[0].rows].sort((a, b) => number(b.lastfmListeners) - number(a.lastfmListeners)).slice(0, 4).map(album) }));
-  if (audiencePeople.length >= 2 && basic[0].median > obscure[0].median) cards.push(card("not-like-other-girls", "Not like other girls.",
-    `${names(obscure)} dug furthest into the little rooms of Last.fm.`,
-    { detail: `Median audience size: ${Math.round(obscure[0].median).toLocaleString()} listeners per album.`,
-      records: [...obscure[0].rows].sort((a, b) => number(a.lastfmListeners) - number(b.lastfmListeners)).slice(0, 4).map(album) }));
+  const audienceRanking = (descending, winners) => [...audiencePeople]
+    .sort((a, b) => (descending ? b.median - a.median : a.median - b.median) || byName(a.label, b.label))
+    .slice(0, 6)
+    .map((entry) => rankRow(entry.username, entry.median, thousands(entry.median),
+      { highlight: winners.includes(entry) }));
+  const withCount = (row) => ({ ...album(row), caption: `${thousands(listenersOf(row))} listeners` });
+  if (audiencePeople.length >= 2 && basic[0].median > obscure[0].median) {
+    cards.push(card("most-basic", "Most basic bitch.",
+      `${names(basic)} brought the biggest crowds.`,
+      { stat: { value: thousands(basic[0].median), unit: "median Last.fm listeners" },
+        ranking: audienceRanking(true, basic),
+        records: [...basic[0].rows].sort((a, b) => listenersOf(b) - listenersOf(a)).slice(0, 4).map(withCount) }));
+    cards.push(card("not-like-other-girls", "Not like other girls.",
+      `${names(obscure)} dug furthest into the little rooms of Last.fm.`,
+      { stat: { value: thousands(obscure[0].median), unit: "median Last.fm listeners" },
+        ranking: audienceRanking(false, obscure),
+        records: [...obscure[0].rows].sort((a, b) => listenersOf(a) - listenersOf(b)).slice(0, 4).map(withCount) }));
+  }
 
-  const withAudience = unique.filter((row) => number(row.lastfmListeners) > 0);
-  const tiniest = top(withAudience.map((row) => ({ row, label: row.name })), (entry) => number(entry.row.lastfmListeners), false);
-  const biggest = top(withAudience.map((row) => ({ row, label: row.name })), (entry) => number(entry.row.lastfmListeners));
-  const pickersFor = (row) => names(byAlbum.get(row.spotifyId).map(person));
-  const audienceRecord = (entry) => ({ ...album(entry.row), caption: `Picked by ${pickersFor(entry.row)}` });
-  if (withAudience.length >= 2 && number(biggest[0].row.lastfmListeners) > number(tiniest[0].row.lastfmListeners)) cards.push(card("tiniest-violin", "Tiniest violin award.",
-    `${tiniest[0].row.name}, picked by ${pickersFor(tiniest[0].row)}, has the smallest Last.fm audience in the room: ${number(tiniest[0].row.lastfmListeners).toLocaleString()} listeners.`,
-    { records: tiniest.map(audienceRecord) }));
-  if (withAudience.length >= 2 && number(biggest[0].row.lastfmListeners) > number(tiniest[0].row.lastfmListeners)) cards.push(card("biggest-tuba", "Biggest tuba award.",
-    `${biggest[0].row.name}, picked by ${pickersFor(biggest[0].row)}, has the largest Last.fm audience in the room: ${number(biggest[0].row.lastfmListeners).toLocaleString()} listeners.`,
-    { records: biggest.map(audienceRecord) }));
+  const withAudience = unique.filter((row) => listenersOf(row) > 0);
+  const tiniest = top(withAudience.map((row) => ({ row, label: row.name })), (entry) => listenersOf(entry.row), false);
+  const biggest = top(withAudience.map((row) => ({ row, label: row.name })), (entry) => listenersOf(entry.row));
+  const albumRanking = (descending, winners) => [...withAudience]
+    .sort((a, b) => (descending ? listenersOf(b) - listenersOf(a) : listenersOf(a) - listenersOf(b))
+      || byName(a.name, b.name))
+    .slice(0, 5)
+    .map((row) => rankRow(row.name, listenersOf(row), thousands(listenersOf(row)), {
+      highlight: winners.some((entry) => entry.row === row), sub: pickersFor(row),
+      imageUrl: row.imageUrl || null }));
+  if (withAudience.length >= 2 && listenersOf(biggest[0].row) > listenersOf(tiniest[0].row)) {
+    cards.push(card("tiniest-violin", "Tiniest violin award.",
+      `${tiniest[0].row.name}, picked by ${pickersFor(tiniest[0].row)}.`,
+      { stat: { value: thousands(listenersOf(tiniest[0].row)), unit: "Last.fm listeners" },
+        ranking: albumRanking(false, tiniest),
+        records: tiniest.map((entry) => picked(entry.row)) }));
+    cards.push(card("biggest-tuba", "Biggest tuba award.",
+      `${biggest[0].row.name}, picked by ${pickersFor(biggest[0].row)}.`,
+      { stat: { value: thousands(listenersOf(biggest[0].row)), unit: "Last.fm listeners" },
+        ranking: albumRanking(true, biggest),
+        records: biggest.map((entry) => picked(entry.row)) }));
+  }
 
   const genrePeople = new Map();
   for (const listener of contributors) {
@@ -320,15 +373,19 @@ export function generateWrappedCards({
       genrePeople.get(genre).add(listener.id);
     }
   }
-  const common = top([...genrePeople].map(([genre, people]) =>
-    ({ genre, people, label: genre, count: people.size })), (entry) => entry.count);
+  const genreRows = [...genrePeople].map(([genre, people]) =>
+    ({ genre, people, label: genre, count: people.size }));
+  const common = top(genreRows, (entry) => entry.count);
   if (common.length && common[0].count >= 2) {
     cards.push(card("common-chord", "The common chord.",
-      `${common.map((entry) => entry.genre).join(" and ")} reached ${common[0].count} different listeners.`,
-      { detail: "Counted by people, so one person's many records cannot decide the room's sound.",
+      `${common.map((entry) => entry.genre).join(", ")} reached the most listeners.`,
+      { stat: { value: common[0].count, unit: "listeners" },
+        ranking: [...genreRows].sort((a, b) => b.count - a.count || byName(a.genre, b.genre)).slice(0, 6)
+          .map((entry) => rankRow(entry.genre, entry.count, String(entry.count),
+            { highlight: common.includes(entry) })),
         records: contributors.map((listener) => ordered(byPerson.get(listener.id).filter((row) =>
           common.some((entry) => genreByAlbum.get(row.spotifyId).includes(entry.genre))))[0])
-          .filter(Boolean).slice(0, 6).map(album) }));
+          .filter(Boolean).slice(0, 6).map(picked) }));
   }
 
   const detours = [];
@@ -344,11 +401,28 @@ export function generateWrappedCards({
         label: `${listener.username}/${row.name}` });
     }
   }
-  const detour = top(detours, (entry) => entry.score)[0];
-  if (detour && detour.score > 0) cards.push(card("unexpected-detour", "Unexpected detour.",
-    `${detour.listener.username} took a turn with ${detour.row.name}.`,
-    { detail: `Its ${genreByAlbum.get(detour.row.spotifyId).join(", ")} tags sit furthest from their other picks.`,
-      records: [album(detour.row)] }));
+  const detourWinners = [];
+  for (const entry of top(detours, (item) => item.score)) {
+    if (!detourWinners.some((item) => item.listener.id === entry.listener.id)) detourWinners.push(entry);
+  }
+  const detour = detourWinners[0];
+  if (detour && detour.score > 0) {
+    const bestPerListener = new Map();
+    for (const entry of [...detours].sort((a, b) => b.score - a.score || byName(a.label, b.label))) {
+      if (!bestPerListener.has(entry.listener.id)) bestPerListener.set(entry.listener.id, entry);
+    }
+    cards.push(card("unexpected-detour", "Unexpected detour.",
+      detourWinners.length === 1
+        ? `${detour.listener.username} took a turn with ${detour.row.name}.`
+        : `${names(detourWinners.map((entry) => entry.listener))} each took a turn.`,
+      { stat: { value: percent(detour.score), unit: "off course" },
+        records: detourWinners.map((entry) => ({ ...album(entry.row),
+          caption: `${entry.listener.username} · ${genreByAlbum.get(entry.row.spotifyId).join(" · ")}` })),
+        ranking: bestPerListener.size > detourWinners.length ? [...bestPerListener.values()].slice(0, 6).map((entry) =>
+          rankRow(entry.listener.username, entry.score, percent(entry.score), {
+            highlight: detourWinners.includes(entry), sub: entry.row.name, imageUrl: entry.row.imageUrl || null,
+          })) : [] }));
+  }
 
   const passports = contributors.map((listener) => {
     const rows = byPerson.get(listener.id);
@@ -359,9 +433,13 @@ export function generateWrappedCards({
     && entry.tagged / entry.rows.length >= 0.5);
   const passport = top(passports, (entry) => entry.genres.length);
   if (passports.length >= 2 && passport.length) cards.push(card("genre-passport", "Genre passport.",
-    `${names(passport.map((entry) => entry.listener))} visited ${passport[0].genres.length} sound families.`,
-    { detail: passport[0].genres.join(", ") + ".",
-      records: ordered(passport[0].rows).slice(0, 5).map(album) }));
+    `${names(passport.map((entry) => entry.listener))} visited the most sound families.`,
+    { stat: { value: passport[0].genres.length, unit: "genres" },
+      chips: passport[0].genres,
+      ranking: [...passports].sort((a, b) => b.genres.length - a.genres.length || byName(a.label, b.label))
+        .slice(0, 6).map((entry) => rankRow(entry.label, entry.genres.length, String(entry.genres.length),
+          { highlight: passport.includes(entry) })),
+      records: ordered(passport[0].rows).slice(0, 6).map(album) }));
 
   const travelers = contributors.map((listener) => {
     const rows = byPerson.get(listener.id);
@@ -370,36 +448,50 @@ export function generateWrappedCards({
       span: Math.max(...years) - Math.min(...years), label: listener.username };
   }).filter((entry) => entry.rows.length >= 3 && Number.isFinite(entry.span) && entry.span > 0);
   const travelersTop = top(travelers, (entry) => entry.span);
-  if (travelersTop.length) cards.push(card("time-traveler", "The time traveler.",
-    `${names(travelersTop.map((entry) => entry.listener))} traveled ${travelersTop[0].span} years across their picks.`,
-    { detail: `From ${travelersTop[0].first} to ${travelersTop[0].last}.`,
-      records: ordered(travelersTop[0].rows.filter((row) =>
-        [travelersTop[0].first, travelersTop[0].last].includes(year(row.releaseDate)))).map(album) }));
+  if (travelersTop.length) {
+    const traveler = travelersTop[0];
+    const echo = closerThanNow(traveler.first, traveler.last);
+    cards.push(card("time-traveler", "The time traveler.",
+      `${names(travelersTop.map((entry) => entry.listener))}, from ${traveler.first} to ${traveler.last}.`,
+      { stat: { value: traveler.span, unit: "years" },
+        fact: echo ? `${traveler.first} was closer to ${echo.event} (${echo.year}) than to ${traveler.last}.` : "",
+        timeline: {
+          from: traveler.first, to: traveler.last, echo,
+          points: ordered(traveler.rows.filter((row) => year(row.releaseDate)))
+            .map((row) => ({ year: year(row.releaseDate), name: row.name, artistName: row.artistName })),
+        },
+        ranking: travelers.length >= 2 ? [...travelers].sort((a, b) => b.span - a.span || byName(a.label, b.label))
+          .slice(0, 5).map((entry) => rankRow(entry.label, entry.span, `${entry.first}–${entry.last}`,
+            { highlight: travelersTop.includes(entry) })) : [],
+        records: ordered(traveler.rows.filter((row) =>
+          [traveler.first, traveler.last].includes(year(row.releaseDate))))
+          .sort((a, b) => year(a.releaseDate) - year(b.releaseDate)).map(album) }));
+  }
 
   const fresh = picks.filter((row) => year(row.releaseDate) === season);
   if (picks.length && fresh.length) {
     const freshPeople = contributors.map((listener) => {
       const rows = byPerson.get(listener.id);
-      return { listener, rows, count: rows.filter((row) => year(row.releaseDate) === season).length,
-        share: rows.filter((row) => year(row.releaseDate) === season).length / rows.length,
-        label: listener.username };
+      const count = rows.filter((row) => year(row.releaseDate) === season).length;
+      return { listener, rows, count, share: count / rows.length, label: listener.username };
     }).filter((entry) => entry.rows.length >= 3);
     const freshest = top(freshPeople, (entry) => entry.share).filter((entry) => entry.count > 0);
     cards.push(card("fresh-off-press", "Fresh off the press.",
-      `${fresh.length} of ${picks.length} picks were released in ${season}.`,
-      { detail: freshest.length
-        ? `${names(freshest.map((entry) => entry.listener))} had the largest share of new releases.`
-        : "",
+      freshest.length ? `${names(freshest.map((entry) => entry.listener))} had the largest share of new releases.` : "",
+      { stat: { value: `${fresh.length}/${picks.length}`, unit: `picks released in ${season}` },
+        ranking: [...freshPeople].sort((a, b) => b.share - a.share || byName(a.label, b.label)).slice(0, 6)
+          .map((entry) => rankRow(entry.label, entry.share, `${entry.count}/${entry.rows.length}`,
+            { highlight: freshest.includes(entry) })),
         records: ordered([...new Map(fresh.map((row) => [row.spotifyId, row])).values()])
-          .slice(0, 6).map(album) }));
+          .slice(0, 6).map(picked) }));
   }
 
   const wordCount = (value) => (String(value || "").match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu) || []).length;
   const noteRows = [...picks, ...standouts].filter((row) => row.userId && wordCount(row.review));
   const wordMap = noteWordMap(noteRows);
   if (wordMap.length) cards.push(card("word-map", "A map of the margins.",
-    `A few words from the room’s ${noteRows.length} notes, sized by how many notes use them.`,
-    { detail: "Choose a word to find the notes that used it.", wordMap }));
+    "Sized by how many notes use each word.",
+    { stat: { value: noteRows.length, unit: "notes" }, wordMap }));
 
   cards.push(card("hill-worth-dying-on", "A hill worth dying on.",
     "In construction. A future Jev rerank will surface a note that makes the strongest case for a record.",
@@ -418,22 +510,24 @@ export function generateWrappedCards({
     if (row.spotifyId && albumRows.has(row.spotifyId)) entry.records.push(album(row));
     noteTotals.set(row.userId, entry);
   }
-  const writers = top([...noteTotals.values()].map((entry) =>
-    ({ ...entry, label: entry.listener.username })), (entry) => entry.words);
+  const writerRows = [...noteTotals.values()].map((entry) => ({ ...entry, label: entry.listener.username }));
+  const writers = top(writerRows, (entry) => entry.words);
   if (writers.length) {
     const longest = [...noteRows].sort((a, b) =>
       wordCount(b.review) - wordCount(a.review) || byName(a.username, b.username))[0];
+    const isAlbum = albumRows.has(longest.spotifyId);
     cards.push(card("written-margins", "Written in the margins.",
-      `${names(writers.map((entry) => entry.listener))} left ${writers[0].words} words across ${writers[0].count} ${writers[0].count === 1 ? "note" : "notes"}.`,
-      { detail: `The longest single note was ${longest.username}'s ${wordCount(longest.review)}-word take on ${longest.name}.`,
+      `${names(writers.map((entry) => entry.listener))} wrote the most, across ${writers[0].count} ${writers[0].count === 1 ? "note" : "notes"}.`,
+      { stat: { value: thousands(writers[0].words), unit: "words" },
+        ranking: writerRows.length >= 2 ? [...writerRows].sort((a, b) => b.words - a.words || byName(a.label, b.label))
+          .slice(0, 6).map((entry) => rankRow(entry.label, entry.words, thousands(entry.words), {
+            highlight: writers.includes(entry), sub: `${entry.count} ${entry.count === 1 ? "note" : "notes"}`,
+          })) : [],
+        notes: [{ author: longest.username, text: String(longest.review).trim(),
+          about: longest.name, href: noteHref(longest, isAlbum ? "album" : "track") }],
         records: ordered(writers[0].records).slice(0, 3),
-        links: [
-          { href: noteHref(longest, albumRows.has(longest.spotifyId) ? "album" : "track"),
-            label: "Read that note →" },
-          ...(albumRows.has(longest.spotifyId) ? [] :
-            [{ href: `https://open.spotify.com/track/${encodeURIComponent(longest.spotifyId)}`,
-              label: "Play the track on Spotify ↗", external: true }]),
-        ] }));
+        links: isAlbum ? [] : [{ href: `https://open.spotify.com/track/${encodeURIComponent(longest.spotifyId)}`,
+          label: "Play the track on Spotify ↗", external: true }] }));
   }
 
   return cards;

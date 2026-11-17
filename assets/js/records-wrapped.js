@@ -79,62 +79,224 @@
     return paragraph;
   }
 
-  function recordList(records) {
+  function element(tag, className = "", text = "") {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== "") node.textContent = text;
+    return node;
+  }
+
+  function cover(record, className = "wrapped-cover") {
+    const link = element("a", className);
+    if (record.spotifyUrl) {
+      link.href = record.spotifyUrl;
+      link.target = "_blank";
+      link.rel = "noopener";
+    }
+    link.setAttribute("aria-label", `Open ${record.name} by ${record.artistName} in Spotify`);
+    if (record.imageUrl) {
+      const image = document.createElement("img");
+      image.src = record.imageUrl;
+      image.alt = `${record.name} album cover`;
+      image.loading = "lazy";
+      link.append(image);
+    } else {
+      link.append(element("span", "wrapped-record-placeholder", "no cover"));
+    }
+    return link;
+  }
+
+  function recordCopy(record) {
+    const copy = element("div", "wrapped-record-copy");
+    const title = element("a", "wrapped-record-title", record.name);
+    if (record.spotifyUrl) {
+      title.href = record.spotifyUrl;
+      title.target = "_blank";
+      title.rel = "noopener";
+    }
+    const year = releaseYear(record);
+    copy.append(title, element("span", "wrapped-record-meta", `${record.artistName}${year ? ` · ${year}` : ""}`));
+    if (record.caption) copy.append(element("span", "wrapped-record-caption", record.caption));
+    return copy;
+  }
+
+  function uniqueRecords(records) {
     const unique = new Map();
     for (const record of records || []) {
       if (record?.spotifyId && !unique.has(record.spotifyId)) unique.set(record.spotifyId, record);
     }
-    const list = document.createElement("ul");
-    list.className = "wrapped-records";
-    const hiddenList = document.createElement("ul");
-    hiddenList.className = "wrapped-records";
-    let index = 0;
-    for (const record of unique.values()) {
-      const item = document.createElement("li");
-      item.className = "wrapped-record";
-      const coverLink = document.createElement("a");
-      coverLink.href = record.spotifyUrl;
-      coverLink.target = "_blank";
-      coverLink.rel = "noopener";
-      coverLink.setAttribute("aria-label", `Open ${record.name} by ${record.artistName} in Spotify`);
-      if (record.imageUrl) {
-        const image = document.createElement("img");
-        image.src = record.imageUrl;
-        image.alt = `${record.name} album cover`;
-        image.loading = "lazy";
-        coverLink.append(image);
-      } else {
-        const placeholder = document.createElement("span");
-        placeholder.className = "wrapped-record-placeholder";
-        placeholder.textContent = "no cover";
-        coverLink.append(placeholder);
-      }
+    return [...unique.values()];
+  }
 
-      const copy = document.createElement("div");
-      copy.className = "wrapped-record-copy";
-      const title = document.createElement("a");
-      title.href = record.spotifyUrl;
-      title.target = "_blank";
-      title.rel = "noopener";
-      title.textContent = record.name;
-      const meta = document.createElement("span");
-      const year = releaseYear(record);
-      meta.textContent = `${record.artistName}${year ? ` · ${year}` : ""}`;
-      copy.append(title, meta);
-      if (record.caption) copy.append(textParagraph(record.caption, "wrapped-record-caption"));
-      item.append(coverLink, copy);
-      (index < 5 ? list : hiddenList).append(item);
-      index += 1;
+  // Few records get big covers; more records shrink into a grid, then a list.
+  function recordLayout(count) {
+    if (count === 1) return "feature";
+    if (count === 2) return "pair";
+    if (count <= 6) return "grid";
+    return "list";
+  }
+
+  function recordBlock(records) {
+    const layout = recordLayout(records.length);
+    const list = element("ul", `wrapped-records wrapped-records-${layout}`);
+    if (layout === "grid") {
+      list.style.setProperty("--columns", String(records.length));
+      list.style.setProperty("--tile", records.length <= 4 ? "12rem" : "8.5rem");
     }
-    if (!hiddenList.children.length) return list;
+    const hidden = element("ul", "wrapped-records wrapped-records-list");
+    records.forEach((record, index) => {
+      const item = element("li", "wrapped-record");
+      item.append(cover(record), recordCopy(record));
+      (layout === "list" && index >= 5 ? hidden : list).append(item);
+    });
+    if (!hidden.children.length) return list;
     const fragment = document.createDocumentFragment();
-    const more = document.createElement("details");
-    more.className = "wrapped-more";
-    const summary = document.createElement("summary");
-    summary.textContent = `Show ${hiddenList.children.length} more records`;
-    more.append(summary, hiddenList);
+    const more = element("details", "wrapped-more");
+    more.append(element("summary", "", `Show ${hidden.children.length} more records`), hidden);
     fragment.append(list, more);
     return fragment;
+  }
+
+  function meter(fill, highlight = false) {
+    const bar = element("span", `wrapped-meter${highlight ? " is-highlight" : ""}`);
+    bar.setAttribute("aria-hidden", "true");
+    bar.style.setProperty("--fill", String(Math.max(0, Math.min(1, fill))));
+    return bar;
+  }
+
+  function statBlock(stat) {
+    const block = element("p", "wrapped-hero-stat");
+    block.append(element("span", "wrapped-hero-value", String(stat.value)));
+    if (stat.unit) block.append(element("span", "wrapped-hero-unit", stat.unit));
+    return block;
+  }
+
+  function rankingBlock(ranking) {
+    const maximum = Math.max(...ranking.map((row) => Number(row.value) || 0)) || 1;
+    const list = element("ol", "wrapped-ranking");
+    ranking.forEach((row, index) => {
+      const item = element("li", `wrapped-rank${row.highlight ? " is-highlight" : ""}`);
+      item.append(element("span", "wrapped-rank-number", String(index + 1)));
+      if (row.imageUrl) {
+        const thumb = document.createElement("img");
+        thumb.className = "wrapped-rank-thumb";
+        thumb.src = row.imageUrl;
+        thumb.alt = "";
+        thumb.loading = "lazy";
+        item.append(thumb);
+      }
+      const label = element("span", "wrapped-rank-label");
+      label.append(element("span", "wrapped-rank-name", row.name));
+      if (row.sub) label.append(element("span", "wrapped-rank-sub", row.sub));
+      const value = element("span", "wrapped-rank-value");
+      value.append(element("span", "wrapped-rank-display", row.display),
+        meter((Number(row.value) || 0) / maximum, row.highlight));
+      item.append(label, value);
+      list.append(item);
+    });
+    return list;
+  }
+
+  function mixBlock(mix) {
+    const maximum = Math.max(...mix.flatMap((side) => side.genres.map((genre) => genre.share))) || 1;
+    const block = element("div", "wrapped-mix");
+    for (const side of mix) {
+      const column = element("div", "wrapped-mix-side");
+      column.append(element("p", "wrapped-mix-name", side.name));
+      const list = element("ul", "wrapped-mix-genres");
+      for (const genre of side.genres) {
+        const item = element("li", genre.shared ? "is-shared" : "");
+        item.append(element("span", "wrapped-mix-genre", genre.genre),
+          element("span", "wrapped-mix-share", `${Math.round(genre.share * 100)}%`),
+          meter(genre.share / maximum, genre.shared));
+        list.append(item);
+      }
+      column.append(list);
+      block.append(column);
+    }
+    return block;
+  }
+
+  function timelineBlock(timeline) {
+    const start = Math.min(timeline.from, timeline.echo?.year ?? timeline.from);
+    const span = Math.max(1, timeline.to - start);
+    const at = (year) => `${((year - start) / span) * 100}%`;
+    const block = element("div", "wrapped-timeline");
+    block.setAttribute("aria-hidden", "true");
+    const axis = element("div", "wrapped-timeline-axis");
+    if (timeline.echo) {
+      const before = element("span", "wrapped-timeline-span is-echo");
+      before.style.left = at(timeline.echo.year);
+      before.style.width = `calc(${at(timeline.from)} - ${at(timeline.echo.year)})`;
+      axis.append(before);
+    }
+    const reach = element("span", "wrapped-timeline-span");
+    reach.style.left = at(timeline.from);
+    reach.style.width = `calc(${at(timeline.to)} - ${at(timeline.from)})`;
+    axis.append(reach);
+    const stacks = new Map();
+    for (const point of timeline.points) {
+      const level = stacks.get(point.year) || 0;
+      stacks.set(point.year, level + 1);
+      const dot = element("span", "wrapped-timeline-dot");
+      dot.style.left = at(point.year);
+      dot.style.setProperty("--level", String(Math.min(level, 4)));
+      dot.title = `${point.name} · ${point.artistName} · ${point.year}`;
+      axis.append(dot);
+    }
+    const ticks = [[timeline.from, ""], [timeline.to, ""]];
+    if (timeline.echo) ticks.unshift([timeline.echo.year, "is-echo"]);
+    ticks[0][1] += " is-start";
+    ticks[ticks.length - 1][1] += " is-end";
+    for (const [year, className] of ticks) {
+      const tick = element("span", `wrapped-timeline-tick ${className}`.trim(), String(year));
+      tick.style.left = at(year);
+      axis.append(tick);
+    }
+    block.append(axis);
+    return block;
+  }
+
+  function notesBlock(notes) {
+    const list = element("div", "wrapped-note-excerpts");
+    for (const note of notes) {
+      const block = document.createElement("blockquote");
+      const footer = document.createElement("footer");
+      footer.append(element("span", "", `— ${note.author}${note.about ? ` · ${note.about}` : ""} · `));
+      const link = element("a", "", "Read in full →");
+      link.href = note.href;
+      footer.append(link);
+      block.append(element("p", "", note.text), footer);
+      list.append(block);
+    }
+    return list;
+  }
+
+  function wordMapBlock(wordMap) {
+    const map = element("div", "wrapped-word-map");
+    map.setAttribute("aria-label", "Repeated words in members’ notes");
+    const maximum = Math.max(...wordMap.map((entry) => entry.count));
+    for (const entry of wordMap) {
+      const link = element("a", `wrapped-word wrapped-word-${Math.min(4, Math.ceil(entry.count / maximum * 4))}`, entry.word);
+      link.href = `/records/lists/?q=${encodeURIComponent(entry.word)}`;
+      link.setAttribute("aria-label", `${entry.word}, in ${entry.count} notes; find the notes`);
+      map.append(link);
+    }
+    return map;
+  }
+
+  function linksBlock(links) {
+    const navigation = element("p", "wrapped-story-links");
+    for (const item of links) {
+      const link = element("a", "", item.label);
+      link.href = item.href;
+      if (item.external) {
+        link.target = "_blank";
+        link.rel = "noopener";
+      }
+      navigation.append(link);
+    }
+    return navigation;
   }
 
   const CAST_COLUMNS = [
@@ -217,71 +379,54 @@
     return table;
   }
 
-  function buildStory({ title, lede, detail = "", records = [], notes = [], wordMap = [], links = [], status = "", cast = [] }) {
-    const article = document.createElement("article");
-    article.className = "wrapped-story";
+  function buildStory({
+    id = "", title, lede, detail = "", records = [], notes = [], wordMap = [], links = [], status = "",
+    cast = [], stat = null, ranking = [], mix = [], timeline = null, chips = [], fact = "",
+  }) {
+    const article = element("article", "wrapped-story");
     article.setAttribute("aria-roledescription", "slide");
+    if (id) article.dataset.card = id;
 
-    const copy = document.createElement("div");
-    copy.className = "wrapped-story-copy";
-    const heading = document.createElement("h2");
-    heading.textContent = title;
-    copy.append(heading);
-    if (status) copy.append(textParagraph(status, "wrapped-story-status"));
-    if (lede) copy.append(textParagraph(lede, "wrapped-story-lede"));
-    if (detail) copy.append(textParagraph(detail, "wrapped-story-detail"));
-    if (cast.length) copy.append(castTable(cast));
-    if (records.length) copy.append(recordList(records));
-    if (notes.length) {
-      const noteList = document.createElement("div");
-      noteList.className = "wrapped-note-excerpts";
-      for (const note of notes) {
-        const block = document.createElement("blockquote");
-        const excerpt = document.createElement("p");
-        excerpt.textContent = note.text;
-        const footer = document.createElement("footer");
-        const author = document.createElement("span");
-        author.textContent = `— ${note.author} · `;
-        const link = document.createElement("a");
-        link.href = note.href;
-        link.textContent = "Read in full →";
-        footer.append(author, link);
-        block.append(excerpt, footer);
-        noteList.append(block);
-      }
-      copy.append(noteList);
+    const head = element("header", "wrapped-story-head");
+    head.append(element("h2", "", title));
+    if (status) head.append(element("p", "wrapped-story-status", status));
+    if (lede) head.append(element("p", "wrapped-story-lede", lede));
+    if (detail) head.append(element("p", "wrapped-story-detail", detail));
+
+    const main = element("div", "wrapped-story-main");
+    if (stat) main.append(statBlock(stat));
+    if (fact) main.append(element("p", "wrapped-fact", fact));
+    if (timeline?.points?.length) main.append(timelineBlock(timeline));
+    if (mix?.length) main.append(mixBlock(mix));
+    if (chips?.length) {
+      const list = element("ul", "wrapped-chips");
+      for (const chip of chips) list.append(element("li", "", chip));
+      main.append(list);
     }
-    if (wordMap.length) {
-      const map = document.createElement("div");
-      map.className = "wrapped-word-map";
-      map.setAttribute("aria-label", "Repeated words in members’ notes");
-      const maximum = Math.max(...wordMap.map((entry) => entry.count));
-      for (const entry of wordMap) {
-        const link = document.createElement("a");
-        link.href = `/records/lists/?q=${encodeURIComponent(entry.word)}`;
-        link.className = `wrapped-word wrapped-word-${Math.min(4, Math.ceil(entry.count / maximum * 4))}`;
-        link.textContent = entry.word;
-        link.setAttribute("aria-label", `${entry.word}, in ${entry.count} notes; find the notes`);
-        map.append(link);
-      }
-      copy.append(map);
+    if (cast?.length) main.append(castTable(cast));
+    if (wordMap?.length) main.append(wordMapBlock(wordMap));
+    if (notes?.length) main.append(notesBlock(notes));
+    if (ranking?.length) main.append(rankingBlock(ranking));
+    if (links?.length) main.append(linksBlock(links));
+
+    const unique = uniqueRecords(records);
+    const layout = unique.length ? recordLayout(unique.length) : "";
+    const body = element("div", "wrapped-story-body");
+    body.append(main);
+    if (layout === "feature" || layout === "pair") {
+      const side = element("div", "wrapped-story-side");
+      side.append(recordBlock(unique));
+      body.append(side);
+      body.classList.add("has-side");
     }
-    if (links.length) {
-      const navigation = document.createElement("p");
-      navigation.className = "wrapped-story-links";
-      for (const item of links) {
-        const link = document.createElement("a");
-        link.href = item.href;
-        link.textContent = item.label;
-        if (item.external) {
-          link.target = "_blank";
-          link.rel = "noopener";
-        }
-        navigation.append(link);
-      }
-      copy.append(navigation);
-    }
-    article.append(copy);
+    article.append(head, body);
+    if (layout === "grid" || layout === "list") article.append(recordBlock(unique));
+
+    // Size each slide by how much it carries: sparse slides center and grow, dense ones tighten.
+    const blocks = main.children.length;
+    const heavy = (ranking?.length || 0) > 5 || unique.length > 6 || (notes?.length || 0) > 1
+      || (cast?.length || 0) > 8;
+    article.dataset.density = heavy ? "dense" : blocks <= 2 && unique.length <= 2 ? "sparse" : "standard";
     return article;
   }
 
@@ -400,6 +545,9 @@
       } else if (event.key === "ArrowLeft") {
         event.preventDefault();
         showSlide(slideIndex - 1);
+      } else if (event.key.toLowerCase() === "f" && fullscreenSupported()) {
+        event.preventDefault();
+        void toggleFullscreen();
       }
     });
     let touchStart = null;
