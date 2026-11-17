@@ -155,26 +155,33 @@ const noteHref = (row, kind = "album") =>
   `/records/lists/#${kind}-note-${encodeURIComponent(row.userId)}-${encodeURIComponent(row.spotifyId)}`;
 
 const NOTE_STOP_WORDS = new Set((
-  "about after again album albums also always and are back been being best but can cant could " +
-  "did didnt does dont each even every feel felt first for from get got good great had has have " +
-  "here how into its it's just last like listen listening love loved many more most much music " +
-  "not now only our out over really record records she should song songs still than that thats " +
-  "the their them there these they this those through time too track tracks very was were what " +
-  "when where which while who why will with would your you"
+  "about above after again album albums also always another anything around because before being " +
+  "been best both cant come could didnt does doesnt dont down each even ever every everything feel " +
+  "felt first from gets give going gonna good great have here i'd i'll i'm i've into it'd it'll it's " +
+  "just know last less like listen listening little lots love loved made make many maybe more most " +
+  "much music never next nothing once only other over pretty probably quite rather really record " +
+  "records same said seems should since some something song songs sort still such sure take than " +
+  "that that's thats their them then there there's these they thing things think this those though " +
+  "through time took track tracks very want wasn't were what when where which while whole will with " +
+  "within without would yeah year years your you're you've"
 ).split(" "));
 
-function noteWordMap(rows) {
-  const counts = new Map();
+function noteWordMap(rows, limit = 40) {
+  const notes = new Map();
+  const uses = new Map();
   for (const row of rows) {
-    const words = new Set((String(row.review || "").toLocaleLowerCase()
-      .match(/[\p{L}][\p{L}\p{N}'’-]*/gu) || [])
-      .map((word) => word.replace(/^[’']+|[’']+$/g, ""))
-      .filter((word) => word.length >= 4 && !NOTE_STOP_WORDS.has(word)));
-    for (const word of words) counts.set(word, (counts.get(word) || 0) + 1);
+    const words = (String(row.review || "").toLocaleLowerCase().replace(/’/g, "'")
+      .match(/[\p{L}][\p{L}\p{N}'-]*/gu) || [])
+      .map((word) => word.replace(/^'+|'+$/g, ""))
+      .filter((word) => word.length >= 4 && !NOTE_STOP_WORDS.has(word));
+    for (const word of words) uses.set(word, (uses.get(word) || 0) + 1);
+    for (const word of new Set(words)) notes.set(word, (notes.get(word) || 0) + 1);
   }
-  return [...counts]
-    .sort((a, b) => b[1] - a[1] || byName(a[0], b[0]))
-    .slice(0, 16)
+  // Size is the number of notes using a word; total uses and length only break ties.
+  return [...notes]
+    .sort((a, b) => b[1] - a[1] || uses.get(b[0]) - uses.get(a[0])
+      || b[0].length - a[0].length || byName(a[0], b[0]))
+    .slice(0, limit)
     .map(([word, count]) => ({ word, count }));
 }
 

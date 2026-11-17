@@ -293,16 +293,86 @@
     return list;
   }
 
+  // Word cloud: biggest words go in the middle, the rest spiral outward into free space.
+  const measureCanvas = document.createElement("canvas");
+
+  function layoutWordMap(map) {
+    const width = map.clientWidth;
+    if (!width || map.dataset.laidOutWidth === String(width)) return;
+    map.dataset.laidOutWidth = String(width);
+    const context = measureCanvas.getContext("2d");
+    const family = getComputedStyle(map).fontFamily;
+    const words = [...map.querySelectorAll(".wrapped-word")];
+    const counts = words.map((word) => Number(word.dataset.count));
+    const most = Math.max(...counts);
+    const least = Math.min(...counts);
+    const largest = Math.min(72, width / 5.5);
+    const stretch = Math.max(1, Math.min(2, width / 320));
+    const smallest = Math.max(14, Math.min(17, width / 26));
+    const gap = Math.max(4, width / 120);
+    const placed = [];
+    const overlaps = (box) => placed.some((other) =>
+      box.left < other.right && box.right > other.left && box.top < other.bottom && box.bottom > other.top);
+    for (const word of words) {
+      const share = most === least ? 1 : (Number(word.dataset.count) - least) / (most - least);
+      const size = Math.round(smallest + (largest - smallest) * share);
+      const weight = share >= 0.5 ? 700 : 400;
+      context.font = `${weight} ${size}px ${family}`;
+      const boxWidth = context.measureText(word.textContent).width + gap;
+      const boxHeight = size * 1.05 + gap * 0.6;
+      let box = null;
+      for (let step = 0; step < 4000; step++) {
+        const angle = step * 0.28;
+        const radius = angle * Math.max(2, size / 14);
+        const x = width / 2 + radius * Math.cos(angle) * stretch - boxWidth / 2;
+        const y = radius * Math.sin(angle) - boxHeight / 2;
+        if (x < 0 || x + boxWidth > width) continue;
+        const candidate = { left: x, top: y, right: x + boxWidth, bottom: y + boxHeight };
+        if (!overlaps(candidate)) {
+          box = candidate;
+          break;
+        }
+      }
+      word.hidden = !box;
+      if (!box) continue;
+      placed.push(box);
+      word.style.fontSize = `${size}px`;
+      word.style.fontWeight = String(weight);
+      word.dataset.tier = String(Math.min(4, Math.ceil(share * 4)) || 1);
+      word.box = box;
+    }
+    const top = Math.min(...placed.map((box) => box.top));
+    const bottom = Math.max(...placed.map((box) => box.bottom));
+    for (const word of words) {
+      if (!word.box) continue;
+      word.style.left = `${word.box.left + gap / 2}px`;
+      word.style.top = `${word.box.top - top + gap * 0.3}px`;
+    }
+    map.style.height = `${Math.ceil(bottom - top)}px`;
+  }
+
+  const wordMapObserver = typeof ResizeObserver === "function"
+    ? new ResizeObserver((entries) => entries.forEach((entry) => layoutWordMap(entry.target)))
+    : null;
+
   function wordMapBlock(wordMap) {
     const map = element("div", "wrapped-word-map");
     map.setAttribute("aria-label", "Repeated words in members’ notes");
-    const maximum = Math.max(...wordMap.map((entry) => entry.count));
     for (const entry of wordMap) {
-      const link = element("a", `wrapped-word wrapped-word-${Math.min(4, Math.ceil(entry.count / maximum * 4))}`, entry.word);
+      const link = element("a", "wrapped-word", entry.word);
       link.href = `/records/lists/?q=${encodeURIComponent(entry.word)}`;
+      link.dataset.count = String(entry.count);
+      link.title = `${entry.word} · ${entry.count} ${entry.count === 1 ? "note" : "notes"}`;
       link.setAttribute("aria-label", `${entry.word}, in ${entry.count} notes; find the notes`);
       map.append(link);
     }
+    if (wordMapObserver) wordMapObserver.observe(map);
+    else requestAnimationFrame(() => layoutWordMap(map));
+    // Measure again once the web font is in, so boxes match the real glyphs.
+    document.fonts?.ready.then(() => {
+      delete map.dataset.laidOutWidth;
+      layoutWordMap(map);
+    });
     return map;
   }
 

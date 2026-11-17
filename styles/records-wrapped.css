@@ -213,11 +213,6 @@
   padding: 1.6rem 0 2rem;
 }
 
-/* Sparse slides sit in the middle of the screen; dense ones start at the top. */
-.wrapped-story[data-density="sparse"] {
-  margin-block: auto;
-}
-
 .wrapped-story h2 {
   margin: 0 0 0.5rem;
   font-size: clamp(1.6rem, 2.6vw, 2.1rem);
@@ -880,25 +875,47 @@ button.wrapped-rank-row:focus-visible {
   font-size: 0.82rem;
 }
 
+/* Word cloud: positions come from the script; size and weight track how many notes use a word.
+   The long selectors outrank main.css link colors so the color tiers show. */
 .wrapped-word-map {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.9rem;
-  max-width: 62ch;
-  margin-top: 1rem;
-  line-height: 1.35;
+  position: relative;
+  width: 100%;
+  min-height: 8rem;
 }
 
-.wrapped-word-map a {
+.wrapped-word-map .wrapped-word {
+  position: absolute;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 120ms ease-out;
+}
+
+.wrapped-story .wrapped-word-map a.wrapped-word:is(:link, :visited) {
+  color: var(--color-text-muted);
+}
+
+.wrapped-story .wrapped-word-map a.wrapped-word[data-tier="2"]:is(:link, :visited) {
   color: var(--color-text);
-  text-decoration-thickness: 1px;
 }
 
-.wrapped-word-1 { font-size: 1rem; }
-.wrapped-word-2 { font-size: 1.3rem; }
-.wrapped-word-3 { font-size: 1.7rem; }
-.wrapped-word-4 { font-size: 2.2rem; font-weight: 700; }
+.wrapped-story .wrapped-word-map a.wrapped-word[data-tier="3"]:is(:link, :visited),
+.wrapped-story .wrapped-word-map a.wrapped-word[data-tier="4"]:is(:link, :visited) {
+  color: var(--wrapped-accent);
+}
+
+.wrapped-story .wrapped-word-map a.wrapped-word:is(:link, :visited):hover,
+.wrapped-story .wrapped-word-map a.wrapped-word:is(:link, :visited):focus-visible {
+  color: var(--link-internal);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+.wrapped-word-map .wrapped-word:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
 
 .wrapped-story-links {
   display: flex;
