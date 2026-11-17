@@ -10,9 +10,12 @@ import {
 import {
   MATCH_RECORD_ANSWER_COUNT,
   MATCH_RECORD_CHOICE_COUNT,
-  normalizeMatchGuesses,
-  scoreMatchGuesses,
+  MATCH_RECORD_MAX_MISSES,
+  matchRoundProgress,
+  nextMatchNote,
+  normalizeMatchAlbumId,
 } from "../_shared/match-record-game.js";
+import { answerKey } from "../_shared/record-game-clues.js";
 import { RECORD_SEASON } from "../_shared/records-config.js";
 
 const ROUND_TTL_MS = 6 * 60 * 60 * 1000;
@@ -37,7 +40,7 @@ async function getScoreboard(db, playerId) {
     `SELECT
        COALESCE(SUM(correct_count), 0) AS totalMatches,
        COUNT(*) AS roundsPlayed,
-       COALESCE(SUM(CASE WHEN correct_count = 2 THEN 1 ELSE 0 END), 0) AS perfectRounds
+       COALESCE(SUM(CASE WHEN correct_count = 2 AND misses = 0 THEN 1 ELSE 0 END), 0) AS perfectRounds
      FROM record_match_results
      WHERE player_user_id = ?`,
   ).bind(playerId).first();
@@ -195,6 +198,9 @@ async function createRound(db, player) {
       spotifyUrl: choice.spotifyUrl,
     })),
     pickCount: MATCH_RECORD_ANSWER_COUNT,
+    maxMisses: MATCH_RECORD_MAX_MISSES,
+    // One fingerprint per answer, so the page can mark a tap right or wrong at once.
+    answerKeys: (await Promise.all(answers.map((album) => answerKey(roundId, album.spotifyId)))).sort(),
     scoreboard,
   };
 }
@@ -205,6 +211,7 @@ async function getRound(db, roundId, player) {
        round.id,
        round.completed_at AS completedAt,
        round.expires_at AS expiresAt,
+       target.id AS targetUserId,
        target.username AS targetUsername
      FROM record_match_rounds round
      JOIN record_users target ON target.id = round.target_user_id
@@ -223,72 +230,160 @@ async function getRound(db, roundId, player) {
   return round;
 }
 
-async function getRoundChoices(db, roundId) {
+async function getRoundChoices(db, round) {
   const choices = await db.prepare(
     `SELECT
        choice.spotify_album_id AS spotifyId,
        choice.is_answer AS isAnswer,
+       choice.display_order AS displayOrder,
+       choice.picked_at AS pickedAt,
+       choice.note_revealed_at AS noteRevealedAt,
        album.name,
        album.artist_name AS artistName,
-       album.image_url AS imageUrl
+       album.image_url AS imageUrl,
+       album.spotify_url AS spotifyUrl,
+       note_item.review AS note
      FROM record_match_round_albums choice
      JOIN record_albums album ON album.spotify_id = choice.spotify_album_id
+     LEFT JOIN record_list_items note_item
+       ON choice.is_answer = 1
+       AND note_item.user_id = ?
+       AND note_item.season = ?
+       AND note_item.spotify_album_id = choice.spotify_album_id
      WHERE choice.round_id = ?
      ORDER BY choice.display_order ASC`,
-  ).bind(roundId).all();
+  ).bind(round.targetUserId, RECORD_SEASON, round.id).all();
 
-  return choices.results || [];
+  return (choices.results || []).map((choice) => ({
+    ...choice,
+    isAnswer: Boolean(choice.isAnswer),
+    note: String(choice.note || "").trim(),
+  }));
 }
 
-async function guessRound(db, player, body) {
+// Who in the group picked each album on the board, for the end-of-round reveal.
+async function getRoundPickers(db, player, albumIds) {
+  const placeholders = albumIds.map(() => "?").join(", ");
+  const pickers = await db.prepare(
+    `SELECT
+       item.spotify_album_id AS spotifyId,
+       item.user_id AS userId,
+       picker.username
+     FROM record_list_items item
+     JOIN record_users picker ON picker.id = item.user_id
+     WHERE item.season = ?
+       AND picker.group_id = ?
+       AND item.spotify_album_id IN (${placeholders})
+     ORDER BY picker.username COLLATE NOCASE ASC`,
+  ).bind(RECORD_SEASON, player.groupId, ...albumIds).all();
+
+  const byAlbum = new Map();
+  for (const picker of pickers.results || []) {
+    if (!byAlbum.has(picker.spotifyId)) byAlbum.set(picker.spotifyId, []);
+    byAlbum.get(picker.spotifyId).push(picker);
+  }
+  return byAlbum;
+}
+
+async function revealChoices(db, player, round, choices) {
+  const pickersByAlbum = await getRoundPickers(db, player, choices.map((choice) => choice.spotifyId));
+  return choices.map((choice) => ({
+    spotifyId: choice.spotifyId,
+    imageUrl: choice.imageUrl,
+    name: choice.name,
+    artistName: choice.artistName,
+    spotifyUrl: choice.spotifyUrl,
+    isAnswer: choice.isAnswer,
+    picked: Boolean(choice.pickedAt),
+    note: choice.isAnswer ? choice.note : "",
+    pickedBy: choice.isAnswer
+      ? []
+      : (pickersByAlbum.get(choice.spotifyId) || [])
+        .filter((picker) => picker.userId !== round.targetUserId)
+        .map((picker) => (picker.userId === player.id ? "you" : picker.username)),
+  }));
+}
+
+async function pickRound(db, player, body) {
   const roundId = String(body.roundId || "").trim();
-  const guessedAlbumIds = normalizeMatchGuesses(body.albumIds);
-  if (!roundId || roundId.length > 64 || !guessedAlbumIds) {
-    throw new HttpError("Choose exactly two of the listed records.", 400, "invalid_match_guess");
+  const albumId = normalizeMatchAlbumId(body.albumId);
+  if (!roundId || roundId.length > 64 || !albumId) {
+    throw new HttpError("Choose one of the listed records.", 400, "invalid_match_pick");
   }
 
   const round = await getRound(db, roundId, player);
-  const choices = await getRoundChoices(db, roundId);
-  const choiceIds = new Set(choices.map((choice) => choice.spotifyId));
+  const choices = await getRoundChoices(db, round);
+  const choice = choices.find((item) => item.spotifyId === albumId);
+  if (!choice) {
+    throw new HttpError("Choose one of the listed records.", 400, "invalid_match_pick");
+  }
+  if (choice.pickedAt) {
+    throw new HttpError("You already tried that record.", 409, "duplicate_match_pick");
+  }
   if (
     choices.length !== MATCH_RECORD_CHOICE_COUNT
-    || guessedAlbumIds.some((albumId) => !choiceIds.has(albumId))
+    || choices.filter((item) => item.isAnswer).length !== MATCH_RECORD_ANSWER_COUNT
   ) {
-    throw new HttpError("Choose exactly two of the listed records.", 400, "invalid_match_guess");
-  }
-
-  const { answerIds, correctCount } = scoreMatchGuesses(choices, guessedAlbumIds);
-  if (answerIds.length !== MATCH_RECORD_ANSWER_COUNT) {
     throw new HttpError("That round is no longer available.", 410, "round_expired");
   }
 
-  const completedAt = new Date().toISOString();
-  await db.batch([
+  const now = new Date().toISOString();
+  choice.pickedAt = now;
+  const progress = matchRoundProgress(choices);
+  const statements = [
     db.prepare(
-      `UPDATE record_match_rounds
-       SET completed_at = ?
-       WHERE id = ? AND player_user_id = ? AND completed_at IS NULL`,
-    ).bind(completedAt, roundId, player.id),
-    db.prepare(
-      `INSERT INTO record_match_results
-         (round_id, player_user_id, correct_count, completed_at)
-       VALUES (?, ?, ?, ?)`,
-    ).bind(roundId, player.id, correctCount, completedAt),
-  ]);
+      `UPDATE record_match_round_albums SET picked_at = ?
+       WHERE round_id = ? AND spotify_album_id = ? AND picked_at IS NULL`,
+    ).bind(now, round.id, albumId),
+  ];
 
-  return {
-    correctCount,
-    perfect: correctCount === MATCH_RECORD_ANSWER_COUNT,
-    listener: { username: round.targetUsername },
-    choices: choices.map((choice) => ({
-      spotifyId: choice.spotifyId,
-      imageUrl: choice.imageUrl,
-      name: choice.name,
-      artistName: choice.artistName,
-      isAnswer: Boolean(choice.isAnswer),
-    })),
-    scoreboard: await getScoreboard(db, player.id),
+  // A miss that leaves the round going unlocks one of the listener's notes.
+  if (!choice.isAnswer && !progress.finished) {
+    const unlocked = nextMatchNote(choices);
+    if (unlocked) {
+      unlocked.noteRevealedAt = now;
+      statements.push(db.prepare(
+        `UPDATE record_match_round_albums SET note_revealed_at = ?
+         WHERE round_id = ? AND spotify_album_id = ?`,
+      ).bind(now, round.id, unlocked.spotifyId));
+    }
+  }
+
+  if (progress.finished) {
+    statements.push(db.prepare(
+      `UPDATE record_match_rounds SET completed_at = ?
+       WHERE id = ? AND player_user_id = ? AND completed_at IS NULL`,
+    ).bind(now, round.id, player.id));
+    statements.push(db.prepare(
+      `INSERT INTO record_match_results
+         (round_id, player_user_id, correct_count, misses, completed_at)
+       VALUES (?, ?, ?, ?, ?)`,
+    ).bind(round.id, player.id, progress.found, progress.misses, now));
+  }
+  await db.batch(statements);
+
+  const response = {
+    correct: choice.isAnswer,
+    misses: progress.misses,
+    solved: progress.solved,
+    finished: progress.finished,
+    maxMisses: MATCH_RECORD_MAX_MISSES,
+    // Records found so far, with the listener's note on each.
+    found: choices
+      .filter((item) => item.isAnswer && item.pickedAt)
+      .map((item) => ({ spotifyId: item.spotifyId, note: item.note })),
+    foundCount: progress.found,
+    // Unlocked notes, in the order they were unlocked. They don't say which record.
+    clues: choices
+      .filter((item) => item.noteRevealedAt)
+      .sort((a, b) => a.noteRevealedAt.localeCompare(b.noteRevealedAt) || a.displayOrder - b.displayOrder)
+      .map((item) => ({ note: item.note })),
   };
+  if (progress.finished) {
+    response.choices = await revealChoices(db, player, round, choices);
+    response.scoreboard = await getScoreboard(db, player.id);
+  }
+  return response;
 }
 
 export async function onRequestPost({ request, env }) {
@@ -305,8 +400,8 @@ export async function onRequestPost({ request, env }) {
     if (body.action === "new") {
       return json(await createRound(db, user));
     }
-    if (body.action === "guess") {
-      return json(await guessRound(db, user, body));
+    if (body.action === "pick") {
+      return json(await pickRound(db, user, body));
     }
     throw new HttpError("Choose a valid game action.", 400, "invalid_game_action");
   } catch (error) {

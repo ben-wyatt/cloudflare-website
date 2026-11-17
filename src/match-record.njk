@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Match The Record · Record Club
 permalink: "/records/match/"
-pageStyles: "/styles/records.css?v=instant-guess"
-pageScript: "/assets/js/match-record.js?v=fullscreen"
+pageStyles: "/styles/records.css?v=one-pick"
+pageScript: "/assets/js/match-record.js?v=one-pick"
 bodyClass: "records-page record-game-page record-match-page"
 ---
 
@@ -54,6 +54,7 @@ bodyClass: "records-page record-game-page record-match-page"
         <h2 id="match-listener-prompt"><span id="match-listener-name"></span>'s records</h2>
         <p>{{ recordCopy.matchRoundPrompt | safe }}</p>
       </div>
+      <ol id="match-clues" class="match-clues" aria-live="polite" hidden></ol>
 
       <div id="match-choices" class="match-choices" role="group" aria-label="Eight album choices"></div>
 
@@ -66,20 +67,17 @@ bodyClass: "records-page record-game-page record-match-page"
           </div>
           <button id="match-details-close" class="records-text-button" type="button" aria-label="Close record details">Close ×</button>
         </div>
+        <p id="match-details-note" class="match-details-note" hidden></p>
         <p><a id="match-details-spotify" href="#" target="_blank" rel="noopener noreferrer">Open album on Spotify ↗</a></p>
         <h3>Track list</h3>
         <div id="match-details-tracks" role="status" aria-live="polite"></div>
       </dialog>
 
-      <div class="match-controls">
-        <p id="match-selection-count" class="match-selection-count">0 / 2 selected</p>
-        <button id="match-submit" class="records-primary" type="button" disabled>Lock in two covers</button>
-      </div>
       <p id="match-status" class="game-status match-status" role="status" aria-live="polite"></p>
     </section>
 
     <div class="game-footer">
-      <button id="match-next" class="records-text-button game-next" type="button" hidden>Next listener -&gt;</button>
+      <button id="match-next" class="records-text-button game-next" type="button" hidden>Next listener <kbd aria-hidden="true">↵</kbd></button>
     </div>
   </div>
 </section>

@@ -50,7 +50,7 @@ One listener picked two of these eight records. Explore the track lists, then fi
 
 ## Match The Record round prompt
 
-Select the two covers that listener picked.
+Tap a cover you think they picked. Each miss unlocks one of their notes; the third miss ends the round.
 
 ## The whole room introduction
 

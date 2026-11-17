@@ -1540,6 +1540,33 @@ button:disabled {
   font-size: 0.76rem;
 }
 
+.match-reveal {
+  margin: 0.35rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.match-reveal-note {
+  display: -webkit-box;
+  padding-left: 0.5rem;
+  overflow: hidden;
+  border-left: 2px solid var(--game-correct);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+}
+
+.match-reveal-owner {
+  color: var(--color-text-muted);
+}
+
+.match-details-note {
+  margin: 0.85rem 0 0;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--game-correct);
+  line-height: 1.5;
+}
+
 .match-details-button {
   align-self: flex-start;
   margin-top: auto;
@@ -1596,22 +1623,41 @@ button:disabled {
   padding: 0.15rem 0;
 }
 
-.match-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1.25rem;
-}
-
-.match-selection-count {
-  margin: 0;
-  color: var(--em-color);
-  font-size: 0.86rem;
-}
-
 .match-status {
   text-align: center;
+}
+
+/* Notes unlocked by misses: they don't say which record they belong to. */
+.match-clues {
+  display: grid;
+  gap: 0.6rem;
+  max-width: 40rem;
+  margin: 0 auto 1.1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.match-clue {
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--game-primary);
+  animation: game-round-in 320ms ease-out both;
+}
+
+.match-clue p {
+  margin: 0.1rem 0 0;
+  line-height: 1.45;
+}
+
+.match-choice:disabled {
+  cursor: default;
+}
+
+.match-choice.is-new.is-wrong {
+  animation: game-choice-wrong 380ms ease-out;
+}
+
+.match-choice.is-new.is-correct {
+  animation: game-choice-correct 560ms cubic-bezier(0.2, 0.9, 0.25, 1.25);
 }
 
 @keyframes game-round-in {
@@ -1677,6 +1723,8 @@ button:disabled {
 
   .game-round.is-entering,
   .match-round.is-entering,
+  .match-clue,
+  .match-choice.is-new,
   .game-round.is-solved .game-cover-wrap,
   .game-choice.is-pending,
   .game-choice.is-new-wrong,
@@ -1779,17 +1827,4 @@ button:disabled {
     max-width: min(18rem, 80vw);
   }
 
-  .match-controls {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 0.55rem;
-  }
-
-  .match-selection-count {
-    text-align: center;
-  }
-
-  .match-controls .records-primary {
-    width: 100%;
-  }
 }
