@@ -283,10 +283,13 @@
     for (const note of notes) {
       const block = document.createElement("blockquote");
       const footer = document.createElement("footer");
-      footer.append(element("span", "", `— ${note.author}${note.about ? ` · ${note.about}` : ""} · `));
-      const link = element("a", "", "Read in full →");
-      link.href = note.href;
-      footer.append(link);
+      // The note is shown in full; the record name links to it on the lists page.
+      footer.append(element("span", "", `— ${note.author}${note.about ? " · " : ""}`));
+      if (note.about) {
+        const link = element("a", "", note.about);
+        link.href = note.href;
+        footer.append(link);
+      }
       block.append(element("p", "", note.text), footer);
       list.append(block);
     }

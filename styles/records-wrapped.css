@@ -863,8 +863,6 @@ button.wrapped-rank-row:focus-visible {
 
 .wrapped-note-excerpts p {
   max-width: 62ch;
-  max-height: 7.5em;
-  overflow: hidden;
   margin: 0;
   white-space: pre-wrap;
 }
