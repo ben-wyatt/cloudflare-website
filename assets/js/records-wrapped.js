@@ -424,10 +424,6 @@
       elements.metadata.textContent = "This edition is sealed; its stories will no longer change.";
       return;
     }
-    if (!payload.metadataPending) {
-      elements.metadata.textContent = "Spotify track lengths and artist credits are filled in.";
-      return;
-    }
   }
 
   function renderPayload(payload) {
