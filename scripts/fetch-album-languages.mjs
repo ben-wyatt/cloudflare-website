@@ -4,13 +4,17 @@
 //   node scripts/fetch-album-languages.mjs --unknown  (retry albums with no language yet)
 // MusicBrainz allows about one request a second, so this waits between lookups.
 import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { lookupAlbumLanguage } from "../functions/_shared/musicbrainz.js";
 
 const everything = process.argv.includes("--all");
 const unknownOnly = process.argv.includes("--unknown");
+// wrangler reads the database settings from the repo, so run it there from any folder.
+const repo = fileURLToPath(new URL("..", import.meta.url));
 
 function d1(sql) {
   const output = execFileSync("npx", ["wrangler", "d1", "execute", "record-club", "--remote", "--json", "--command", sql], {
+    cwd: repo,
     encoding: "utf8",
     env: { ...process.env, WRANGLER_WRITE_LOGS: "false" },
     stdio: ["ignore", "pipe", "inherit"],
