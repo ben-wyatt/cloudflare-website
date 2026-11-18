@@ -1251,9 +1251,8 @@ button:disabled {
 
 .game-round .game-clue-list {
   display: block;
-  margin: 0;
-  border-top: 1px solid var(--game-ink);
-  scrollbar-gutter: stable;
+  margin: 0.5rem 0 0;
+  border-top: 1px solid var(--game-rule);
 }
 
 .game-round .game-clue {
@@ -1364,15 +1363,13 @@ button:disabled {
 @media (min-width: 761px) and (min-height: 540px) {
   .game-round {
     --round-height: calc(100dvh - var(--game-top, 16rem) - 0.5rem);
-    /* Leave room under the cover for the progress dots and the album card. */
-    --cover: clamp(190px, calc(var(--round-height) - 12rem), 330px);
+    /* The cover takes about half the height; the clues under it take the rest. */
+    --cover: clamp(200px, calc(var(--round-height) * 0.52), 330px);
+    /* The column is a little wider than the cover, so clue lines run longer. */
+    grid-template-columns: max(var(--cover), min(28rem, 46%)) minmax(0, 1fr);
     box-sizing: border-box;
     grid-template-rows: minmax(0, 1fr);
     height: var(--round-height);
-  }
-
-  .game-round-play {
-    height: 100%;
   }
 
   .game-round-cover {
@@ -1381,24 +1378,22 @@ button:disabled {
     min-height: 0;
   }
 
-  .game-album-slot {
-    overflow-y: auto;
+  .game-round-cover .game-cover-frame,
+  .game-round-cover .game-cover-meta {
+    width: var(--cover);
+    transition: width 420ms ease;
   }
 
-  /* The names speak for themselves; the heading stays for screen readers. */
-  .game-round .game-choices-title {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+  /* Tracks and notes need the room: the cover steps back once they unlock. */
+  .game-round.has-listener-clues {
+    --cover: clamp(190px, calc(var(--round-height) * 0.36), 300px);
   }
 
-  .game-round .game-clue-list {
-    flex: 1 1 auto;
-    min-height: 7.5rem;
+  /* The album and listener clues scroll under the cover when they run long. */
+  .game-cover-clues {
+    min-height: 0;
     overflow-y: auto;
+    scrollbar-gutter: stable;
   }
 }
 
@@ -1932,7 +1927,9 @@ button:disabled {
   .pick-action,
   .track-heart,
   .game-choice,
-  .game-cover-wrap {
+  .game-cover-wrap,
+  .game-round-cover .game-cover-frame,
+  .game-round-cover .game-cover-meta {
     transition: none;
   }
 

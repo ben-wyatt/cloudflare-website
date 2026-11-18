@@ -290,6 +290,10 @@
         revealedLevel === 2 || index === revealedListenerIndex));
     }
     elements.clueList.replaceChildren(...blocks);
+    // Once any listener's tracks or note show, the cover shrinks to make room under it.
+    elements.round.classList.toggle("has-listener-clues", listenerClues.some((listener) => (
+      Array.isArray(listener?.favoriteTracks) || typeof listener?.review === "string"
+    )));
 
     const dots = [...elements.progress.children];
     dots.forEach((dot, index) => {
