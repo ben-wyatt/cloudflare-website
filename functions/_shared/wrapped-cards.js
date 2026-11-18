@@ -16,6 +16,24 @@ const GENRES = [
   ["world", /worldbeat|mpb|bossa nova|afrobeat|raga/i],
 ];
 
+// MusicBrainz language codes (ISO 639-3). zxx means no lyrics, mul several languages,
+// und unknown; none of those count as "not English".
+const LANGUAGES = {
+  ara: "Arabic", ben: "Bengali", cat: "Catalan", ces: "Czech", dan: "Danish", deu: "German",
+  ell: "Greek", fin: "Finnish", fra: "French", gle: "Irish", heb: "Hebrew", hin: "Hindi",
+  hun: "Hungarian", ind: "Indonesian", isl: "Icelandic", ita: "Italian", jpn: "Japanese",
+  kor: "Korean", lat: "Latin", nld: "Dutch", nor: "Norwegian", pol: "Polish", por: "Portuguese",
+  ron: "Romanian", rus: "Russian", spa: "Spanish", swe: "Swedish", tha: "Thai", tur: "Turkish",
+  ukr: "Ukrainian", vie: "Vietnamese", yor: "Yoruba", zho: "Chinese", amh: "Amharic",
+  swa: "Swahili", wol: "Wolof", tgl: "Tagalog", hau: "Hausa", ibo: "Igbo", zul: "Zulu",
+  // MusicBrainz uses qaa for made-up languages.
+  qaa: "Invented",
+};
+const NOT_FOREIGN = new Set(["eng", "zxx", "mul", "und", "mis"]);
+const languageOf = (row) => String(row.language || "").trim().toLowerCase();
+const isNotEnglish = (row) => Boolean(languageOf(row)) && !NOT_FOREIGN.has(languageOf(row));
+const languageName = (code) => LANGUAGES[code] || code.toUpperCase();
+
 const byName = (a, b) => a.localeCompare(b, "en", { sensitivity: "base" });
 const number = (value) => Number.isFinite(Number(value)) ? Number(value) : 0;
 const year = (value) => Number(String(value || "").slice(0, 4)) || null;
@@ -487,6 +505,33 @@ export function generateWrappedCards({
             view: { stat: { value: entry.genres.length, unit: "genres" }, chips: entry.genres,
               records: ordered(entry.rows).slice(0, 6).map(album) } })),
       records: ordered(passport[0].rows).slice(0, 6).map(album) }));
+
+  // Who reaches furthest past English. Albums without a known language are left out.
+  const languagePeople = contributors.map((listener) => {
+    const rows = byPerson.get(listener.id);
+    const foreign = ordered(rows.filter(isNotEnglish));
+    const languages = [...new Set(foreign.map(languageOf))].map(languageName).sort(byName);
+    return { listener, rows, foreign, languages, label: listener.username };
+  }).filter((entry) => entry.foreign.length > 0);
+  const polyglots = top(languagePeople, (entry) => entry.foreign.length);
+  if (polyglots.length) {
+    const groupLanguages = [...new Set(unique.filter(isNotEnglish).map(languageOf))].map(languageName).sort(byName);
+    const polyglotView = (entry) => ({
+      stat: { value: entry.foreign.length,
+        unit: `${entry.foreign.length === 1 ? "record" : "records"} not in English` },
+      chips: entry.languages,
+      records: entry.foreign.slice(0, 12).map(picked),
+    });
+    cards.push(card("polyglot",
+      crown(polyglots.map((entry) => entry.label), "is the Polyglot", "are the Polyglots"),
+      "Most records not in English.",
+      { ...polyglotView(polyglots[0]),
+        fact: `The group picked records in ${groupLanguages.length + 1} languages: English, ${groupLanguages.join(", ")}.`,
+        ranking: languagePeople.length >= 2 ? [...languagePeople]
+          .sort((a, b) => b.foreign.length - a.foreign.length || byName(a.label, b.label)).slice(0, 6)
+          .map((entry) => rankRow(entry.label, entry.foreign.length, String(entry.foreign.length),
+            { highlight: polyglots.includes(entry), view: polyglotView(entry) })) : [] }));
+  }
 
   const travelers = contributors.map((listener) => {
     const rows = byPerson.get(listener.id);

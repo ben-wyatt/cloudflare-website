@@ -137,11 +137,12 @@
     return [...unique.values()];
   }
 
-  // Few records get big covers; more records shrink into a grid, then a list.
+  // Few records get big covers; more records shrink into a grid (two rows of up to six),
+  // and only a long run falls back to a list.
   function recordLayout(count) {
     if (count === 1) return "feature";
     if (count === 2) return "pair";
-    if (count <= 6) return "grid";
+    if (count <= 12) return "grid";
     return "list";
   }
 
@@ -149,8 +150,9 @@
     const layout = recordLayout(records.length);
     const list = element("ul", `wrapped-records wrapped-records-${layout}`);
     if (layout === "grid") {
-      list.style.setProperty("--columns", String(records.length));
-      list.style.setProperty("--tile", records.length <= 4 ? "12rem" : "8.5rem");
+      const columns = records.length <= 6 ? records.length : Math.ceil(records.length / 2);
+      list.style.setProperty("--columns", String(columns));
+      list.style.setProperty("--tile", records.length <= 4 ? "12rem" : records.length <= 6 ? "8.5rem" : "7.5rem");
       list.style.setProperty("--phone-columns", String(records.length === 4 ? 2 : Math.min(records.length, 3)));
     }
     const hidden = element("ul", "wrapped-records wrapped-records-list");

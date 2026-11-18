@@ -96,3 +96,20 @@ test("time traveler comparison finds the earliest landmark the old year is close
   assert.equal(closerThanNow(2025, 2026), null);
   assert.equal(closerThanNow(2026, 2026), null);
 });
+
+test("the Polyglot slide counts records not in English, leaving out instrumentals", () => {
+  const withLanguages = picks.map((row) => ({
+    ...row,
+    language: { b2: "spa", b3: "fra", c1: "jpn", a2: "zxx", a3: "eng" }[row.spotifyId] || null,
+  }));
+  const cards = generateWrappedCards({ season: 2026, picks: withLanguages });
+  const polyglot = cards.find((entry) => entry.id === "polyglot");
+  assert.equal(polyglot.title, "blair is the Polyglot.");
+  assert.equal(polyglot.lede, "Most records not in English.");
+  assert.deepEqual(polyglot.stat, { value: 2, unit: "records not in English" });
+  assert.deepEqual(polyglot.chips, ["French", "Spanish"]);
+  assert.deepEqual(polyglot.ranking.map((row) => [row.name, row.value, row.highlight]),
+    [["blair", 2, true], ["casey", 1, false]]);
+  assert.match(polyglot.fact, /4 languages: English, French, Japanese, Spanish/);
+  assert.equal(generateWrappedCards({ season: 2026, picks }).some((entry) => entry.id === "polyglot"), false);
+});
