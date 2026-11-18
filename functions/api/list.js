@@ -9,6 +9,7 @@ import {
 } from "../_shared/http.js";
 import { MAX_RECORD_ALBUMS, RECORD_SEASON } from "../_shared/records-config.js";
 import { enrichLastFmAlbum } from "../_shared/lastfm.js";
+import { enrichAlbumLanguages } from "../_shared/musicbrainz.js";
 import { getSpotifyAlbum, getSpotifyTrack } from "../_shared/spotify.js";
 
 const MAX_FAVORITE_TRACKS_PER_ALBUM = 50;
@@ -302,6 +303,8 @@ export async function onRequestPut({ request, env, context }) {
     }
 
     await db.batch(statements);
+    // New albums get their language from MusicBrainz after the save returns.
+    if (context?.waitUntil) context.waitUntil(enrichAlbumLanguages(db, albums));
     if (env.LASTFM_API_KEY && context?.waitUntil) {
       context.waitUntil((async () => {
         // Keep metadata requests off the save path and cap concurrent Last.fm calls.
