@@ -41,6 +41,7 @@ test("Wrapped includes note stories and clearly unfinished editorial awards", ()
     "most-basic", "not-like-other-girls", "biggest-tuba", "tiniest-violin",
     "common-chord", "unexpected-detour", "genre-passport", "time-traveler",
     "fresh-off-press", "word-map", "hill-worth-dying-on", "one-sentence-liner-note", "written-margins",
+    "everyone-lists",
   ]);
   assert.deepEqual(cards.find((entry) => entry.id === "shared-records").records[0].pickers,
     ["alex", "blair"]);
@@ -59,7 +60,7 @@ test("Wrapped includes note stories and clearly unfinished editorial awards", ()
   assert.match(opposite.stat.value, /^\d+%$/);
   const sharedNotes = cards.find((entry) => entry.id === "same-record-different-reasons");
   assert.equal(sharedNotes.notes.length, 2);
-  assert.equal(sharedNotes.notes[0].href, "/records/lists/#album-note-alex-shared");
+  assert.equal(sharedNotes.notes[0].href, "/records/lists/?member=alex#album-note-alex-shared");
   assert.deepEqual(cards.find((entry) => entry.id === "word-map").wordMap[0],
     { word: "echo", count: 2 });
   assert.equal(cards.find((entry) => entry.id === "hill-worth-dying-on").status, "in construction");
@@ -112,4 +113,24 @@ test("the Polyglot slide counts records not in English, leaving out instrumental
     [["blair", 2, true], ["casey", 1, false]]);
   assert.match(polyglot.fact, /4 languages: English, French, Japanese, Spanish/);
   assert.equal(generateWrappedCards({ season: 2026, picks }).some((entry) => entry.id === "polyglot"), false);
+});
+
+test("Wrapped closes with one link to each listener's full list", () => {
+  const withCovers = picks.map((row) => ({ ...row, imageUrl: `https://img.example/${row.spotifyId}` }));
+  const standouts = [{ userId: "drew", username: "drew", spotifyId: "t1", name: "Only A Track" },
+    { userId: "alex", username: "alex", spotifyId: "t2", name: "Alex Track" }];
+  const cards = generateWrappedCards({ season: 2026, picks: withCovers, standouts });
+  const closing = cards.at(-1);
+  assert.equal(closing.id, "everyone-lists");
+  assert.deepEqual(closing.people.map((entry) => entry.username), ["alex", "blair", "casey", "drew"]);
+  const alex = closing.people[0];
+  assert.equal(alex.href, "/records/lists/?member=alex");
+  assert.equal(alex.albumCount, 4);
+  assert.equal(alex.standoutCount, 1);
+  assert.equal(alex.covers.length, 4);
+  assert.ok(alex.covers.every((cover) => cover.imageUrl.startsWith("https://img.example/")));
+  const drew = closing.people[3];
+  assert.equal(drew.albumCount, 0);
+  assert.equal(drew.standoutCount, 1);
+  assert.deepEqual(drew.covers, []);
 });

@@ -54,7 +54,7 @@ Tap a cover you think they picked. Each miss unlocks one of their notes; the thi
 
 ## The whole room introduction
 
-Every member’s records, notes, favorite tracks, and standout songs in one place.
+Every member’s records, notes, favorite tracks, and standout songs. Choose a shelf to read one list in full, or search the whole room.
 
 ## Records Wrapped introduction
 

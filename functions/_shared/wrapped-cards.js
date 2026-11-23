@@ -123,10 +123,10 @@ function top(rows, score, descending = true) {
 
 function card(id, title, lede, {
   detail = "", records = [], notes = [], wordMap = [], links = [], status = "", cast = [],
-  stat = null, ranking = [], mix = [], timeline = null, chips = [], fact = "",
+  stat = null, ranking = [], mix = [], timeline = null, chips = [], fact = "", people = [],
 } = {}) {
   return { id, title, lede, detail, records, notes, wordMap, links, status, cast,
-    stat, ranking, mix, timeline, chips, fact };
+    stat, ranking, mix, timeline, chips, fact, people };
 }
 
 // `view` holds the slide parts (stat, records, mix, chips, timeline, fact) to show
@@ -178,8 +178,12 @@ function castRoster(members, picks, standouts, favorites) {
   return [...roster.values()].sort((a, b) => byName(a.username, b.username));
 }
 
+// Each listener's full list has its own page; notes link into it by anchor.
+export const listHref = (username) =>
+  `/records/lists/?member=${encodeURIComponent(username)}`;
+
 const noteHref = (row, kind = "album") =>
-  `/records/lists/#${kind}-note-${encodeURIComponent(row.userId)}-${encodeURIComponent(row.spotifyId)}`;
+  `${listHref(row.username)}#${kind}-note-${encodeURIComponent(row.userId)}-${encodeURIComponent(row.spotifyId)}`;
 
 const NOTE_STOP_WORDS = new Set((
   "about above after again album albums also always another anything around because before being " +
@@ -635,6 +639,30 @@ export function generateWrappedCards({
         links: isAlbum ? [] : [{ href: `https://open.spotify.com/track/${encodeURIComponent(longest.spotifyId)}`,
           label: "Play the track on Spotify ↗", external: true }] }));
   }
+
+  // The last slide is navigation, not a story: one door per listener's full list.
+  const listeners = new Map(contributors.map((listener) => [listener.id, listener]));
+  const standoutCounts = new Map();
+  for (const row of standouts) {
+    if (!row.userId) continue;
+    if (!listeners.has(row.userId)) listeners.set(row.userId, person(row));
+    standoutCounts.set(row.userId, (standoutCounts.get(row.userId) || 0) + 1);
+  }
+  const shelves = [...listeners.values()].sort((a, b) => byName(a.username, b.username))
+    .map((listener) => {
+      const rows = ordered(byPerson.get(listener.id) || []);
+      return {
+        username: listener.username,
+        href: listHref(listener.username),
+        albumCount: rows.length,
+        standoutCount: standoutCounts.get(listener.id) || 0,
+        covers: rows.filter((row) => row.imageUrl).slice(0, 4)
+          .map((row) => ({ imageUrl: row.imageUrl, name: row.name })),
+      };
+    });
+  cards.push(card("everyone-lists", "Everyone’s lists.",
+    "That was the room. Now read it one shelf at a time: every record, note, and favorite track, listener by listener.",
+    { people: shelves }));
 
   return cards;
 }

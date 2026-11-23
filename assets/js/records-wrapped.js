@@ -387,6 +387,41 @@
     return navigation;
   }
 
+  function shelfCover(imageUrl) {
+    if (!imageUrl) return element("span", "wrapped-record-placeholder", "no covers yet");
+    const image = document.createElement("img");
+    image.src = imageUrl;
+    image.alt = "";
+    image.loading = "lazy";
+    image.decoding = "async";
+    return image;
+  }
+
+  // One door per listener; the same markup as the shelves on /records/lists/.
+  function shelfList(people) {
+    const list = element("ul", "wrapped-shelves");
+    list.setAttribute("aria-label", "Each listener’s list");
+    for (const shelf of people) {
+      const link = element("a", "wrapped-shelf");
+      link.href = shelf.href;
+      const coverRows = shelf.covers || [];
+      const covers = element("span", `wrapped-shelf-covers${coverRows.length >= 4 ? " is-grid" : ""}`);
+      covers.setAttribute("aria-hidden", "true");
+      if (coverRows.length >= 4) covers.append(...coverRows.slice(0, 4).map((row) => shelfCover(row.imageUrl)));
+      else covers.append(shelfCover(coverRows[0]?.imageUrl));
+      const counts = [plural(shelf.albumCount || 0, "record")];
+      if (shelf.standoutCount) counts.push(plural(shelf.standoutCount, "track"));
+      link.setAttribute("aria-label",
+        `${shelf.username}${shelf.username === viewerName ? " (you)" : ""}: ${counts.join(", ")}`);
+      link.append(covers, element("span", "wrapped-shelf-name", shelf.username),
+        element("span", "wrapped-shelf-count", counts.join(" · ")));
+      const item = element("li");
+      item.append(link);
+      list.append(item);
+    }
+    return list;
+  }
+
   const CAST_COLUMNS = [
     { key: "username", label: "Listener" },
     { key: "records", label: "Records" },
@@ -427,7 +462,7 @@
       const name = document.createElement("th");
       name.scope = "row";
       const link = document.createElement("a");
-      link.href = listener.userId ? `/records/lists/#member-${encodeURIComponent(listener.userId)}` : "/records/lists/";
+      link.href = listener.username ? `/records/lists/?member=${encodeURIComponent(listener.username)}` : "/records/lists/";
       link.textContent = listener.username;
       name.append(link);
       row.append(name);
@@ -477,7 +512,7 @@
     const view = selected >= 0 ? card.ranking?.[selected]?.view || {} : {};
     const {
       id = "", title, lede, detail = "", records = [], notes = [], wordMap = [], links = [], status = "",
-      cast = [], stat = null, ranking = [], mix = [], timeline = null, chips = [], fact = "",
+      cast = [], stat = null, ranking = [], mix = [], timeline = null, chips = [], fact = "", people = [],
     } = { ...card, ...view };
     const article = element("article", "wrapped-story");
     article.setAttribute("aria-roledescription", "slide");
@@ -504,6 +539,7 @@
     if (wordMap?.length) main.append(wordMapBlock(wordMap));
     if (notes?.length) main.append(notesBlock(notes));
     if (ranking?.length) main.append(rankingBlock(ranking, selected, onSelect));
+    if (people?.length) main.append(shelfList(people));
     if (links?.length) main.append(linksBlock(links));
 
     const unique = uniqueRecords(records);
@@ -522,7 +558,7 @@
     // Size each slide by how much it carries: sparse slides center and grow, dense ones tighten.
     const blocks = main.children.length;
     const heavy = (ranking?.length || 0) > 5 || unique.length > 6 || (notes?.length || 0) > 1
-      || (cast?.length || 0) > 8;
+      || (cast?.length || 0) > 8 || (people?.length || 0) > 6;
     article.dataset.density = heavy ? "dense" : blocks <= 2 && unique.length <= 2 ? "sparse" : "standard";
     return article;
   }
