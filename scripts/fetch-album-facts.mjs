@@ -102,7 +102,9 @@ async function artistFacts(album, artistName) {
   if (artistCache.has(key)) return artistCache.get(key);
   const info = (await lastFm({ method: "artist.getinfo", artist: artistName }))?.artist;
   let mbArtist = null;
-  const mbid = info?.mbid || await musicBrainzArtistId(album, artistName);
+  // The artist credited on this very album comes first: Last.fm's id is picked by name alone
+  // and often belongs to someone else with that name (Friendship, Wednesday, Steve Lacy).
+  const mbid = await musicBrainzArtistId(album, artistName) || info?.mbid;
   if (mbid) mbArtist = await musicBrainz(`artist/${mbid}?fmt=json`);
   const facts = {
     name: info?.name || artistName,

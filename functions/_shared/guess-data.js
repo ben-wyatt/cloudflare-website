@@ -21,10 +21,12 @@ export async function loadGroupAlbums(db, groupId) {
        a.lastfm_tags_json AS lastfmTagsJson,
        a.language,
        d.description_json AS descriptionJson,
-       f.facts_json AS factsJson
+       f.facts_json AS factsJson,
+       r.research_json AS researchJson
      FROM record_albums a
      LEFT JOIN record_cover_descriptions d ON d.spotify_album_id = a.spotify_id
      LEFT JOIN record_album_facts f ON f.spotify_album_id = a.spotify_id
+     LEFT JOIN record_album_research r ON r.spotify_album_id = a.spotify_id
      WHERE a.image_url IS NOT NULL
        AND trim(a.image_url) <> ''
        AND a.spotify_id IN (

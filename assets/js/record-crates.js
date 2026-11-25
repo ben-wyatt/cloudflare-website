@@ -116,6 +116,11 @@
     elements.check.hidden = state.done;
     elements.next.hidden = !state.done;
     elements.clear.disabled = !state.selected.size;
+    // Once the puzzle is over, only "Next puzzle" is left to do.
+    elements.shuffle.hidden = state.done;
+    elements.shuffle.nextElementSibling.hidden = state.done;
+    elements.clear.hidden = state.done;
+    elements.clear.nextElementSibling.hidden = state.done;
     renderStats();
   }
 

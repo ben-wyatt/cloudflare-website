@@ -42,7 +42,16 @@ export function d1Write(statements, { slice = 200 } = {}) {
     const file = path.join(folder, "batch.sql");
     writeFileSync(file, `${statements.slice(start, start + slice).join(";\n")};\n`);
     try {
-      wrangler(["--file", file], { parse: false });
+      // D1 runs one file import at a time, so a busy database is tried again a few times.
+      for (let attempt = 1; ; attempt += 1) {
+        try {
+          wrangler(["--file", file], { parse: false });
+          break;
+        } catch (error) {
+          if (attempt >= 6) throw error;
+          execFileSync("sleep", [String(10 * attempt)]);
+        }
+      }
     } finally {
       rmSync(folder, { recursive: true, force: true });
     }

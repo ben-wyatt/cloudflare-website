@@ -126,7 +126,19 @@ function coverFacts(description) {
   };
 }
 
-// album: a record_albums row with descriptionJson and factsJson.
+// The researched write-up (scripts/research-albums.mjs), minus sections it found nothing for.
+const RESEARCH_SECTIONS = { sound: "sound", mood_and_themes: "mood_and_themes", story: "story_of_the_record",
+  reception: "reception", artist: "artist_background" };
+function researchFacts(research) {
+  if (!research) return undefined;
+  const entries = Object.entries(RESEARCH_SECTIONS)
+    .map(([from, to]) => [to, String(research[from] || "")
+      .replace(/\s*\((?:facts?|sources?)\s[\d,\s]*(?:and\s\d+)?\)/gi, "").trim()])
+    .filter(([, text]) => text && !/^not found in the sources/i.test(text));
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
+// album: a record_albums row with descriptionJson, factsJson and researchJson.
 // picks: [{ username, review }] of this album; favorites: [{ username, trackName }];
 // trackNames: string[] in album order.
 export function recordFacts(album, { picks = [], favorites = [], trackNames = [] } = {}) {
@@ -146,6 +158,7 @@ export function recordFacts(album, { picks = [], favorites = [], trackNames = []
     genre_tags: tagsOf(album, 6),
     artist_facts: artistFacts(facts),
     about_the_album: facts?.albumWiki,
+    researched: researchFacts(parse(album.researchJson)),
     track_names: trackNames.slice(0, 30),
     cover: coverFacts(parse(album.descriptionJson)),
     picked_by: [...new Set(picks.map((pick) => pick.username))],
@@ -161,7 +174,7 @@ const YES_NO = {
   false: "No: the answer to the player's question is no for this one.",
 };
 
-const TASK = "Friends each picked the albums they loved this year. A player asks yes-or-no questions to find one secret album among them. Answer the player's question, `question`, for the album described in `album`, the way a friend who knows these facts would answer. Questions can be about the music, the artist, the cover art, when it came out, or the friends who picked it and what they wrote.";
+const TASK = "Friends each picked the albums they loved this year. A player asks yes-or-no questions to find one secret album among them. Answer the player's question, `question`, for the album described in `album`, the way a friend who knows these facts would answer. Questions can be about the music, the artist, the cover art, when it came out, or the friends who picked it and what they wrote. Today's date is `today`, so \"this year\" means the year of that date.";
 
 // Asked alongside the records, so a message that is not a yes/no question can be turned away.
 const KIND = {
@@ -176,13 +189,13 @@ const KIND = {
 
 // cards: [{ id, facts }]. Question names are card positions (names are not sent to Jev).
 // The player's text is state, never instructions, so it cannot rewrite the task.
-export function buildJevRequest(text, cards) {
+export function buildJevRequest(text, cards, today = new Date().toISOString().slice(0, 10)) {
   const questions = {};
   cards.forEach((card, index) => {
     questions[`c${index}`] = { type: "noul", instructions: { task: TASK, album: card.facts }, criteria: YES_NO };
   });
   questions.kind = KIND;
-  return { state: { question: text }, questions };
+  return { state: { question: text, today }, questions };
 }
 
 // Pairs each card with its probability from the answers.

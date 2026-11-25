@@ -50,12 +50,34 @@ test("record facts carry the looked-up facts and drop empty ones", () => {
   assert.deepEqual(facts.picked_by, ["ana", "bo"]);
   assert.deepEqual(facts.notes, [{ by: "ana", note: "Loved it" }]);
   assert.equal("explicit_tracks" in facts, false);
+  assert.equal("researched" in facts, false);
+});
+
+test("the researched write-up joins the facts, without empty sections or fact numbers", () => {
+  const facts = recordFacts({
+    name: "Album", artistName: "Artist",
+    researchJson: JSON.stringify({
+      sound: "Horn-driven samba (facts 3, 4) with strings (fact 9).",
+      mood_and_themes: "Not found in the sources.",
+      story: "Their debut, recorded in Ingolstadt.",
+      reception: "",
+      artist: "A duo from Rio and Bavaria.",
+    }),
+  });
+  assert.deepEqual(facts.researched, {
+    sound: "Horn-driven samba with strings.",
+    story_of_the_record: "Their debut, recorded in Ingolstadt.",
+    artist_background: "A duo from Rio and Bavaria.",
+  });
 });
 
 test("the Jev request has one question per record, plus the kind check", () => {
-  const request = buildJevRequest("Is it loud?", [{ id: "x", facts: { title: "X" } }, { id: "y", facts: { title: "Y" } }]);
+  const request = buildJevRequest("Is it loud?", [{ id: "x", facts: { title: "X" } }, { id: "y", facts: { title: "Y" } }], "2026-11-25");
   assert.deepEqual(Object.keys(request.questions), ["c0", "c1", "kind"]);
   assert.equal(request.state.question, "Is it loud?");
+  // Jev knows today's date, so "this year" means 2026.
+  assert.equal(request.state.today, "2026-11-25");
+  assert.match(request.questions.c0.instructions.task, /`today`/);
   assert.deepEqual(request.questions.c1.instructions.album, { title: "Y" });
   // The player's words are state, never part of the instructions.
   assert.equal(JSON.stringify(request.questions).includes("Is it loud?"), false);

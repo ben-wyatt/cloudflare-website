@@ -452,6 +452,9 @@
   border: 1px solid var(--game-rule);
   border-radius: 3px;
   background: var(--game-soft);
+  /* A button does not inherit the page font on its own. */
+  color: var(--color-text);
+  font: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: border-color 150ms ease, box-shadow 150ms ease;
