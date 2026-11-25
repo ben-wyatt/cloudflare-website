@@ -1,0 +1,77 @@
+---
+layout: layout.njk
+title: Yes or No · Record Club Lab
+permalink: "/records/lab/ask/"
+pageStyles: "/styles/records-lab.css?v=lab-1"
+pageScript: "/assets/js/records-lab-ask.js?v=lab-1"
+bodyClass: "records-page record-game-page lab-page lab-ask-page"
+eleventyExcludeFromCollections: true
+---
+
+<section class="game-shell lab-shell" aria-labelledby="ask-title">
+  <div id="ask-loading" class="records-panel game-loading" role="status">Dealing the board…</div>
+
+  <section id="ask-gate" class="records-panel game-gate" hidden aria-labelledby="ask-gate-title">
+    <h1 id="ask-gate-title">This round could not start</h1>
+    <p id="ask-gate-message"></p>
+    <a class="records-primary game-back-link" href="/records/lab/">Back to the lab</a>
+  </section>
+
+  <div id="ask-app" class="game-app" hidden data-fullscreen-target>
+    <div class="records-member-bar game-member-bar">
+      <p>Playing with <strong id="ask-group-name"></strong></p>
+      <div class="game-member-actions">
+        <button class="game-fullscreen" type="button" data-fullscreen-toggle hidden aria-label="Full screen"></button>
+        <a class="game-back-link" href="/records/lab/">Lab</a>
+      </div>
+    </div>
+
+    <nav class="lab-modes" aria-label="Games">
+      <a class="lab-mode" data-game="record" href="?game=record">Record</a>
+      <a class="lab-mode" data-game="listener" href="?game=listener">Listener</a>
+      <a class="lab-mode" data-game="only-one" href="?game=only-one">Only One</a>
+    </nav>
+
+    <header class="lab-ask-head">
+      <h1 id="ask-title">Guess the Record</h1>
+      <p id="ask-deck" class="game-deck"></p>
+    </header>
+
+    <form id="ask-form" class="lab-ask-form" autocomplete="off">
+      <label for="ask-input" class="sr-only">Your question</label>
+      <input id="ask-input" name="question" type="text" maxlength="200" enterkeyhint="send" required>
+      <button id="ask-submit" class="records-primary" type="submit">Ask</button>
+    </form>
+
+    <div id="ask-answer" class="lab-answer" aria-live="polite" hidden>
+      <p class="lab-answer-question" id="ask-answer-question"></p>
+      <p class="lab-answer-word" id="ask-answer-word"></p>
+      <p class="lab-answer-detail" id="ask-answer-detail"></p>
+    </div>
+
+    <div id="ask-guess-bar" class="lab-guess-bar" hidden>
+      <span id="ask-guess-label"></span>
+      <button id="ask-guess" class="records-primary" type="button">Guess this one</button>
+      <button id="ask-guess-cancel" class="records-text-button" type="button">Cancel</button>
+    </div>
+
+    <ul id="ask-board" class="lab-board" aria-label="The board"></ul>
+
+    <section id="ask-reveal" class="lab-reveal records-panel" hidden aria-live="polite"></section>
+
+    <div class="lab-ask-footer">
+      <p id="ask-progress" class="lab-progress"></p>
+      <div class="lab-ask-actions">
+        <label class="lab-numbers"><input id="ask-numbers" type="checkbox"> show numbers</label>
+        <button id="ask-give-up" class="records-text-button" type="button">Show me</button>
+        <button id="ask-new" class="records-text-button" type="button">New board</button>
+      </div>
+    </div>
+
+    <section class="lab-history-wrap" aria-labelledby="ask-history-title">
+      <h2 id="ask-history-title" class="records-eyebrow">asked so far</h2>
+      <ol id="ask-history" class="lab-history"></ol>
+    </section>
+  </div>
+</section>
+<script src="/assets/js/game-fullscreen.js?v=fullscreen" defer></script>

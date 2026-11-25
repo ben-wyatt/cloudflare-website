@@ -1,0 +1,56 @@
+---
+layout: layout.njk
+title: Lab · Record Club
+permalink: "/records/lab/"
+pageStyles: "/styles/records-lab.css?v=lab-1"
+pageScript: "/assets/js/records-lab.js?v=lab-1"
+bodyClass: "records-page record-game-page lab-page"
+eleventyExcludeFromCollections: true
+---
+
+<section class="game-shell lab-shell" aria-labelledby="lab-title">
+  <header class="game-masthead game-masthead-compact">
+    <p class="records-eyebrow">record club · lab</p>
+    <h1 id="lab-title">Lab</h1>
+    <p class="game-deck">New games and slides being tried out. Only the development account can see this page.</p>
+  </header>
+
+  <div class="lab-group" role="group" aria-labelledby="lab-group-label">
+    <span id="lab-group-label" class="records-eyebrow">play with</span>
+    <button type="button" class="lab-group-option" data-lab-group="badabing">Badabing</button>
+    <button type="button" class="lab-group-option" data-lab-group="development">Development seed lists</button>
+  </div>
+
+  <ol class="lab-list">
+    <li>
+      <a class="lab-entry" data-lab-link href="/records/lab/ask/?game=record">
+        <span class="lab-entry-name">Guess the Record →</span>
+        <span class="lab-entry-copy">Twenty-four covers, one secret. Ask yes-or-no questions; the covers that don't fit turn over.</span>
+      </a>
+    </li>
+    <li>
+      <a class="lab-entry" data-lab-link href="/records/lab/ask/?game=listener">
+        <span class="lab-entry-name">Guess the Listener →</span>
+        <span class="lab-entry-copy">Everyone's shelves, one secret friend. Ask about their records, notes and standout tracks.</span>
+      </a>
+    </li>
+    <li>
+      <a class="lab-entry" data-lab-link href="/records/lab/ask/?game=only-one">
+        <span class="lab-entry-name">Only One →</span>
+        <span class="lab-entry-copy">You get a record. Describe it so it fits that record and nothing else on the board.</span>
+      </a>
+    </li>
+    <li>
+      <a class="lab-entry" data-lab-link href="/records/lab/crates/">
+        <span class="lab-entry-name">Crates →</span>
+        <span class="lab-entry-copy">Sixteen covers, four groups of look-alikes. Sort them.</span>
+      </a>
+    </li>
+    <li>
+      <a class="lab-entry" data-lab-link data-lab-wrapped href="/records/wrapped/">
+        <span class="lab-entry-name">Wrapped: Cover twins →</span>
+        <span class="lab-entry-copy">The most alike album art, picked by different people. Second-to-last slide.</span>
+      </a>
+    </li>
+  </ol>
+</section>

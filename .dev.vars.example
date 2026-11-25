@@ -7,3 +7,5 @@ WYATT_FAM_ACCESS_CODE="the-code-for-wyatt-family"
 BADABING_ACCESS_CODE="the-original-badabing-code"
 EY_MT_JUNIORS_ACCESS_CODE="the-code-for-ey-mt-juniors"
 MAX_RECORD_MEMBERS="25"
+# Jev (TypeSafe) for the Record Club lab question games.
+TYPESAFE_API_KEY=
