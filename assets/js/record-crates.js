@@ -1,20 +1,26 @@
 (() => {
+  // Crates: sixteen records, four hidden groups of four that share a fact.
   const $ = (id) => document.getElementById(id);
   const elements = {
     loading: $("crates-loading"), gate: $("crates-gate"), gateMessage: $("crates-gate-message"), app: $("crates-app"),
     memberName: $("crates-member-name"), number: $("crates-number"), previous: $("crates-previous"), nextPuzzle: $("crates-next-puzzle"),
+    review: $("crates-review"), statusLabel: $("crates-status-label"),
     found: $("crates-found"), mistakes: $("crates-mistakes"), left: $("crates-left"),
     solved: $("crates-solved"), grid: $("crates-grid"), status: $("crates-status"),
     shuffle: $("crates-shuffle"), clear: $("crates-clear"), check: $("crates-check"), next: $("crates-next"), giveUp: $("crates-give-up"),
+    notes: $("crates-notes"), notesBody: $("crates-notes-body"),
   };
   if (!elements.loading) return;
 
-  const GROUP_NAMES = { badabing: "Badabing", development: "the development seed lists" };
+  // Owners can play another group's puzzles with ?group=; Badabing is the default.
   const params = new URLSearchParams(window.location.search);
-  const savedGroup = localStorage.getItem("recordLabGroup");
-  const group = GROUP_NAMES[params.get("group")] ? params.get("group") : GROUP_NAMES[savedGroup] ? savedGroup : "badabing";
+  const group = ["badabing", "development"].includes(params.get("group")) ? params.get("group") : "badabing";
+  const STATUS_WORDS = { draft: "Draft, not reviewed", approved: "Approved", rejected: "Rejected" };
 
-  const state = { number: 0, count: 0, groups: [], tiles: [], selected: new Set(), found: [], mistakes: 0, tried: new Set(), done: false };
+  const state = {
+    number: 0, count: 0, counts: {}, puzzle: null, tiles: [], selected: new Set(),
+    found: [], revealed: 0, mistakes: 0, tried: new Set(), done: false,
+  };
 
   function element(tag, className = "", text = "") {
     const node = document.createElement(tag);
@@ -32,6 +38,14 @@
     return list;
   }
 
+  function cover(record) {
+    const image = element("img");
+    image.src = record.imageUrl || "";
+    image.alt = "";
+    image.loading = "lazy";
+    return image;
+  }
+
   function setStatus(message, kind = "") {
     elements.status.textContent = message;
     elements.status.classList.toggle("is-wrong", kind === "wrong");
@@ -39,35 +53,46 @@
   }
 
   function renderStats() {
-    elements.found.textContent = String(state.done ? state.found.length - state.revealed : state.found.length);
+    elements.found.textContent = String(state.found.length - state.revealed);
     elements.mistakes.textContent = String(state.mistakes);
     elements.left.textContent = String(state.tiles.length);
+  }
+
+  function renderReview() {
+    const status = state.puzzle?.status || "draft";
+    const counts = state.counts || {};
+    elements.review.hidden = !state.puzzle?.review;
+    elements.statusLabel.textContent = `${STATUS_WORDS[status]} (${counts.approved || 0} approved, ${counts.draft || 0} drafts)`;
+    for (const button of elements.review.querySelectorAll("[data-review]")) {
+      const current = button.dataset.review === status;
+      button.hidden = current;
+      button.previousElementSibling.hidden = current;
+    }
   }
 
   function renderSolved() {
     elements.solved.replaceChildren();
     for (const groupIndex of state.found) {
-      const puzzleGroup = state.groups[groupIndex];
+      const puzzleGroup = state.puzzle.groups[groupIndex];
       const row = element("li", "crates-row");
       row.dataset.level = String(puzzleGroup.level);
       row.append(element("p", "records-eyebrow crates-row-label", puzzleGroup.label));
-      const covers = element("ul", "crates-row-covers");
-      for (const album of puzzleGroup.albums) {
-        const item = element("li");
-        const link = element("a");
-        link.href = `https://open.spotify.com/album/${album.spotifyId}`;
+      const records = element("ul", "crates-row-records");
+      for (const record of puzzleGroup.records) {
+        const item = element("li", "crates-row-record");
+        const link = element("a", "crates-row-cover");
+        link.href = `https://open.spotify.com/album/${record.spotifyId}`;
         link.target = "_blank";
         link.rel = "noopener";
-        const image = element("img");
-        image.src = album.imageUrl;
-        image.alt = `${album.name} by ${album.artistName}`;
-        link.append(image);
-        const caption = element("span", "crates-row-caption");
-        caption.append(element("strong", "", album.name), element("span", "", album.artistName));
-        item.append(link, caption);
-        covers.append(item);
+        link.setAttribute("aria-label", `${record.title} by ${record.artist} on Spotify`);
+        link.append(cover(record));
+        const copy = element("span", "crates-row-copy");
+        copy.append(element("strong", "", record.title), element("span", "crates-row-artist", record.artist),
+          element("span", "crates-row-why", record.why));
+        item.append(link, copy);
+        records.append(item);
       }
-      row.append(covers);
+      row.append(records);
       elements.solved.append(row);
     }
   }
@@ -79,11 +104,11 @@
       const button = element("button", "crates-tile-button");
       button.type = "button";
       button.setAttribute("aria-pressed", String(state.selected.has(tile.spotifyId)));
-      button.setAttribute("aria-label", `${tile.name} by ${tile.artistName}`);
-      const image = element("img");
-      image.src = tile.imageUrl;
-      image.alt = "";
-      button.append(image);
+      button.setAttribute("aria-label", `${tile.title} by ${tile.artist}`);
+      button.append(cover(tile));
+      const caption = element("span", "crates-tile-caption");
+      caption.append(element("strong", "", tile.title), element("span", "", tile.artist));
+      button.append(caption);
       button.addEventListener("click", () => toggle(tile.spotifyId));
       item.append(button);
       elements.grid.append(item);
@@ -96,6 +121,37 @@
     renderStats();
   }
 
+  function renderNotes() {
+    const review = state.puzzle?.review;
+    elements.notes.hidden = !(state.done && review);
+    if (elements.notes.hidden) return;
+    elements.notesBody.replaceChildren();
+    const add = (title, items) => {
+      if (!items.length) return;
+      elements.notesBody.append(element("p", "crates-notes-heading", title));
+      const list = element("ul", "crates-notes-list");
+      for (const item of items) list.append(item);
+      elements.notesBody.append(list);
+    };
+    add("Red herrings", review.redHerrings.map((text) => element("li", "", text)));
+    if (review.doubts) add("Doubts", [element("li", "", review.doubts)]);
+    if (review.confidence) add("Confidence", [element("li", "", review.confidence)]);
+    add("Sources", review.sources.map((entry) => {
+      const item = element("li");
+      item.append(`${entry.title}: `);
+      if (/^https?:\/\//.test(entry.source)) {
+        const link = element("a", "", entry.source.replace(/^https?:\/\/(www\.)?/, "").slice(0, 60));
+        link.href = entry.source;
+        link.target = "_blank";
+        link.rel = "noopener";
+        item.append(link);
+      } else {
+        item.append(entry.source || "none given");
+      }
+      return item;
+    }));
+  }
+
   function toggle(id) {
     if (state.done) return;
     if (state.selected.has(id)) state.selected.delete(id);
@@ -104,9 +160,7 @@
     renderGrid();
   }
 
-  function groupOf(id) {
-    return state.groups.findIndex((puzzleGroup) => puzzleGroup.albums.some((album) => album.spotifyId === id));
-  }
+  const groupOf = (id) => state.puzzle.groups.findIndex((puzzleGroup) => puzzleGroup.records.some((record) => record.spotifyId === id));
 
   function check() {
     if (state.selected.size !== 4 || state.done) return;
@@ -123,8 +177,8 @@
       state.found.push(best);
       state.tiles = state.tiles.filter((tile) => !state.selected.has(tile.spotifyId));
       state.selected.clear();
-      setStatus(`${state.groups[best].label}.`, "correct");
-      if (state.found.length === state.groups.length) finish(true);
+      setStatus(`${state.puzzle.groups[best].label}.`, "correct");
+      if (state.found.length === state.puzzle.groups.length) finish(true);
       renderSolved();
       renderGrid();
       return;
@@ -139,14 +193,13 @@
 
   function finish(solved) {
     state.done = true;
-    state.revealed = 0;
     if (!solved) {
-      for (let index = 0; index < state.groups.length; index += 1) {
+      state.puzzle.groups.forEach((_, index) => {
         if (!state.found.includes(index)) {
           state.found.push(index);
           state.revealed += 1;
         }
-      }
+      });
       state.tiles = [];
       setStatus("Here are the four groups.");
     } else {
@@ -156,6 +209,7 @@
     elements.giveUp.previousElementSibling.hidden = true;
     renderSolved();
     renderGrid();
+    renderNotes();
     elements.next.focus({ preventScroll: true });
   }
 
@@ -172,18 +226,39 @@
       return;
     }
     Object.assign(state, {
-      number: payload.number, count: payload.count, groups: payload.groups,
-      tiles: shuffle(payload.groups.flatMap((puzzleGroup) => puzzleGroup.albums)),
-      selected: new Set(), found: [], mistakes: 0, tried: new Set(), done: false, revealed: 0,
+      number: payload.number, count: payload.count, counts: payload.counts, puzzle: payload.puzzle,
+      tiles: shuffle(payload.puzzle.groups.flatMap((puzzleGroup) => puzzleGroup.records)),
+      selected: new Set(), found: [], revealed: 0, mistakes: 0, tried: new Set(), done: false,
     });
-    elements.number.textContent = `puzzle ${payload.number} of ${payload.count}`;
+    elements.number.textContent = `puzzle ${payload.number} of ${payload.count}${payload.puzzle.title ? `: ${payload.puzzle.title}` : ""}`;
     elements.giveUp.hidden = false;
     elements.giveUp.previousElementSibling.hidden = false;
     elements.loading.hidden = true;
     elements.app.hidden = false;
     setStatus("");
+    renderReview();
     renderSolved();
     renderGrid();
+    renderNotes();
+  }
+
+  async function review(status) {
+    const response = await fetch("/api/lab/crates", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "review", id: state.puzzle.id, status }),
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      setStatus(payload?.error?.message || "That review did not save.", "wrong");
+      return;
+    }
+    const before = state.puzzle.status || "draft";
+    state.counts = { ...state.counts, [before]: Math.max(0, (state.counts[before] || 1) - 1), [status]: (state.counts[status] || 0) + 1 };
+    state.puzzle.status = status;
+    renderReview();
+    setStatus(status === "rejected" ? "Rejected. It will not come up again." : status === "approved" ? "Approved." : "Back to draft.", "correct");
   }
 
   const step = (delta) => load(((state.number - 1 + delta + state.count) % state.count) + 1);
@@ -194,6 +269,9 @@
   elements.giveUp.addEventListener("click", () => finish(false));
   elements.previous.addEventListener("click", () => step(-1));
   elements.nextPuzzle.addEventListener("click", () => step(1));
+  for (const button of elements.review.querySelectorAll("[data-review]")) {
+    button.addEventListener("click", () => review(button.dataset.review));
+  }
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" || event.target.closest?.("button, a, input")) return;
     if (state.done) step(1);

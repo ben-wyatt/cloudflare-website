@@ -134,3 +134,35 @@ test("Wrapped closes with one link to each listener's full list", () => {
   assert.equal(drew.standoutCount, 1);
   assert.deepEqual(drew.covers, []);
 });
+
+test("the Time Traveller has the widest spread of years, not the widest range", () => {
+  // ana: one 1960 record among nine from 2025 (range 65, spread ±19.5).
+  // bo: 1970, 1980, 2015, 2025 (range 55, spread ±23.0), so bo travels more.
+  const rows = [
+    pick("ana", "x0", "Old One", "Elder", ["folk"], 10, "1960-01-01"),
+    ...Array.from({ length: 9 }, (_, n) => pick("ana", `x${n + 1}`, `New ${n}`, `Band ${n}`, ["pop"], 10, "2025-01-01")),
+    pick("bo", "y1", "Y1", "A", ["rock"], 10, "1970-01-01"),
+    pick("bo", "y2", "Y2", "B", ["rock"], 10, "1980-01-01"),
+    pick("bo", "y3", "Y3", "C", ["rock"], 10, "2015-01-01"),
+    pick("bo", "y4", "Y4", "D", ["rock"], 10, "2025-01-01"),
+  ];
+  const traveler = generateWrappedCards({ season: 2026, picks: rows }).find((entry) => entry.id === "time-traveler");
+  assert.match(traveler.title, /^bo /);
+  assert.equal(traveler.stat.value, "±23.0");
+  assert.deepEqual(traveler.ranking.map((row) => [row.name, row.display, row.sub]),
+    [["bo", "±23.0 yrs", "1970–2025"], ["ana", "±19.5 yrs", "1960–2025"]]);
+});
+
+test("Written in the margins says what it counts and shows every note by the top writer", () => {
+  const rows = [
+    pick("alex", "m1", "One", "A", ["pop"], 10, "2025-01-01", "A long note with many words in it, more than the others by far."),
+    pick("alex", "m2", "Two", "B", ["pop"], 10, "2025-01-01", "A second note."),
+    pick("alex", "m3", "Three", "C", ["pop"], 10, "2025-01-01"),
+    pick("blair", "m4", "Four", "D", ["pop"], 10, "2025-01-01", "Short."),
+  ];
+  const margins = generateWrappedCards({ season: 2026, picks: rows }).find((entry) => entry.id === "written-margins");
+  assert.match(margins.lede, /Most words written in notes/);
+  assert.deepEqual(margins.notes.map((note) => note.about), ["One", "Two"]);
+  assert.equal(margins.stat.unit, "words across 2 notes");
+  assert.deepEqual(margins.ranking.find((row) => row.name === "blair").view.notes.map((note) => note.text), ["Short."]);
+});

@@ -537,13 +537,18 @@ export function generateWrappedCards({
             { highlight: polyglots.includes(entry), view: polyglotView(entry) })) : [] }));
   }
 
+  // The Time Traveller has the widest spread of release years: the standard deviation, i.e.
+  // how far a typical record sits from that listener's average year. Unlike oldest-to-newest,
+  // one stray old record among recent ones does not win it.
   const travelers = contributors.map((listener) => {
     const rows = byPerson.get(listener.id);
     const years = rows.map((row) => year(row.releaseDate)).filter(Boolean);
+    const mean = years.reduce((sum, value) => sum + value, 0) / (years.length || 1);
+    const spread = Math.sqrt(years.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (years.length || 1));
     return { listener, rows, first: Math.min(...years), last: Math.max(...years),
-      span: Math.max(...years) - Math.min(...years), label: listener.username };
-  }).filter((entry) => entry.rows.length >= 3 && Number.isFinite(entry.span) && entry.span > 0);
-  const travelersTop = top(travelers, (entry) => entry.span);
+      spread: Math.round(spread * 10) / 10, label: listener.username };
+  }).filter((entry) => entry.rows.length >= 3 && Number.isFinite(entry.spread) && entry.spread > 0);
+  const travelersTop = top(travelers, (entry) => entry.spread);
   if (travelersTop.length) {
     // Every listener shares one axis (the group's oldest to newest record) so the
     // slide keeps its shape when a reader clicks through the ranking.
@@ -554,7 +559,7 @@ export function generateWrappedCards({
       const dated = ordered(entry.rows.filter((row) => year(row.releaseDate)));
       const ends = [entry.first, entry.last].map((end) => dated.find((row) => year(row.releaseDate) === end));
       return {
-        stat: { value: entry.span, unit: "years" },
+        stat: { value: `±${entry.spread.toFixed(1)}`, unit: "years from their average release year" },
         fact: echo ? `${entry.first} was closer to ${echo.event} (${echo.year}) than to ${entry.last}.` : "",
         timeline: {
           from: entry.first, to: entry.last, axisFrom, axisTo,
@@ -565,11 +570,11 @@ export function generateWrappedCards({
     };
     cards.push(card("time-traveler",
       crown(travelersTop.map((entry) => entry.label), "is the Time Traveller", "are the Time Travellers"),
-      "Widest span of release years.",
+      "Widest spread of release years (standard deviation).",
       { ...travelView(travelersTop[0]),
-        ranking: travelers.length >= 2 ? [...travelers].sort((a, b) => b.span - a.span || byName(a.label, b.label))
-          .slice(0, 5).map((entry) => rankRow(entry.label, entry.span, `${entry.first}–${entry.last}`,
-            { highlight: travelersTop.includes(entry), view: travelView(entry) })) : [] }));
+        ranking: travelers.length >= 2 ? [...travelers].sort((a, b) => b.spread - a.spread || byName(a.label, b.label))
+          .slice(0, 5).map((entry) => rankRow(entry.label, entry.spread, `±${entry.spread.toFixed(1)} yrs`,
+            { highlight: travelersTop.includes(entry), sub: `${entry.first}–${entry.last}`, view: travelView(entry) })) : [] }));
   }
 
   const fresh = picks.filter((row) => year(row.releaseDate) === season);
@@ -608,36 +613,31 @@ export function generateWrappedCards({
       links: [{ href: "/records/lists/", label: "Read the notes for now →" }] }));
   const noteTotals = new Map();
   for (const row of noteRows) {
-    const entry = noteTotals.get(row.userId) || { listener: person(row), words: 0, count: 0,
-      records: [] };
+    const entry = noteTotals.get(row.userId) || { listener: person(row), words: 0, count: 0 };
     entry.words += wordCount(row.review);
     entry.count++;
-    if (row.spotifyId && albumRows.has(row.spotifyId)) entry.records.push(album(row));
     noteTotals.set(row.userId, entry);
   }
   const writerRows = [...noteTotals.values()].map((entry) => ({ ...entry, label: entry.listener.username }));
   const writers = top(writerRows, (entry) => entry.words);
   if (writers.length) {
-    const longest = [...noteRows].sort((a, b) =>
-      wordCount(b.review) - wordCount(a.review) || byName(a.username, b.username))[0];
-    const isAlbum = albumRows.has(longest.spotifyId);
     const noteFor = (row) => ({ author: row.username, text: String(row.review).trim(), about: row.name,
       href: noteHref(row, albumRows.has(row.spotifyId) ? "album" : "track") });
-    const longestBy = (userId) => noteFor([...noteRows].filter((row) => row.userId === userId)
-      .sort((a, b) => wordCount(b.review) - wordCount(a.review) || byName(a.name || "", b.name || ""))[0]);
+    // Everything a listener wrote, longest note first, so the slide shows how much it was.
+    const notesBy = (userId) => [...noteRows].filter((row) => row.userId === userId)
+      .sort((a, b) => wordCount(b.review) - wordCount(a.review) || byName(a.name || "", b.name || ""))
+      .map(noteFor);
+    const statFor = (entry) => ({ value: thousands(entry.words),
+      unit: `words across ${entry.count} ${entry.count === 1 ? "note" : "notes"}` });
     cards.push(card("written-margins", "Written in the margins.",
-      "",
-      { stat: { value: thousands(writers[0].words), unit: "words" },
+      "Most words written in notes, on album picks and standout tracks. Here is all of it.",
+      { stat: statFor(writers[0]),
         ranking: writerRows.length >= 2 ? [...writerRows].sort((a, b) => b.words - a.words || byName(a.label, b.label))
           .slice(0, 6).map((entry) => rankRow(entry.label, entry.words, thousands(entry.words), {
             highlight: writers.includes(entry), sub: `${entry.count} ${entry.count === 1 ? "note" : "notes"}`,
-            view: { stat: { value: thousands(entry.words), unit: "words" },
-              notes: [longestBy(entry.listener.id)], records: ordered(entry.records).slice(0, 3) },
+            view: { stat: statFor(entry), notes: notesBy(entry.listener.id) },
           })) : [],
-        notes: [noteFor(longest)],
-        records: ordered(writers[0].records).slice(0, 3),
-        links: isAlbum ? [] : [{ href: `https://open.spotify.com/track/${encodeURIComponent(longest.spotifyId)}`,
-          label: "Play the track on Spotify ↗", external: true }] }));
+        notes: notesBy(writers[0].listener.id) }));
   }
 
   // The last slide is navigation, not a story: one door per listener's full list.

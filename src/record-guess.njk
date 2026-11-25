@@ -1,9 +1,9 @@
 ---
 layout: layout.njk
-title: Yes or No · Record Club Lab
-permalink: "/records/lab/ask/"
-pageStyles: "/styles/records-lab.css?v=lab-2"
-pageScript: "/assets/js/records-lab-ask.js?v=lab-2"
+title: Guess the Record · Record Club
+permalink: "/records/guess/"
+pageStyles: "/styles/records-lab.css?v=lab-3"
+pageScript: "/assets/js/record-guess.js?v=lab-3"
 bodyClass: "records-page record-game-page lab-page lab-ask-page"
 eleventyExcludeFromCollections: true
 ---
@@ -12,10 +12,10 @@ eleventyExcludeFromCollections: true
   <div id="ask-loading" class="records-panel game-loading" role="status">Dealing the board…</div>
 
   <section id="ask-gate" class="records-panel game-gate" hidden aria-labelledby="ask-gate-title">
-    <p class="records-eyebrow">record club lab</p>
+    <p class="records-eyebrow">private game</p>
     <h1 id="ask-gate-title">This round could not start</h1>
     <p id="ask-gate-message"></p>
-    <a class="records-primary game-back-link" href="/records/lab/">Back to the lab</a>
+    <a class="records-primary game-back-link" href="/records/games/">Back to games</a>
   </section>
 
   <div id="ask-app" class="game-app" hidden data-fullscreen-target>
@@ -23,7 +23,7 @@ eleventyExcludeFromCollections: true
       <p>Playing as <strong id="ask-member-name"></strong></p>
       <div class="game-member-actions">
         <button class="game-fullscreen" type="button" data-fullscreen-toggle hidden aria-label="Full screen"></button>
-        <a class="game-back-link" href="/records/lab/">Back to lab</a>
+        <a class="game-back-link" href="/records/games/">Back to games</a>
       </div>
     </div>
 
@@ -31,13 +31,6 @@ eleventyExcludeFromCollections: true
       <div class="game-masthead-copy">
         <h1 id="ask-title">Guess the Record</h1>
         <p id="ask-deck" class="game-deck"></p>
-        <p class="game-scoring-rule lab-modes" aria-label="Games">
-          <a class="lab-mode" data-game="record" href="?game=record">Guess the Record</a>
-          <span aria-hidden="true">·</span>
-          <a class="lab-mode" data-game="listener" href="?game=listener">Guess the Listener</a>
-          <span aria-hidden="true">·</span>
-          <a class="lab-mode" data-game="only-one" href="?game=only-one">Only One</a>
-        </p>
       </div>
       <div class="game-scoreboard" aria-label="This round">
         <div class="game-score-stat game-score-stat-primary">

@@ -63,17 +63,6 @@ export async function loadGroupFavorites(db, groupId) {
   return result.results || [];
 }
 
-export async function loadGroupStandouts(db, groupId) {
-  const result = await db.prepare(
-    `SELECT u.id AS userId, t.name AS trackName, t.artist_name AS artistName
-     FROM record_standout_tracks st
-     JOIN record_users u ON u.id = st.user_id
-     JOIN record_tracks t ON t.spotify_id = st.spotify_track_id
-     WHERE st.season = ? AND u.group_id = ?`,
-  ).bind(RECORD_SEASON, groupId).all();
-  return result.results || [];
-}
-
 // Map(albumId -> track names in album order), for at most 90 albums at a time.
 export async function loadTrackNames(db, albumIds) {
   const names = new Map();
@@ -91,17 +80,6 @@ export async function loadTrackNames(db, albumIds) {
     names.get(row.albumId).push(row.name);
   }
   return names;
-}
-
-// The covers that look most like this one, closest first.
-export async function loadLookalikes(db, albumId) {
-  const result = await db.prepare(
-    `SELECT neighbor_album_id AS albumId
-     FROM record_cover_neighbors
-     WHERE spotify_album_id = ?
-     ORDER BY similarity DESC`,
-  ).bind(albumId).all();
-  return (result.results || []).map((row) => row.albumId);
 }
 
 export function groupBy(rows, key) {

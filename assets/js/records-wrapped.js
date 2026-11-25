@@ -541,8 +541,11 @@
     }
     if (cast?.length) main.append(castTable(cast));
     if (wordMap?.length) main.append(wordMapBlock(wordMap));
-    if (notes?.length) main.append(notesBlock(notes));
+    // A long run of notes goes under the ranking, so the ranking stays near the top.
+    const longNotes = (notes?.length || 0) > 3;
+    if (notes?.length && !longNotes) main.append(notesBlock(notes));
     if (ranking?.length) main.append(rankingBlock(ranking, selected, onSelect));
+    if (longNotes) main.append(notesBlock(notes));
     if (people?.length) main.append(shelfList(people));
     if (links?.length) main.append(linksBlock(links));
 

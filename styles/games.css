@@ -71,3 +71,13 @@
     margin-left: 2rem;
   }
 }
+
+.games-preview-tag {
+  margin-left: 0.35rem;
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}

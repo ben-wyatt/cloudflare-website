@@ -9,16 +9,15 @@
   max-width: var(--game-max);
 }
 
-/* ---- Text controls: the current choice is plain bold text, the others are links ---- */
-.lab-group,
+/* ---- Text controls ---- */
 .lab-modes {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.2rem 0.45rem;
+  margin-top: 0.3rem;
 }
 
-.lab-group-option,
 .lab-round-actions button,
 .lab-guess-line button,
 .crates-actions button,
@@ -28,22 +27,6 @@
   background: none;
   font: inherit;
   cursor: pointer;
-}
-
-.lab-group-option[aria-pressed="true"],
-.lab-modes .lab-mode[aria-current="page"] {
-  color: var(--color-text);
-  font-weight: 700;
-  text-decoration: none;
-  cursor: default;
-}
-
-.lab-modes {
-  margin-top: 0.3rem;
-}
-
-.lab-modes .lab-mode:not([aria-current]) {
-  font-weight: 400;
 }
 
 .records-text-button:disabled {
@@ -175,10 +158,6 @@
   list-style: none;
 }
 
-.lab-board.is-listeners {
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-}
-
 .lab-card {
   display: flex;
   flex-direction: column;
@@ -227,17 +206,6 @@
   object-fit: cover;
 }
 
-.lab-card-mosaic {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-
-.lab-card-mosaic img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .lab-card-caption {
   display: grid;
   gap: 0.05rem;
@@ -261,10 +229,6 @@
   font-size: 0.72rem;
 }
 
-.lab-board.is-listeners .lab-card-caption strong {
-  font-size: 0.9rem;
-}
-
 .lab-card.is-down {
   opacity: 0.2;
   filter: grayscale(1);
@@ -280,46 +244,14 @@
   box-shadow: 0 0 0 3px var(--game-correct);
 }
 
-.lab-card.is-target .lab-card-button {
-  border-color: var(--game-secondary);
-  box-shadow: 0 0 0 3px var(--game-secondary);
-}
-
-.lab-card-badge,
 .lab-card-number {
   position: absolute;
   top: 0.25rem;
+  right: 0.25rem;
   padding: 0 0.3rem;
   background: var(--color-bg);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.lab-card-badge {
-  left: 0.25rem;
-  color: var(--game-secondary);
-}
-
-.lab-card-number {
-  right: 0.25rem;
   color: var(--color-text);
-  letter-spacing: 0;
-}
-
-/* Only One: which records the last description fits. */
-.lab-card[data-level="fits"]:not(.is-target) .lab-card-button {
-  border-color: var(--game-correct);
-  box-shadow: 0 0 0 2px var(--game-correct);
-}
-
-.lab-card[data-level="maybe"]:not(.is-target) .lab-card-button {
-  border-color: var(--color-warning);
-  box-shadow: 0 0 0 2px var(--color-warning);
-}
-
-.lab-card[data-level="no"]:not(.is-target) {
-  opacity: 0.35;
+  font-size: 0.68rem;
 }
 
 /* ---- Reveal, history, footer ---- */
@@ -341,9 +273,6 @@
   border-radius: 3px;
 }
 
-.lab-reveal-head .lab-card-mosaic {
-  overflow: hidden;
-}
 
 .lab-reveal-title {
   font-weight: 700;
@@ -422,9 +351,13 @@
 .crates-round {
   display: grid;
   gap: 1rem;
-  max-width: 560px;
+  max-width: 640px;
   margin: 0 auto;
   padding: 1rem 0 1.5rem;
+}
+
+.crates-review {
+  color: var(--em-color);
 }
 
 .crates-solved {
@@ -455,16 +388,24 @@
   font-weight: 700;
 }
 
-.crates-row-covers {
+/* A found group: each record with what puts it in the group. */
+.crates-row-records {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem 1rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.crates-row-covers img {
+.crates-row-record {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
+}
+
+.crates-row-cover img {
   display: block;
   width: 100%;
   aspect-ratio: 1;
@@ -474,22 +415,20 @@
   box-sizing: border-box;
 }
 
-.crates-row-caption {
+.crates-row-copy {
   display: grid;
-  padding-top: 0.25rem;
-  line-height: 1.2;
+  gap: 0.05rem;
+  min-width: 0;
+  font-size: 0.8rem;
+  line-height: 1.3;
 }
 
-.crates-row-caption strong,
-.crates-row-caption span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.7rem;
-}
-
-.crates-row-caption span {
+.crates-row-artist {
   color: var(--em-color);
+}
+
+.crates-row-why {
+  margin-top: 0.15rem;
 }
 
 .crates-grid {
@@ -525,9 +464,37 @@
   object-fit: cover;
 }
 
+.crates-tile-caption {
+  display: grid;
+  gap: 0.05rem;
+  padding: 0.3rem 0.35rem 0.35rem;
+  color: var(--color-text);
+  font: inherit;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.crates-tile-caption strong {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.74rem;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.crates-tile-caption span {
+  overflow: hidden;
+  color: var(--em-color);
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .crates-tile-button[aria-pressed="true"] {
   border-color: var(--game-primary);
   box-shadow: 0 0 0 3px var(--game-primary);
+  background: color-mix(in srgb, var(--game-primary) 12%, var(--game-soft));
 }
 
 .crates-tile-button:focus-visible {
@@ -561,6 +528,50 @@
   margin-left: 0.75rem;
 }
 
+/* Review notes for owners, after a puzzle is finished. */
+.crates-notes {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--game-rule);
+  font-size: 0.82rem;
+}
+
+.crates-notes-heading {
+  margin: 0.75rem 0 0.25rem;
+  font-weight: 700;
+}
+
+.crates-notes-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--em-color);
+}
+
+.crates-notes-list li + li {
+  margin-top: 0.2rem;
+}
+
+@media (max-width: 560px) {
+  .crates-grid {
+    gap: 0.35rem;
+  }
+
+  .crates-tile-caption {
+    padding: 0.25rem 0.25rem 0.3rem;
+  }
+
+  .crates-tile-caption strong {
+    font-size: 0.66rem;
+  }
+
+  .crates-tile-caption span {
+    font-size: 0.6rem;
+  }
+
+  .crates-row-records {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @keyframes lab-thinking {
   0%, 100% { box-shadow: inset 0 -2px 0 var(--color-border-strong); }
   50% { box-shadow: inset 0 -2px 0 var(--color-primary); }
@@ -582,16 +593,8 @@
     order: 1;
   }
 
-  .lab-board.is-listeners {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .lab-card-caption span {
     display: none;
-  }
-
-  .lab-board.is-listeners .lab-card-caption span {
-    display: block;
   }
 
   .lab-card-caption strong {

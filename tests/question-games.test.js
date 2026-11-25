@@ -7,14 +7,12 @@ import {
   compact,
   isNotYesNo,
   judgmentsFrom,
-  listenerFacts,
-  onlyOneBoard,
-  onlyOneResult,
   recordFacts,
 } from "../functions/_shared/question-games.js";
 import { coverTwinsCard, insertBeforeLast } from "../functions/_shared/cover-twins.js";
 import { isLabUser, labGroup, labViewGroup } from "../functions/_shared/dev-lab.js";
-import { clusterIndexes, lookAlikePairs, makePuzzles, puzzleMargin } from "../scripts/lib/cover-puzzles.mjs";
+import { lookAlikePairs } from "../scripts/lib/cover-neighbors.mjs";
+import { checkPuzzle, publicPuzzle } from "../functions/_shared/crates.js";
 
 test("the secret card's probability picks the answer", () => {
   assert.equal(answerFor(0.95).answer, "yes");
@@ -38,22 +36,6 @@ test("a message is refused only when it is clearly not a yes/no question", () =>
   assert.equal(isNotYesNo(undefined), false);
 });
 
-test("Only One is solved when the target fits and nothing else does", () => {
-  assert.equal(onlyOneResult("t", [{ id: "t", p: 0.9 }, { id: "a", p: 0.1 }]).solved, true);
-  const maybe = onlyOneResult("t", [{ id: "t", p: 0.9 }, { id: "a", p: 0.5 }]);
-  assert.equal(maybe.solved, false);
-  assert.equal(maybe.alsoFit, 1);
-  assert.equal(onlyOneResult("t", [{ id: "t", p: 0.3 }, { id: "a", p: 0.1 }]).targetFits, false);
-});
-
-test("Only One's board holds the target, look-alikes and random records", () => {
-  const ids = Array.from({ length: 30 }, (_, n) => `r${n}`);
-  const board = onlyOneBoard("r0", ids, ["r5", "r6", "r0", "missing"], () => 0.3);
-  assert.equal(board.length, 12);
-  assert.ok(board.includes("r0") && board.includes("r5") && board.includes("r6"));
-  assert.equal(new Set(board).size, 12);
-});
-
 test("record facts carry the looked-up facts and drop empty ones", () => {
   const facts = recordFacts({
     name: "Album", artistName: "Artist", releaseDate: "2025-03-01", albumType: "single", totalTracks: 5,
@@ -71,25 +53,13 @@ test("record facts carry the looked-up facts and drop empty ones", () => {
   assert.equal("explicit_tracks" in facts, false);
 });
 
-test("listener facts include exact year summaries", () => {
-  const facts = listenerFacts("ana", [
-    { name: "A", artistName: "X", releaseDate: "1975-01-01", language: "eng" },
-    { name: "B", artistName: "Y", releaseDate: "2025-01-01", language: "spa", review: "hi" },
-  ]);
-  assert.equal(facts.oldest_record_year, 1975);
-  assert.equal(facts.newest_record_year, 2025);
-  assert.deepEqual(facts.decades_picked, ["1970s", "2020s"]);
-  assert.equal(facts.notes_written, 1);
-});
-
-test("the Jev request has one question per card, plus the kind check", () => {
-  const request = buildJevRequest("record", "Is it loud?", [{ id: "x", facts: { title: "X" } }, { id: "y", facts: { title: "Y" } }]);
+test("the Jev request has one question per record, plus the kind check", () => {
+  const request = buildJevRequest("Is it loud?", [{ id: "x", facts: { title: "X" } }, { id: "y", facts: { title: "Y" } }]);
   assert.deepEqual(Object.keys(request.questions), ["c0", "c1", "kind"]);
   assert.equal(request.state.question, "Is it loud?");
   assert.deepEqual(request.questions.c1.instructions.album, { title: "Y" });
-  const onlyOne = buildJevRequest("only-one", "red", [{ id: "x", facts: {} }]);
-  assert.equal(onlyOne.state.description, "red");
-  assert.equal("kind" in onlyOne.questions, false);
+  // The player's words are state, never part of the instructions.
+  assert.equal(JSON.stringify(request.questions).includes("Is it loud?"), false);
   assert.deepEqual(judgmentsFrom([{ id: "x" }, { id: "y" }], { c0: { noul: 0.81234 } }), [{ id: "x", p: 0.812 }, { id: "y", p: null }]);
 });
 
@@ -130,15 +100,45 @@ function families() {
   return matrix;
 }
 
-test("puzzles group look-alikes and keep the groups apart", () => {
-  const matrix = families();
-  const indexes = [...matrix.keys()];
-  const clusters = clusterIndexes(matrix, indexes, 4);
-  assert.deepEqual(clusters.map((cluster) => cluster.length), [4, 4, 4, 4]);
-  const [puzzle] = makePuzzles(matrix, indexes, { count: 1, clusters: 4 });
-  assert.ok(puzzle);
-  for (const group of puzzle.groups) assert.equal(new Set(group.map((index) => Math.floor(index / 4))).size, 1);
-  assert.ok(puzzleMargin(matrix, puzzle.groups) > 0.5);
+// A well-formed Crates puzzle: four groups of four, levels 1-4, sixteen different records.
+function cratesPuzzle() {
+  return {
+    id: "badabing-trivia-01",
+    title: "",
+    groups: [1, 2, 3, 4].map((level) => ({
+      level,
+      label: `Group ${level}`,
+      records: [1, 2, 3, 4].map((n) => ({ spotifyId: `r${level}${n}`, title: `T${level}${n}`, artist: "A", why: "Because.", source: "data:released" })),
+    })),
+    red_herrings: ["One looks like another."],
+    confidence: "high",
+    doubts: "",
+  };
+}
+
+test("a Crates puzzle needs four groups of four different records that the group picked", () => {
+  const known = new Set(cratesPuzzle().groups.flatMap((group) => group.records.map((record) => record.spotifyId)));
+  assert.deepEqual(checkPuzzle(cratesPuzzle(), known), []);
+  const repeated = cratesPuzzle();
+  repeated.groups[1].records[0].spotifyId = "r11";
+  assert.match(checkPuzzle(repeated, known).join(" "), /appears twice/);
+  const short = cratesPuzzle();
+  short.groups[2].records.pop();
+  assert.match(checkPuzzle(short, known).join(" "), /four records/);
+  const stranger = cratesPuzzle();
+  stranger.groups[0].records[0].spotifyId = "nope";
+  assert.match(checkPuzzle(stranger, known).join(" "), /not one of this group's records/);
+});
+
+test("players see the puzzle with covers; review notes only for owners", () => {
+  const covers = new Map([["r11", "https://i.scdn.co/image/a"]]);
+  const payload = { ...cratesPuzzle(), status: "draft" };
+  const forOwner = publicPuzzle(payload, covers, { owner: true });
+  assert.equal(forOwner.groups[0].records[0].imageUrl, "https://i.scdn.co/image/a");
+  assert.equal(forOwner.groups[0].records[0].why, "Because.");
+  assert.deepEqual(forOwner.review.redHerrings, ["One looks like another."]);
+  assert.equal("review" in publicPuzzle(payload, covers, { owner: false }), false);
+  assert.equal("source" in forOwner.groups[0].records[0], false);
 });
 
 test("look-alike pairs skip records picked by the same people", () => {

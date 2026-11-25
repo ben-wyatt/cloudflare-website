@@ -1,16 +1,12 @@
 import { genreTags } from "./record-game-clues.js";
 
-// The question games: the player types plain questions (or, in Only One, a description) and
-// Jev answers one yes/no judgment per card on the board. Everything Jev needs is written into
-// each card's facts, so it reads what the friends picked instead of recalling new albums.
-// This file is pure: the facts each card carries, the questions sent, and the rules that turn
-// probabilities into answers and turned-down cards. The rules live here, not in prompts.
+// Guess the Record: the player types plain yes/no questions and Jev answers one judgment per
+// record on the board. Everything Jev needs is written into each record's facts, so it reads
+// what the friends picked instead of recalling new albums. This file is pure: the facts each
+// record carries, the questions sent, and the rules that turn probabilities into answers and
+// turned-over records. The rules live here, not in prompts.
 
-export const VARIANTS = ["record", "listener", "only-one"];
 export const RECORD_BOARD_SIZE = 24;
-export const ONLY_ONE_BOARD_SIZE = 12;
-export const ONLY_ONE_LOOKALIKES = 6;
-export const LISTENER_MIN_RECORDS = 3;
 export const MAX_TURNS = 40;
 export const MAX_TEXT_LENGTH = 200;
 
@@ -45,23 +41,6 @@ export function cardsToTurnDown(answer, judgments, secretId) {
 export function isNotYesNo(kindAnswer) {
   const probabilities = kindAnswer?.probabilities || {};
   return Number(probabilities.yes_no ?? 1) < 0.4;
-}
-
-// Only One: the description must fit the target and nothing else on the board.
-export const FITS = 0.6;
-export const MISFITS = 0.4;
-export function fitLevel(p) {
-  if (p === null || p === undefined) return "no";
-  return p >= FITS ? "fits" : p > MISFITS ? "maybe" : "no";
-}
-
-export function onlyOneResult(targetId, judgments) {
-  const levels = judgments.map((judgment) => ({ id: judgment.id, level: fitLevel(judgment.p) }));
-  const target = levels.find((entry) => entry.id === targetId);
-  const others = levels.filter((entry) => entry.id !== targetId);
-  const targetFits = target?.level === "fits";
-  const alsoFit = others.filter((entry) => entry.level !== "no").length;
-  return { levels, targetFits, alsoFit, solved: targetFits && alsoFit === 0 };
 }
 
 // ---- Facts each card carries -----------------------------------------------------------
@@ -176,86 +155,34 @@ export function recordFacts(album, { picks = [], favorites = [], trackNames = []
   });
 }
 
-// albums: this listener's picks, each an album row plus { review }; standouts: [{ trackName, artistName }].
-export function listenerFacts(username, albums, standouts = []) {
-  // Exact summaries computed here, so questions like "anything before 1990?" are a lookup.
-  const years = albums.map((album) => Number(String(album.releaseDate || "").slice(0, 4))).filter(Boolean);
-  const languages = [...new Set(albums.map((album) => LANGUAGES[String(album.language || "").toLowerCase()]).filter(Boolean))];
-  return compact({
-    name: username,
-    oldest_record_year: years.length ? Math.min(...years) : undefined,
-    newest_record_year: years.length ? Math.max(...years) : undefined,
-    decades_picked: [...new Set(years.map((year) => `${Math.floor(year / 10) * 10}s`))].sort(),
-    lyrics_languages: languages,
-    records_picked: albums.length,
-    notes_written: albums.filter((album) => String(album.review || "").trim()).length,
-    standout_tracks_picked: standouts.length,
-    records: albums.map((album) => {
-      const facts = parse(album.factsJson);
-      const artist = facts?.artist || {};
-      const cover = parse(album.descriptionJson);
-      return {
-        title: album.name,
-        artist: album.artistName,
-        year: Number(String(album.releaseDate || "").slice(0, 4)) || undefined,
-        kind: albumKind(album),
-        lyrics_language: LANGUAGES[String(album.language || "").toLowerCase()],
-        genre_tags: tagsOf(album, 4),
-        artist_tags: (artist.tags || []).slice(0, 3),
-        artist_is: [ARTIST_KINDS[artist.type], artist.gender ? String(artist.gender).toLowerCase() : "", artist.area ? `from ${artist.area}` : ""]
-          .filter(Boolean).join(", "),
-        audience: audience(album.lastfmListeners),
-        cover: cover?.subject,
-        note: String(album.review || "").trim(),
-      };
-    }),
-    standout_tracks: standouts.map((track) => `${track.trackName} by ${track.artistName}`),
-  });
-}
-
 // ---- The questions sent to Jev -------------------------------------------------------
 const YES_NO = {
   true: "Yes: the answer to the player's question is yes for this one.",
   false: "No: the answer to the player's question is no for this one.",
 };
 
-const TASKS = {
-  record: "Friends each picked the albums they loved this year. A player asks yes-or-no questions to find one secret album among them. Answer the player's question, `question`, for the album described in `album`, the way a friend who knows these facts would answer. Questions can be about the music, the artist, the cover art, when it came out, or the friends who picked it and what they wrote.",
-  listener: "Friends each picked the albums they loved this year. A player asks yes-or-no questions to find one secret friend. Answer the player's question, `question`, for the friend described in `listener`, judging by the records they picked, what they wrote about them, and their standout tracks.",
-  "only-one": "Friends each picked the albums they loved this year. A player writes a short description that should fit exactly one album. Does the player's description, `description`, fit the album described in `album`? It fits only when everything it says is true of this album: its music, its artist, its cover art, when it came out, or the friends who picked it and what they wrote.",
-};
+const TASK = "Friends each picked the albums they loved this year. A player asks yes-or-no questions to find one secret album among them. Answer the player's question, `question`, for the album described in `album`, the way a friend who knows these facts would answer. Questions can be about the music, the artist, the cover art, when it came out, or the friends who picked it and what they wrote.";
 
-const FIT = {
-  true: "The description fits: everything it says is true of this album.",
-  false: "The description does not fit: something it says is not true of this album, or it is about something else.",
-};
-
-const KIND = (thing) => ({
+// Asked alongside the records, so a message that is not a yes/no question can be turned away.
+const KIND = {
   type: "choice",
-  instructions: `In a guessing game, a player types messages to find a secret ${thing}. What kind of message is \`question\`?`,
+  instructions: "In a guessing game, a player types messages to find a secret album. What kind of message is `question`?",
   criteria: {
     yes_no: "A question with a yes-or-no answer, including a direct guess such as \"is it the one with the dog?\"",
     open: "A question that needs more than a yes or no, such as \"what genre is it?\" or \"who picked it?\"",
     other: "Not a question: a greeting, an instruction, or nonsense.",
   },
-});
+};
 
-// cards: [{ id, facts }]. Question names are card ids with a prefix (names are not sent to Jev).
-export function buildJevRequest(variant, text, cards) {
+// cards: [{ id, facts }]. Question names are card positions (names are not sent to Jev).
+// The player's text is state, never instructions, so it cannot rewrite the task.
+export function buildJevRequest(text, cards) {
   const questions = {};
-  const key = variant === "listener" ? "listener" : "album";
   cards.forEach((card, index) => {
-    questions[`c${index}`] = {
-      type: "noul",
-      instructions: { task: TASKS[variant], [key]: card.facts },
-      criteria: variant === "only-one" ? FIT : YES_NO,
-    };
+    questions[`c${index}`] = { type: "noul", instructions: { task: TASK, album: card.facts }, criteria: YES_NO };
   });
-  if (variant !== "only-one") questions.kind = KIND(variant === "listener" ? "friend" : "album");
-  return {
-    state: variant === "only-one" ? { description: text } : { question: text },
-    questions,
-  };
+  questions.kind = KIND;
+  return { state: { question: text }, questions };
 }
 
 // Pairs each card with its probability from the answers.
@@ -274,15 +201,6 @@ export function shuffle(items, random = () => crypto.getRandomValues(new Uint32A
     [list[index], list[swap]] = [list[swap], list[index]];
   }
   return list;
-}
-
-// Only One's board: the target, some of its closest look-alikes in this group, the rest at random.
-export function onlyOneBoard(targetId, allIds, lookalikeIds, random) {
-  const others = allIds.filter((id) => id !== targetId);
-  const lookalikes = lookalikeIds.filter((id) => id !== targetId && others.includes(id)).slice(0, ONLY_ONE_LOOKALIKES);
-  const rest = shuffle(others.filter((id) => !lookalikes.includes(id)), random)
-    .slice(0, ONLY_ONE_BOARD_SIZE - 1 - lookalikes.length);
-  return shuffle([targetId, ...lookalikes, ...rest], random);
 }
 
 export function cleanText(value) {

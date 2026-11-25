@@ -1,18 +1,18 @@
-// Turn the cover descriptions into look-alike data and save it to the remote D1:
+// Turn the cover descriptions into look-alike data for the Cover twins Wrapped slide, and
+// save it to the remote D1:
 //   1. embed each description with the local bge-small model (nothing leaves this machine),
 //   2. record_cover_neighbors: each cover's 30 closest covers,
 //   3. record_cover_pairs: for each group, the most alike covers picked by different people,
-//      with one line from a text model on what they share,
-//   4. record_cover_puzzles: for each group, puzzles of four groups of four look-alikes,
-//      each group named by a text model.
+//      with one line from a text model on what they share.
 //   node scripts/cover-similarity.mjs             (everything)
 //   node scripts/cover-similarity.mjs --dry-run   (compute and print, save nothing)
-// A preview page of the pairs and puzzles is written to PREVIEW_DIR for a look.
+// A preview page of the pairs is written to PREVIEW_DIR for a look.
 // The text model sees only cover descriptions. Uses OPENROUTER_API_KEY.
+// (Crates puzzles are written by hand and loaded with scripts/load-crates.mjs.)
 import { mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
-import { lookAlikePairs, makePuzzles, nearest, similarityMatrix } from "./lib/cover-puzzles.mjs";
+import { lookAlikePairs, nearest, similarityMatrix } from "./lib/cover-neighbors.mjs";
 import { d1Query, d1Write, openRouterJson, sqlNumber, sqlText } from "./lib/remote-d1.mjs";
 
 const TEXT_MODEL = "deepseek/deepseek-v4.1-flash";
@@ -20,7 +20,6 @@ const EMBED_MODEL = "Xenova/bge-small-en-v1.5";
 const SEASON = 2026;
 const NEIGHBORS = 30;
 const PAIRS_PER_GROUP = 8;
-const PUZZLES_PER_GROUP = 12;
 const PREVIEW_DIR = path.join(homedir(), "Agent", "artifacts", "record-club-covers");
 const dryRun = process.argv.includes("--dry-run");
 
@@ -94,19 +93,6 @@ async function pairReasons(pairs) {
   return { reasons: pairs.map((_, n) => reasons.get(String(n)) || ""), cost };
 }
 
-async function puzzleLabels(puzzleGroups) {
-  const { data, cost } = await openRouterJson({
-    model: TEXT_MODEL,
-    maxTokens: 600,
-    messages: [
-      { role: "system", content: `A puzzle shows sixteen album covers that form four groups of four look-alikes. You get each group's cover descriptions. Name each group with a short label of 2 to 5 words for what its four covers visibly share and the other groups do not, like "Faces in close-up" or "Hand-drawn and pastel". Be concrete. Never name albums, artists or people. Reply with JSON: {"labels": ["...", "...", "...", "..."]} in the same order as the groups.` },
-      { role: "user", content: JSON.stringify(puzzleGroups.map((group, n) => ({ group: n + 1, covers: group.map(brief) }))) },
-    ],
-  });
-  const labels = (data?.labels || []).map((label) => String(label || "").trim().slice(0, 60));
-  return { labels: puzzleGroups.map((_, n) => labels[n] || `Group ${n + 1}`), cost };
-}
-
 const albumCard = (index) => ({
   spotifyId: albums[index].spotifyId,
   name: albums[index].name,
@@ -128,40 +114,22 @@ for (const [groupId, group] of groups) {
     statements.push(`INSERT OR REPLACE INTO record_cover_pairs (album_a, album_b, similarity, reason, model, created_at)
       VALUES (${sqlText(a)}, ${sqlText(b)}, ${sqlNumber(pair.similarity.toFixed(5))}, ${sqlText(reasons[n])}, ${sqlText(TEXT_MODEL)}, ${sqlText(now)})`);
   });
-
-  const puzzles = makePuzzles(matrix, indexes, { count: PUZZLES_PER_GROUP });
-  statements.push(`DELETE FROM record_cover_puzzles WHERE group_id = ${sqlText(groupId)} AND season = ${SEASON}`);
-  const savedPuzzles = [];
-  for (const [n, puzzle] of puzzles.entries()) {
-    const { labels, cost: labelCost } = await puzzleLabels(puzzle.groups);
-    cost += labelCost;
-    const payload = {
-      margin: Number(puzzle.margin.toFixed(4)),
-      groups: puzzle.groups.map((members, level) => ({ level: level + 1, label: labels[level], albums: members.map(albumCard) })),
-    };
-    savedPuzzles.push(payload);
-    statements.push(`INSERT INTO record_cover_puzzles (id, group_id, season, payload_json, created_at)
-      VALUES (${sqlText(`${groupId}-${SEASON}-${n + 1}`)}, ${sqlText(groupId)}, ${SEASON}, ${sqlText(JSON.stringify(payload))}, ${sqlText(now)})`);
-  }
-  console.log(`${groupId}: ${indexes.length} covers, ${pairs.length} pairs, ${puzzles.length} puzzles (margins ${puzzles.map((p) => p.margin.toFixed(3)).join(", ")})`);
+  console.log(`${groupId}: ${indexes.length} covers, ${pairs.length} pairs`);
   preview.push({ groupId, pairs: pairs.map((pair, n) => ({ similarity: pair.similarity, reason: reasons[n],
-    left: { ...albumCard(pair.i), pickers: group.names.get(pair.i) }, right: { ...albumCard(pair.j), pickers: group.names.get(pair.j) } })),
-  puzzles: savedPuzzles });
+    left: { ...albumCard(pair.i), pickers: group.names.get(pair.i) }, right: { ...albumCard(pair.j), pickers: group.names.get(pair.j) } })) });
 }
 
 if (!dryRun) d1Write(statements, { slice: 300 });
 console.log(`${dryRun ? "Computed" : "Saved"} ${statements.length} statements; text model cost $${cost.toFixed(4)}.`);
 
-// A plain preview page, for checking the results by eye.
+// A plain preview page, for checking the pairs by eye.
 const escape = (value) => String(value).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c]));
 const img = (album) => `<img src="${escape(album.imageUrl)}" alt="" title="${escape(`${album.name} — ${album.artistName}`)}">`;
 const html = `<!doctype html><meta charset="utf-8"><title>Cover look-alikes</title>
 <style>body{font:14px/1.4 ui-monospace,monospace;margin:2rem;background:#faf8f4}img{width:110px;height:110px;object-fit:cover;margin:2px}
-.pair,.row{display:flex;align-items:center;gap:1rem;margin:.4rem 0}.puzzle{border-top:1px solid #999;margin:1.5rem 0;padding-top:.5rem}h3{margin:.3rem 0}</style>
-${preview.map((group) => `<h1>${escape(group.groupId)}</h1><h2>Look-alike pairs</h2>
-${group.pairs.map((pair) => `<div class="pair">${img(pair.left)}${img(pair.right)}<div><b>${pair.similarity.toFixed(3)}</b> ${escape(pair.left.pickers.join(", "))} × ${escape(pair.right.pickers.join(", "))}<br>${escape(pair.reason)}</div></div>`).join("")}
-<h2>Puzzles</h2>${group.puzzles.map((puzzle, n) => `<div class="puzzle"><h3>Puzzle ${n + 1} · margin ${puzzle.margin}</h3>
-${puzzle.groups.map((g) => `<div class="row">${g.albums.map(img).join("")}<b>${g.level}. ${escape(g.label)}</b></div>`).join("")}</div>`).join("")}`).join("")}`;
+.pair{display:flex;align-items:center;gap:1rem;margin:.4rem 0}</style>
+${preview.map((group) => `<h1>${escape(group.groupId)}</h1>
+${group.pairs.map((pair) => `<div class="pair">${img(pair.left)}${img(pair.right)}<div><b>${pair.similarity.toFixed(3)}</b> ${escape(pair.left.pickers.join(", "))} × ${escape(pair.right.pickers.join(", "))}<br>${escape(pair.reason)}</div></div>`).join("")}`).join("")}`;
 mkdirSync(PREVIEW_DIR, { recursive: true });
 writeFileSync(path.join(PREVIEW_DIR, "preview.html"), html);
 console.log(`Preview: ${path.join(PREVIEW_DIR, "preview.html")}`);
