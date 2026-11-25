@@ -70,7 +70,7 @@ const SEARCHES = [
 // One web search, and the facts it supports about this album, each with its page.
 async function search(album, step) {
   const payload = await openRouter({
-    max_tokens: 3500,
+    max_tokens: 7000,
     plugins: [{ id: "web", engine: "exa", max_results: RESULTS_PER_SEARCH }],
     messages: [
       { role: "system", content: `You research one album for a music game. ${identity(album)}
@@ -95,7 +95,7 @@ Use ONLY the web results you were given. Skip any result that is about a differe
 // The write-up, from the gathered facts and what the database already knows.
 async function write(album, facts) {
   const payload = await openRouter({
-    max_tokens: 3000,
+    max_tokens: 5000,
     response_format: { type: "json_object" },
     messages: [
       { role: "system", content: `You write a dense fact sheet about one album for a guessing game in which players ask yes-or-no questions such as "is it chill?", "are there horns?", "is it a debut?", "is it about a breakup?", "did it get great reviews?". ${identity(album)}

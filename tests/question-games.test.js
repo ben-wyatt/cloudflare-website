@@ -56,6 +56,9 @@ test("record facts carry the looked-up facts and drop empty ones", () => {
 test("the researched write-up joins the facts, without empty sections or fact numbers", () => {
   const facts = recordFacts({
     name: "Album", artistName: "Artist",
+    // Last.fm found this artist by name and mixed in a namesake; MusicBrainz is album-tied.
+    factsJson: JSON.stringify({ artist: { name: "Artist", type: "Group", area: "Brazil",
+      tags: ["free jazz"], similar: ["Someone Else"], bio: "A saxophonist born in 1934." } }),
     researchJson: JSON.stringify({
       sound: "Horn-driven samba (facts 3, 4) with strings (fact 9).",
       mood_and_themes: "Not found in the sources.",
@@ -69,6 +72,8 @@ test("the researched write-up joins the facts, without empty sections or fact nu
     story_of_the_record: "Their debut, recorded in Ingolstadt.",
     artist_background: "A duo from Rio and Bavaria.",
   });
+  // With a researched artist section, Last.fm's name-matched bio, tags and peers are left out.
+  assert.deepEqual(facts.artist_facts, { name: "Artist", kind: "band or group", from: "Brazil" });
 });
 
 test("the Jev request has one question per record, plus the kind check", () => {

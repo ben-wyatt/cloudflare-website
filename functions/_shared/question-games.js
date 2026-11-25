@@ -93,7 +93,10 @@ function albumKind(album) {
   return type ? "album" : undefined;
 }
 
-function artistFacts(facts) {
+// MusicBrainz facts come from the artist credited on the album. Last.fm's artist page is found
+// by name alone and can mix two artists (both Steve Lacys share one), so its bio, tags and
+// similar artists are left out when the researched write-up covers the artist instead.
+function artistFacts(facts, { researched = false } = {}) {
   const artist = facts?.artist;
   if (!artist) return undefined;
   return {
@@ -104,9 +107,9 @@ function artistFacts(facts) {
     // MusicBrainz's start year is a birth year for a person and a founding year for a band.
     [artist.type === "Person" ? "born" : "formed"]: artist.activeSince,
     known_as: artist.disambiguation,
-    artist_tags: artist.tags,
-    similar_artists: artist.similar,
-    about: artist.bio,
+    artist_tags: researched ? undefined : artist.tags,
+    similar_artists: researched ? undefined : artist.similar,
+    about: researched ? undefined : artist.bio,
   };
 }
 
@@ -143,6 +146,7 @@ function researchFacts(research) {
 // trackNames: string[] in album order.
 export function recordFacts(album, { picks = [], favorites = [], trackNames = [] } = {}) {
   const facts = parse(album.factsJson);
+  const researched = researchFacts(parse(album.researchJson));
   const year = Number(String(album.releaseDate || "").slice(0, 4)) || undefined;
   const minutes = Math.round(Number(album.totalDurationMs || 0) / 60000) || undefined;
   return compact({
@@ -156,9 +160,9 @@ export function recordFacts(album, { picks = [], favorites = [], trackNames = []
     lyrics_language: LANGUAGES[String(album.language || "").toLowerCase()],
     audience: audience(album.lastfmListeners),
     genre_tags: tagsOf(album, 6),
-    artist_facts: artistFacts(facts),
+    artist_facts: artistFacts(facts, { researched: Boolean(researched?.artist_background) }),
     about_the_album: facts?.albumWiki,
-    researched: researchFacts(parse(album.researchJson)),
+    researched,
     track_names: trackNames.slice(0, 30),
     cover: coverFacts(parse(album.descriptionJson)),
     picked_by: [...new Set(picks.map((pick) => pick.username))],
