@@ -1,5 +1,4 @@
-import { requireUser } from "../../_shared/auth.js";
-import { labGroup, requireLabUser } from "../../_shared/dev-lab.js";
+import { requireRecordClubOwner, requireUser } from "../_shared/auth.js";
 import {
   HttpError,
   assertSameOrigin,
@@ -7,8 +6,8 @@ import {
   json,
   readJson,
   requireDb,
-} from "../../_shared/http.js";
-import { askJev } from "../../_shared/jev.js";
+} from "../_shared/http.js";
+import { askJev } from "../_shared/jev.js";
 import {
   groupBy,
   listHref,
@@ -16,7 +15,7 @@ import {
   loadGroupFavorites,
   loadGroupPicks,
   loadTrackNames,
-} from "../../_shared/lab-data.js";
+} from "../_shared/guess-data.js";
 import {
   MAX_TURNS,
   RECORD_BOARD_SIZE,
@@ -28,12 +27,18 @@ import {
   judgmentsFrom,
   recordFacts,
   shuffle,
-} from "../../_shared/question-games.js";
+} from "../_shared/question-games.js";
 
-// Guess the Record (owners-only preview). The player types; Jev reads each record's facts and
-// answers one yes/no judgment per record; code turns that into an answer.
+// Guess the Record. The player types; Jev reads each record of the player's group and answers
+// one yes/no judgment per record; code turns that into an answer.
 const ROUND_TTL_MS = 12 * 60 * 60 * 1000;
 const randomIndex = (length) => crypto.getRandomValues(new Uint32Array(1))[0] % length;
+
+// The same gate as the other Record Club games.
+function requireGameAccess(user) {
+  requireRecordClubOwner(user);
+  if (!user.groupId) throw new HttpError("This account is not in a Record Club group.", 403, "group_required");
+}
 
 // What the page may see of a card: never its facts.
 const publicCard = ({ facts, ...card }) => card;
@@ -60,8 +65,8 @@ async function recordCards(db, groupId, albums) {
   }));
 }
 
-async function createRound(db, player, body) {
-  const groupId = labGroup(body.group);
+async function createRound(db, player) {
+  const groupId = player.groupId;
   const albums = shuffle(await loadGroupAlbums(db, groupId)).slice(0, RECORD_BOARD_SIZE);
   if (albums.length < 6) throw new HttpError("This group needs more records with covers to play.", 404, "not_enough_records");
   const cards = await recordCards(db, groupId, albums);
@@ -179,11 +184,11 @@ export async function onRequestPost({ request, env }) {
   try {
     assertSameOrigin(request);
     const user = await requireUser(env, request);
-    requireLabUser(user);
+    requireGameAccess(user);
     const db = requireDb(env);
     const body = await readJson(request);
     if (!body || typeof body !== "object" || Array.isArray(body)) throw new HttpError("Choose a valid action.", 400, "invalid_action");
-    if (body.action === "new") return json(await createRound(db, user, body));
+    if (body.action === "new") return json(await createRound(db, user));
     if (body.action === "ask") return json(await ask(db, env, user, body));
     if (body.action === "guess") return json(await guess(db, user, body));
     if (body.action === "give-up") return json(await giveUp(db, user, body));

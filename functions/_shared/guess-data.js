@@ -1,6 +1,6 @@
 import { RECORD_SEASON } from "./records-config.js";
 
-// Database reads shared by the lab games: one group's records with their cover descriptions
+// Database reads for Guess the Record: one group's records with their cover descriptions
 // and looked-up facts, who picked what, and the notes, hearts and track names around them.
 
 export async function loadGroupAlbums(db, groupId) {

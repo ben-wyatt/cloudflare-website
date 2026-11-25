@@ -1,6 +1,5 @@
-import { requireUser } from "../../_shared/auth.js";
-import { CRATE_STATUSES, publicPuzzle } from "../../_shared/crates.js";
-import { isLabUser, labGroup, requireLabUser } from "../../_shared/dev-lab.js";
+import { isRecordClubOwner, requireRecordClubOwner, requireUser } from "../_shared/auth.js";
+import { CRATE_STATUSES, publicPuzzle } from "../_shared/crates.js";
 import {
   HttpError,
   assertSameOrigin,
@@ -8,12 +7,19 @@ import {
   json,
   readJson,
   requireDb,
-} from "../../_shared/http.js";
-import { RECORD_SEASON } from "../../_shared/records-config.js";
+} from "../_shared/http.js";
+import { RECORD_SEASON } from "../_shared/records-config.js";
 
-// Crates puzzles. Crates is an owners-only preview: owners see every puzzle that is not
-// rejected, with review notes, and approve or reject each one. Once Crates opens to friends,
-// they will get approved puzzles only.
+// Crates puzzles for the player's group. Owners review them: they see every puzzle that is not
+// rejected, with review notes, and approve or reject each one. Everyone else gets approved
+// puzzles only.
+
+// The same gate as the other Record Club games.
+function requireGameAccess(user) {
+  requireRecordClubOwner(user);
+  if (!user.groupId) throw new HttpError("This account is not in a Record Club group.", 403, "group_required");
+}
+
 async function loadPuzzles(db, groupId, owner) {
   const result = await db.prepare(
     `SELECT id, payload_json AS payloadJson
@@ -40,11 +46,11 @@ async function coversFor(db, payload) {
 export async function onRequestGet({ request, env }) {
   try {
     const user = await requireUser(env, request);
-    requireLabUser(user);
-    const owner = isLabUser(user);
+    requireGameAccess(user);
+    const owner = isRecordClubOwner(user);
     const db = requireDb(env);
     const url = new URL(request.url);
-    const groupId = labGroup(url.searchParams.get("group"));
+    const groupId = user.groupId;
     const puzzles = await loadPuzzles(db, groupId, owner);
     if (!puzzles.length) throw new HttpError("There are no Crates puzzles for this group yet.", 404, "no_puzzles");
     const asked = Number(url.searchParams.get("n"));
@@ -70,7 +76,8 @@ export async function onRequestPost({ request, env }) {
   try {
     assertSameOrigin(request);
     const user = await requireUser(env, request);
-    requireLabUser(user);
+    // Reviewing stays an owner's job after Crates opens to everyone.
+    requireRecordClubOwner(user);
     const db = requireDb(env);
     const body = await readJson(request);
     const status = String(body?.status || "");

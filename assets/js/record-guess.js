@@ -13,18 +13,13 @@
   };
   if (!elements.loading) return;
 
-  // Owners can play another group's records with ?group=; Badabing is the default.
-  const GROUP_NAMES = { badabing: "Badabing", development: "the development seed lists" };
-  const requestedGroup = new URLSearchParams(window.location.search).get("group");
-  const group = GROUP_NAMES[requestedGroup] ? requestedGroup : "badabing";
-
   const state = {
     roundId: "", cards: [], down: new Set(), selectedId: "", secretId: "",
     numbers: new Map(), questions: 0, guesses: 0, pending: false, finished: false,
   };
 
   async function api(body) {
-    const response = await fetch("/api/lab/ask", {
+    const response = await fetch("/api/guess", {
       method: "POST",
       credentials: "same-origin",
       headers: { "content-type": "application/json" },
@@ -255,7 +250,7 @@
     elements.giveUp.parentElement.hidden = false;
     elements.history.replaceChildren();
     try {
-      const round = await api({ action: "new", group });
+      const round = await api({ action: "new" });
       state.roundId = round.roundId;
       state.cards = round.cards;
       elements.loading.hidden = true;
@@ -268,7 +263,7 @@
     }
   }
 
-  elements.deck.textContent = `Find the secret record. Ask yes-or-no questions about the music, the artist, the cover or who picked it. Tap a record to guess. Records from ${GROUP_NAMES[group]}.`;
+  elements.deck.textContent = `Find the secret record. Ask yes-or-no questions about the music, the artist, the cover or who picked it. Tap a record to guess.`;
   elements.label.textContent = "ask a yes-or-no question";
   elements.input.placeholder = "Is it by a band?";
   elements.form.addEventListener("submit", submit);

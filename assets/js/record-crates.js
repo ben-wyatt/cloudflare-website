@@ -12,9 +12,7 @@
   };
   if (!elements.loading) return;
 
-  // Owners can play another group's puzzles with ?group=; Badabing is the default.
   const params = new URLSearchParams(window.location.search);
-  const group = ["badabing", "development"].includes(params.get("group")) ? params.get("group") : "badabing";
   const STATUS_WORDS = { draft: "Draft, not reviewed", approved: "Approved", rejected: "Rejected" };
 
   const state = {
@@ -214,9 +212,9 @@
   }
 
   async function load(number = 0) {
-    const query = new URLSearchParams({ group });
+    const query = new URLSearchParams();
     if (number) query.set("n", String(number));
-    const response = await fetch(`/api/lab/crates?${query}`, { credentials: "same-origin" });
+    const response = await fetch(`/api/crates?${query}`, { credentials: "same-origin" });
     const payload = await response.json().catch(() => null);
     if (!response.ok) {
       elements.loading.hidden = true;
@@ -243,7 +241,7 @@
   }
 
   async function review(status) {
-    const response = await fetch("/api/lab/crates", {
+    const response = await fetch("/api/crates", {
       method: "POST",
       credentials: "same-origin",
       headers: { "content-type": "application/json" },

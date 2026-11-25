@@ -10,7 +10,6 @@ import {
   recordFacts,
 } from "../functions/_shared/question-games.js";
 import { coverTwinsCard, insertBeforeLast } from "../functions/_shared/cover-twins.js";
-import { isLabUser, labGroup, labViewGroup } from "../functions/_shared/dev-lab.js";
 import { lookAlikePairs } from "../scripts/lib/cover-neighbors.mjs";
 import { checkPuzzle, publicPuzzle } from "../functions/_shared/crates.js";
 
@@ -65,16 +64,6 @@ test("the Jev request has one question per record, plus the kind check", () => {
 
 test("compact removes empty values all the way down", () => {
   assert.deepEqual(compact({ a: "", b: [], c: { d: null }, e: 0, f: ["x", ""] }), { e: 0, f: ["x"] });
-});
-
-test("only Record Club owners are lab users, and only known groups can be read", () => {
-  assert.equal(isLabUser({ username: "ben_dev", groupId: "development" }), true);
-  assert.equal(isLabUser({ username: "Ben", groupId: "badabing" }), true);
-  assert.equal(isLabUser({ username: "graham", groupId: "badabing" }), false);
-  assert.equal(isLabUser(null), false);
-  assert.equal(labGroup("development"), "development");
-  assert.equal(labGroup("ey-mt-juniors"), "badabing");
-  assert.equal(labViewGroup("nope"), null);
 });
 
 test("cover twins goes just before the last slide", () => {

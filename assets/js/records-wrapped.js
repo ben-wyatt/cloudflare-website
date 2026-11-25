@@ -30,11 +30,7 @@
     }
   }
 
-  // The lab account can view another group's Wrapped: /records/wrapped/?group=badabing.
-  const labGroup = new URLSearchParams(window.location.search).get("group");
-
   async function api(path, options = {}) {
-    if (labGroup && path === "/api/wrapped" && !options.method) path += `?group=${encodeURIComponent(labGroup)}`;
     const request = { credentials: "same-origin", headers: {}, ...options };
     if (options.body && typeof options.body !== "string") {
       request.headers = { "content-type": "application/json", ...options.headers };

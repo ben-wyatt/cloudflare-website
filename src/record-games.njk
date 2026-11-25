@@ -42,25 +42,23 @@ bodyClass: "games-page record-games-page"
         <p>{{ recordCopy.wrappedListing | safe }}</p>
       </article>
     </li>
-    {# Previews for the Record Club owners; record-games.js shows them to owners only. #}
-    <li hidden data-owner-only>
+    <li>
       <article class="games-entry">
         <div class="games-entry-heading">
           <span class="games-number" aria-hidden="true">04</span>
-          <h2><a href="/records/guess/">Guess the Record <span aria-hidden="true">→</span></a> <span class="games-preview-tag">owners only</span></h2>
+          <h2><a href="/records/guess/">Guess the Record <span aria-hidden="true">→</span></a></h2>
         </div>
         <p>Twenty-four records, one secret. Ask yes-or-no questions; the records that don't fit turn over.</p>
       </article>
     </li>
-    <li hidden data-owner-only>
+    <li>
       <article class="games-entry">
         <div class="games-entry-heading">
           <span class="games-number" aria-hidden="true">05</span>
-          <h2><a href="/records/crates/">Crates <span aria-hidden="true">→</span></a> <span class="games-preview-tag">owners only</span></h2>
+          <h2><a href="/records/crates/">Crates <span aria-hidden="true">→</span></a></h2>
         </div>
         <p>Sixteen records, four hidden groups of four. Sort them by what they share.</p>
       </article>
     </li>
   </ol>
 </section>
-<script src="/assets/js/record-games.js?v=owners" defer></script>

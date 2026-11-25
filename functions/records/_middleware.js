@@ -6,6 +6,8 @@ const OWNER_ONLY_PATHS = new Set([
   "/records/match/",
   "/records/wrapped/",
   "/records/lists/",
+  "/records/guess/",
+  "/records/crates/",
 ]);
 
 function normalizedPath(request) {
