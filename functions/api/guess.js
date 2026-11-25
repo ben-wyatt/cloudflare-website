@@ -1,4 +1,5 @@
-import { requireRecordClubOwner, requireUser } from "../_shared/auth.js";
+import { requireUser } from "../_shared/auth.js";
+import { GAME_IDS, finishedRoundStatement, requireRecordGames } from "../_shared/record-access.js";
 import {
   HttpError,
   assertSameOrigin,
@@ -34,9 +35,9 @@ import {
 const ROUND_TTL_MS = 12 * 60 * 60 * 1000;
 const randomIndex = (length) => crypto.getRandomValues(new Uint32Array(1))[0] % length;
 
-// The same gate as the other Record Club games.
-function requireGameAccess(user) {
-  requireRecordClubOwner(user);
+// The same gate as the other Record Club games: open to the groups RECORD_CLUB_RELEASE names.
+function requireGameAccess(env, user) {
+  requireRecordGames(env, user);
   if (!user.groupId) throw new HttpError("This account is not in a Record Club group.", 403, "group_required");
 }
 
@@ -119,9 +120,14 @@ function turnStatement(db, roundId, { kind, text, answer, judgments = null, turn
     turnedDown ? JSON.stringify(turnedDown) : null, inputTokens, new Date().toISOString());
 }
 
-function finishStatement(db, roundId, solved) {
-  return db.prepare("UPDATE record_question_rounds SET finished_at = ?, solved = ? WHERE id = ?")
-    .bind(new Date().toISOString(), solved ? 1 : 0, roundId);
+// Ending a round, won or not, also counts it toward unlocking Liner Notes.
+function finishStatements(db, roundId, playerId, solved) {
+  const finishedAt = new Date().toISOString();
+  return [
+    db.prepare("UPDATE record_question_rounds SET finished_at = ?, solved = ? WHERE id = ?")
+      .bind(finishedAt, solved ? 1 : 0, roundId),
+    finishedRoundStatement(db, { roundId, playerId, game: GAME_IDS.flipSide, finishedAt }),
+  ];
 }
 
 async function ask(db, env, player, body) {
@@ -152,7 +158,7 @@ async function ask(db, env, player, body) {
     db.prepare("UPDATE record_question_rounds SET board_json = ? WHERE id = ?")
       .bind(JSON.stringify({ ...round.board, down: nowDown }), round.id),
   ];
-  if (solved) statements.push(finishStatement(db, round.id, true));
+  if (solved) statements.push(...finishStatements(db, round.id, player.id, true));
   await db.batch(statements);
   return { answer, label, turnedDown, upCount, judgments, solved, reveal: solved ? reveal(round) : null };
 }
@@ -165,7 +171,7 @@ async function guess(db, player, body) {
   const correct = id === round.secretId;
   const statements = [turnStatement(db, round.id, { kind: "guess", text: card.title.slice(0, 300), answer: correct ? "correct" : "wrong" })];
   if (correct) {
-    statements.push(finishStatement(db, round.id, true));
+    statements.push(...finishStatements(db, round.id, player.id, true));
   } else {
     statements.push(db.prepare("UPDATE record_question_rounds SET board_json = ? WHERE id = ?")
       .bind(JSON.stringify({ ...round.board, down: [...round.board.down, id] }), round.id));
@@ -176,7 +182,7 @@ async function guess(db, player, body) {
 
 async function giveUp(db, player, body) {
   const round = await getRound(db, body.roundId, player);
-  await db.batch([finishStatement(db, round.id, false)]);
+  await db.batch(finishStatements(db, round.id, player.id, false));
   return { reveal: reveal(round) };
 }
 
@@ -184,7 +190,7 @@ export async function onRequestPost({ request, env }) {
   try {
     assertSameOrigin(request);
     const user = await requireUser(env, request);
-    requireGameAccess(user);
+    requireGameAccess(env, user);
     const db = requireDb(env);
     const body = await readJson(request);
     if (!body || typeof body !== "object" || Array.isArray(body)) throw new HttpError("Choose a valid action.", 400, "invalid_action");

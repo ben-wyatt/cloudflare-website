@@ -4,6 +4,8 @@ title: Minigames · Record Club
 permalink: "/records/games/"
 pageStyles: "/styles/games.css"
 bodyClass: "games-page record-games-page"
+pageExtraStyles: ["/styles/wrapped-unlock.css?v=unlock"]
+pageExtraScripts: ["/assets/js/wrapped-unlock.js?v=unlock"]
 ---
 
 <section class="games-index" aria-labelledby="record-games-title">
@@ -13,6 +15,10 @@ bodyClass: "games-page record-games-page"
     <p>{{ recordCopy.gamesIntroduction | safe }}</p>
     <p><a href="/records/">← Back to your ballot</a></p>
   </div>
+
+  <section class="games-unlock" hidden data-wrapped-unlock-auto aria-label="Records Wrapped">
+    <p class="wrapped-unlock-why">{{ recordCopy.wrappedUnlockExplanation | safe }}</p>
+  </section>
 
   <ol class="games-list">
     <li>
@@ -37,7 +43,7 @@ bodyClass: "games-page record-games-page"
       <article class="games-entry">
         <div class="games-entry-heading">
           <span class="games-number" aria-hidden="true">03</span>
-          <h2><a href="/records/wrapped/">Liner Notes <span aria-hidden="true">→</span></a></h2>
+          <h2><a href="/records/wrapped/">Liner Notes <span aria-hidden="true">→</span></a><span class="wrapped-unlock-tag" hidden data-wrapped-unlock-tag></span></h2>
         </div>
         <p>{{ recordCopy.wrappedListing | safe }}</p>
       </article>

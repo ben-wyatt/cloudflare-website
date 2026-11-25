@@ -3,8 +3,10 @@ layout: layout.njk
 title: The whole room · Record Club
 permalink: "/records/lists/"
 pageStyles: "/styles/records-wrapped.css?v=lists-v2"
-pageScript: "/assets/js/record-lists.js?v=lists-v2"
+pageScript: "/assets/js/record-lists.js?v=wrapped-unlock"
 bodyClass: "records-wrapped-page"
+pageExtraStyles: ["/styles/wrapped-unlock.css?v=unlock"]
+pageExtraScripts: ["/assets/js/wrapped-unlock.js?v=unlock"]
 ---
 
 <section class="wrapped-shell">
@@ -13,7 +15,10 @@ bodyClass: "records-wrapped-page"
   <section id="lists-gate" class="wrapped-gate" hidden aria-labelledby="lists-gate-title">
     <h1 id="lists-gate-title">The lists are inside.</h1>
     <p id="lists-gate-message">Sign in through Record Club to read your group’s lists.</p>
-    <p><a href="/records/">Go to Record Club →</a></p>
+    <p id="lists-gate-link"><a href="/records/">Go to Record Club →</a></p>
+    <section id="lists-lock" hidden aria-label="Unlock progress">
+      <p class="wrapped-unlock-why">{{ recordCopy.wrappedUnlockExplanation | safe }}</p>
+    </section>
   </section>
 
   <div id="lists-app" hidden>

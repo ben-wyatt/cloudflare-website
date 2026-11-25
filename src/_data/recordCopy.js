@@ -22,6 +22,7 @@ const headings = {
   "The whole room introduction": "listsIntroduction",
   "Liner Notes introduction": "wrappedIntroduction",
   "Liner Notes source note": "wrappedSourceNote",
+  "Liner Notes unlock explanation": "wrappedUnlockExplanation",
 };
 
 const source = fs.readFileSync(path.join(__dirname, "record-club-copy.md"), "utf8");

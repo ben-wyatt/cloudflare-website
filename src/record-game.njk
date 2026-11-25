@@ -3,8 +3,10 @@ layout: layout.njk
 title: Whose Wax? · Record Club
 permalink: "/records/game/"
 pageStyles: "/styles/records.css?v=clues-under-cover"
-pageScript: "/assets/js/record-game.js?v=clues-under-cover"
+pageScript: "/assets/js/record-game.js?v=wrapped-unlock"
 bodyClass: "records-page record-game-page"
+pageExtraStyles: ["/styles/wrapped-unlock.css?v=unlock"]
+pageExtraScripts: ["/assets/js/wrapped-unlock.js?v=unlock"]
 ---
 
 <section class="game-shell" aria-labelledby="game-title">
@@ -23,6 +25,7 @@ bodyClass: "records-page record-game-page"
     <div class="records-member-bar game-member-bar">
       <p>Playing as <strong id="game-member-name"></strong></p>
       <div class="game-member-actions">
+        <a id="game-unlock-chip" hidden></a>
         <button class="game-fullscreen" type="button" data-fullscreen-toggle hidden aria-label="Full screen"></button>
         <a class="game-back-link" href="/records/games/">Back to minigames</a>
       </div>
@@ -80,6 +83,7 @@ bodyClass: "records-page record-game-page"
             <p id="game-status" class="game-status" role="status" aria-live="polite"></p>
             <button id="game-next" class="records-text-button game-next" type="button" hidden>Next album <kbd>↵</kbd></button>
           </div>
+          <p id="game-unlock-moment" class="wrapped-unlock-moment" role="status" hidden></p>
         </div>
       </div>
     </section>

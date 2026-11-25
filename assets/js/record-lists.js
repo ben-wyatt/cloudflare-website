@@ -4,6 +4,9 @@
     loading: byId("lists-loading"),
     gate: byId("lists-gate"),
     gateMessage: byId("lists-gate-message"),
+    gateTitle: byId("lists-gate-title"),
+    gateLink: byId("lists-gate-link"),
+    lock: byId("lists-lock"),
     app: byId("lists-app"),
     memberName: byId("lists-member-name"),
     allLink: byId("lists-all-link"),
@@ -31,7 +34,11 @@
   async function api(path) {
     const response = await fetch(path, { credentials: "same-origin" });
     const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error?.message || "The room could not be opened.");
+    if (!response.ok) {
+      const error = new Error(payload.error?.message || "The room could not be opened.");
+      error.code = payload.error?.code;
+      throw error;
+    }
     return payload;
   }
 
@@ -314,13 +321,29 @@
     if (message) elements.gateMessage.textContent = message;
   }
 
+  // Everyone's lists give away the games' answers, so they open with Wrapped.
+  function showLocked(unlock) {
+    showGate("Everyone’s lists open with Liner Notes, after you play the minigames.");
+    elements.gateTitle.textContent = "The lists are locked.";
+    elements.gateLink.hidden = true;
+    if (unlock) window.RecordClubUnlock?.renderCard(elements.lock, unlock);
+  }
+
   async function start() {
     try {
       const session = await api("/api/auth/me");
-      if (!session.authenticated || !session.user.recordClubOwner) return showGate();
+      if (!session.authenticated) return showGate();
+      const recordClub = session.user.recordClub || {};
+      if (!recordClub.gamesOpen) return showGate("The lists open with the Record Club minigames.");
+      if (!recordClub.wrappedUnlock?.unlocked) return showLocked(recordClub.wrappedUnlock);
       viewerName = session.user.username;
       elements.memberName.textContent = viewerName;
-      data = await api("/api/group-lists");
+      try {
+        data = await api("/api/group-lists");
+      } catch (error) {
+        if (error.code === "wrapped_locked") return showLocked(recordClub.wrappedUnlock);
+        throw error;
+      }
       setSeason(data.season);
       people = data.members.map((member) => ({
         ...member,

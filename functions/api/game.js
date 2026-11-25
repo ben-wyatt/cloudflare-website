@@ -1,8 +1,4 @@
-import {
-  normalizeUsername,
-  requireRecordClubOwner,
-  requireUser,
-} from "../_shared/auth.js";
+import { normalizeUsername, requireUser } from "../_shared/auth.js";
 import {
   HttpError,
   assertSameOrigin,
@@ -11,6 +7,13 @@ import {
   readJson,
   requireDb,
 } from "../_shared/http.js";
+import {
+  GAME_IDS,
+  finishedRoundStatement,
+  getWrappedUnlock,
+  requireRecordGames,
+  wrappedUnlockAfterRound,
+} from "../_shared/record-access.js";
 import { albumClue, answerKey, getListenerClueVisibility, isAlbumClueVisible } from "../_shared/record-game-clues.js";
 import { RECORD_SEASON } from "../_shared/records-config.js";
 import { getSpotifyAlbumTracks } from "../_shared/spotify.js";
@@ -41,10 +44,6 @@ async function getScoreboard(db, playerId) {
     roundsSolved: Number(score?.roundsSolved || 0),
     perfectRounds: Number(score?.perfectRounds || 0),
   };
-}
-
-function requireGameAccess(user) {
-  requireRecordClubOwner(user);
 }
 
 function canChooseRoundSource(user) {
@@ -215,7 +214,7 @@ async function createRound(db, player, body) {
     ? answerStatement.bind(RECORD_SEASON, player.groupId, player.id, sourceUser.id)
     : answerStatement.bind(RECORD_SEASON, player.groupId, player.id);
 
-  const [answer, users, scoreboard, developerSources] = await Promise.all([
+  const [answer, users, scoreboard, developerSources, wrappedUnlock] = await Promise.all([
     boundAnswer.first(),
     db.prepare(
       `SELECT id AS userId, username
@@ -225,6 +224,7 @@ async function createRound(db, player, body) {
     ).bind(player.groupId, player.id).all(),
     getScoreboard(db, player.id),
     getDeveloperSources(db, player),
+    getWrappedUnlock(db, player),
   ]);
 
   if (!answer) {
@@ -265,6 +265,7 @@ async function createRound(db, player, body) {
       String(answer.selectorIds || "").split(",").filter(Boolean).map((userId) => answerKey(roundId, userId)),
     )).sort(),
     scoreboard,
+    wrappedUnlock,
     developerTools: canChooseRoundSource(player)
       ? { sources: developerSources }
       : null,
@@ -402,6 +403,14 @@ async function guessRound(db, env, player, body) {
        WHERE id = ?`,
     ).bind(clueLevel, missCount, roundId));
   }
+  if (finished) {
+    statements.push(finishedRoundStatement(db, {
+      roundId,
+      playerId: player.id,
+      game: GAME_IDS.whoPickedIt,
+      finishedAt: now,
+    }));
+  }
   await db.batch(statements);
 
   const response = {
@@ -424,6 +433,7 @@ async function guessRound(db, env, player, body) {
     response.scoreboard = await getScoreboard(db, player.id);
   }
   if (finished) {
+    response.wrappedUnlock = await wrappedUnlockAfterRound(db, player);
     response.answer = {
       users: answers.map((answer) => ({
         userId: answer.userId,
@@ -440,7 +450,7 @@ export async function onRequestPost({ request, env }) {
   try {
     assertSameOrigin(request);
     const user = await requireUser(env, request);
-    requireGameAccess(user);
+    requireRecordGames(env, user);
     const db = requireDb(env);
     const body = await readJson(request);
     if (!body || typeof body !== "object" || Array.isArray(body)) {

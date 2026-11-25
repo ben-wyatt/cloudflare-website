@@ -3,8 +3,10 @@ layout: layout.njk
 title: Staff Picks · Record Club
 permalink: "/records/match/"
 pageStyles: "/styles/records.css?v=clues-under-cover"
-pageScript: "/assets/js/match-record.js?v=side-by-side"
+pageScript: "/assets/js/match-record.js?v=wrapped-unlock"
 bodyClass: "records-page record-game-page record-match-page"
+pageExtraStyles: ["/styles/wrapped-unlock.css?v=unlock"]
+pageExtraScripts: ["/assets/js/wrapped-unlock.js?v=unlock"]
 ---
 
 <section class="game-shell match-shell" aria-labelledby="match-title">
@@ -23,6 +25,7 @@ bodyClass: "records-page record-game-page record-match-page"
     <div class="records-member-bar game-member-bar">
       <p>Playing as <strong id="match-member-name"></strong></p>
       <div class="game-member-actions">
+        <a id="match-unlock-chip" hidden></a>
         <button class="game-fullscreen" type="button" data-fullscreen-toggle hidden aria-label="Full screen"></button>
         <a class="game-back-link" href="/records/games/">Back to minigames</a>
       </div>
@@ -61,6 +64,7 @@ bodyClass: "records-page record-game-page record-match-page"
           <p id="match-status" class="game-status match-status" role="status" aria-live="polite"></p>
           <button id="match-next" class="records-text-button game-next" type="button" hidden>Next listener <kbd aria-hidden="true">↵</kbd></button>
         </div>
+        <p id="match-unlock-moment" class="wrapped-unlock-moment" role="status" hidden></p>
       </div>
 
       <div id="match-choices" class="match-choices" role="group" aria-label="Eight album choices"></div>

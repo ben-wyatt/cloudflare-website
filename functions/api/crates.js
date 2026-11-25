@@ -1,13 +1,15 @@
-import { requireRecordClubOwner, requireUser } from "../_shared/auth.js";
+import { requireUser } from "../_shared/auth.js";
 import { publicPuzzle } from "../_shared/crates.js";
 import { HttpError, handleApiError, json, requireDb } from "../_shared/http.js";
+import { requireRecordGames } from "../_shared/record-access.js";
 import { RECORD_SEASON } from "../_shared/records-config.js";
 
 // Crates puzzles for the player's group, in order; ?n= picks one, otherwise one at random.
+// Crates rounds happen in the page, so they do not count toward unlocking Liner Notes.
 
-// The same gate as the other Record Club games.
-function requireGameAccess(user) {
-  requireRecordClubOwner(user);
+// The same gate as the other Record Club games: open to the groups RECORD_CLUB_RELEASE names.
+function requireGameAccess(env, user) {
+  requireRecordGames(env, user);
   if (!user.groupId) throw new HttpError("This account is not in a Record Club group.", 403, "group_required");
 }
 
@@ -35,7 +37,7 @@ async function coversFor(db, payload) {
 export async function onRequestGet({ request, env }) {
   try {
     const user = await requireUser(env, request);
-    requireGameAccess(user);
+    requireGameAccess(env, user);
     const db = requireDb(env);
     const puzzles = await loadPuzzles(db, user.groupId);
     if (!puzzles.length) throw new HttpError("There are no Crates puzzles for this group yet.", 404, "no_puzzles");

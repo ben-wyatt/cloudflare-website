@@ -1,4 +1,4 @@
-import { requireRecordClubOwner, requireUser } from "../_shared/auth.js";
+import { requireUser } from "../_shared/auth.js";
 import { coverTwinsCard, insertBeforeLast } from "../_shared/cover-twins.js";
 import {
   HttpError,
@@ -8,6 +8,7 @@ import {
   readJson,
   requireDb,
 } from "../_shared/http.js";
+import { requireWrappedAccess } from "../_shared/record-access.js";
 import { enrichRecordAlbum } from "../_shared/record-metadata.js";
 import { RECORD_SEASON } from "../_shared/records-config.js";
 import {
@@ -156,9 +157,9 @@ async function getSnapshot(db, groupId) {
 export async function onRequestGet({ request, env }) {
   try {
     const user = await requireUser(env, request);
-    requireRecordClubOwner(user);
     requireGroup(user);
     const db = requireDb(env);
+    await requireWrappedAccess(db, env, user);
     const seasonInfo = await getSeason(db, user.groupId);
 
     if (seasonInfo.status === "wrapped") {
@@ -219,9 +220,9 @@ export async function onRequestPost({ request, env }) {
   try {
     assertSameOrigin(request);
     const user = await requireUser(env, request);
-    requireRecordClubOwner(user);
     requireGroup(user);
     const db = requireDb(env);
+    await requireWrappedAccess(db, env, user);
     const body = await readJson(request);
     if (body.action !== "enrich") {
       throw new HttpError("That Liner Notes action is not supported.", 400, "invalid_action");

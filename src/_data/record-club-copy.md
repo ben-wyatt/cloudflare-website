@@ -79,3 +79,7 @@ The group’s listening year, told through the records and notes you left for on
 ## Liner Notes source note
 
 Made from this group’s album picks, Last.fm tags and audience sizes, standout tracks, and notes.
+
+## Liner Notes unlock explanation
+
+Liner Notes includes everyone’s full lists, and the lists give away the minigames’ answers. So play first: every finished round of Whose Wax?, Staff Picks or Flip Side counts, win or lose.

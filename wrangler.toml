@@ -11,3 +11,9 @@ binding = "DB"
 database_name = "record-club"
 database_id = "784d83b4-d0d4-49d2-97bc-18838b81e02b"
 migrations_dir = "migrations"
+
+[vars]
+# Release flag for the Record Club games, Wrapped and lists (functions/_shared/record-access.js).
+# "" = owner accounts only; "all" = every group; or group IDs, e.g. "development,badabing".
+# Wrapped and the lists also wait until a member finishes WRAPPED_UNLOCK_ROUNDS game rounds.
+RECORD_CLUB_RELEASE = ""

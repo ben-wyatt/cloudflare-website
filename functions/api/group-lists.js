@@ -1,13 +1,15 @@
-import { requireRecordClubOwner, requireUser } from "../_shared/auth.js";
+import { requireUser } from "../_shared/auth.js";
 import { HttpError, handleApiError, json, requireDb } from "../_shared/http.js";
+import { requireWrappedAccess } from "../_shared/record-access.js";
 import { RECORD_SEASON } from "../_shared/records-config.js";
 
 export async function onRequestGet({ request, env }) {
   try {
     const user = await requireUser(env, request);
-    requireRecordClubOwner(user);
     if (!user.groupId) throw new HttpError("This account is not in a Record Club group.", 403, "group_required");
     const db = requireDb(env);
+    // Everyone's lists give away the games' answers, so they open with Wrapped.
+    await requireWrappedAccess(db, env, user);
     const [members, albums, standouts, favorites] = await db.batch([
       db.prepare(
         `SELECT id AS userId, username

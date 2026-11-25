@@ -1,4 +1,4 @@
-import { requireRecordClubOwner, requireUser } from "../_shared/auth.js";
+import { requireUser } from "../_shared/auth.js";
 import {
   HttpError,
   assertSameOrigin,
@@ -11,20 +11,24 @@ import {
   MATCH_RECORD_ANSWER_COUNT,
   MATCH_RECORD_CHOICE_COUNT,
   MATCH_RECORD_MAX_MISSES,
+  findMatchTarget,
   matchRoundProgress,
   nextMatchNote,
   normalizeMatchAlbumId,
   visibleMatchNotes,
 } from "../_shared/match-record-game.js";
+import {
+  GAME_IDS,
+  finishedRoundStatement,
+  getWrappedUnlock,
+  requireRecordGames,
+  wrappedUnlockAfterRound,
+} from "../_shared/record-access.js";
 import { answerKey } from "../_shared/record-game-clues.js";
 import { RECORD_SEASON } from "../_shared/records-config.js";
 
 const ROUND_TTL_MS = 6 * 60 * 60 * 1000;
 const DECOY_COUNT = MATCH_RECORD_CHOICE_COUNT - MATCH_RECORD_ANSWER_COUNT;
-
-function requireGameAccess(user) {
-  requireRecordClubOwner(user);
-}
 
 function shuffleChoices(choices) {
   const shuffled = [...choices];
@@ -53,55 +57,8 @@ async function getScoreboard(db, playerId) {
   };
 }
 
-async function getRandomTarget(db, player) {
-  return db.prepare(
-    `SELECT candidate.id AS userId, candidate.username
-     FROM record_users candidate
-     WHERE candidate.group_id = ?
-       AND candidate.id <> ?
-       AND (
-         SELECT COUNT(DISTINCT target_item.spotify_album_id)
-         FROM record_list_items target_item
-         JOIN record_albums target_album
-           ON target_album.spotify_id = target_item.spotify_album_id
-         WHERE target_item.user_id = candidate.id
-           AND target_item.season = ?
-           AND target_album.image_url IS NOT NULL
-           AND trim(target_album.image_url) <> ''
-       ) >= ?
-       AND (
-         SELECT COUNT(DISTINCT decoy_item.spotify_album_id)
-         FROM record_list_items decoy_item
-         JOIN record_users decoy_user ON decoy_user.id = decoy_item.user_id
-         JOIN record_albums decoy_album
-           ON decoy_album.spotify_id = decoy_item.spotify_album_id
-         WHERE decoy_item.season = ?
-           AND decoy_user.group_id = ?
-           AND decoy_album.image_url IS NOT NULL
-           AND trim(decoy_album.image_url) <> ''
-           AND NOT EXISTS (
-             SELECT 1
-             FROM record_list_items target_check
-             WHERE target_check.user_id = candidate.id
-               AND target_check.season = decoy_item.season
-               AND target_check.spotify_album_id = decoy_item.spotify_album_id
-           )
-       ) >= ?
-     ORDER BY RANDOM()
-     LIMIT 1`,
-  ).bind(
-    player.groupId,
-    player.id,
-    RECORD_SEASON,
-    MATCH_RECORD_ANSWER_COUNT,
-    RECORD_SEASON,
-    player.groupId,
-    DECOY_COUNT,
-  ).first();
-}
-
 async function createRound(db, player) {
-  const target = await getRandomTarget(db, player);
+  const target = await findMatchTarget(db, player);
   if (!target) {
     throw new HttpError(
       "This group needs another listener with two covered albums and six other group records before it can play.",
@@ -110,7 +67,7 @@ async function createRound(db, player) {
     );
   }
 
-  const [answersResult, decoysResult, scoreboard] = await Promise.all([
+  const [answersResult, decoysResult, scoreboard, wrappedUnlock] = await Promise.all([
     db.prepare(
       `SELECT
          album.spotify_id AS spotifyId,
@@ -153,6 +110,7 @@ async function createRound(db, player) {
        LIMIT ?`,
     ).bind(RECORD_SEASON, player.groupId, target.userId, DECOY_COUNT).all(),
     getScoreboard(db, player.id),
+    getWrappedUnlock(db, player),
   ]);
 
   const answers = (answersResult.results || []).map((album) => ({ ...album, isAnswer: true }));
@@ -203,6 +161,7 @@ async function createRound(db, player) {
     // One fingerprint per answer, so the page can mark a tap right or wrong at once.
     answerKeys: (await Promise.all(answers.map((album) => answerKey(roundId, album.spotifyId)))).sort(),
     scoreboard,
+    wrappedUnlock,
   };
 }
 
@@ -360,6 +319,12 @@ async function pickRound(db, player, body) {
          (round_id, player_user_id, correct_count, misses, completed_at)
        VALUES (?, ?, ?, ?, ?)`,
     ).bind(round.id, player.id, progress.found, progress.misses, now));
+    statements.push(finishedRoundStatement(db, {
+      roundId: round.id,
+      playerId: player.id,
+      game: GAME_IDS.matchTheRecord,
+      finishedAt: now,
+    }));
   }
   await db.batch(statements);
 
@@ -376,6 +341,7 @@ async function pickRound(db, player, body) {
   if (progress.finished) {
     response.choices = await revealChoices(db, player, round, choices);
     response.scoreboard = await getScoreboard(db, player.id);
+    response.wrappedUnlock = await wrappedUnlockAfterRound(db, player);
   }
   return response;
 }
@@ -384,7 +350,7 @@ export async function onRequestPost({ request, env }) {
   try {
     assertSameOrigin(request);
     const user = await requireUser(env, request);
-    requireGameAccess(user);
+    requireRecordGames(env, user);
     const db = requireDb(env);
     const body = await readJson(request);
     if (!body || typeof body !== "object" || Array.isArray(body)) {

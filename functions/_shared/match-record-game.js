@@ -1,3 +1,5 @@
+import { RECORD_SEASON } from "./records-config.js";
+
 export const MATCH_RECORD_ANSWER_COUNT = 2;
 export const MATCH_RECORD_CHOICE_COUNT = 8;
 // Two misses are allowed; the third ends the round.
@@ -39,4 +41,53 @@ export function visibleMatchNotes(choices, finished = false) {
     .map((choice) => (choice.pickedAt || finished
       ? { note: String(choice.note || ""), spotifyId: choice.spotifyId }
       : { note: String(choice.note || "") }));
+}
+
+// A random listener in the player's group who can anchor a round: two covered albums of
+// their own, and six other covered group records to stand beside them. Null when nobody can.
+export async function findMatchTarget(db, player) {
+  return db.prepare(
+    `SELECT candidate.id AS userId, candidate.username
+     FROM record_users candidate
+     WHERE candidate.group_id = ?
+       AND candidate.id <> ?
+       AND (
+         SELECT COUNT(DISTINCT target_item.spotify_album_id)
+         FROM record_list_items target_item
+         JOIN record_albums target_album
+           ON target_album.spotify_id = target_item.spotify_album_id
+         WHERE target_item.user_id = candidate.id
+           AND target_item.season = ?
+           AND target_album.image_url IS NOT NULL
+           AND trim(target_album.image_url) <> ''
+       ) >= ?
+       AND (
+         SELECT COUNT(DISTINCT decoy_item.spotify_album_id)
+         FROM record_list_items decoy_item
+         JOIN record_users decoy_user ON decoy_user.id = decoy_item.user_id
+         JOIN record_albums decoy_album
+           ON decoy_album.spotify_id = decoy_item.spotify_album_id
+         WHERE decoy_item.season = ?
+           AND decoy_user.group_id = ?
+           AND decoy_album.image_url IS NOT NULL
+           AND trim(decoy_album.image_url) <> ''
+           AND NOT EXISTS (
+             SELECT 1
+             FROM record_list_items target_check
+             WHERE target_check.user_id = candidate.id
+               AND target_check.season = decoy_item.season
+               AND target_check.spotify_album_id = decoy_item.spotify_album_id
+           )
+       ) >= ?
+     ORDER BY RANDOM()
+     LIMIT 1`,
+  ).bind(
+    player.groupId,
+    player.id,
+    RECORD_SEASON,
+    MATCH_RECORD_ANSWER_COUNT,
+    RECORD_SEASON,
+    player.groupId,
+    MATCH_RECORD_CHOICE_COUNT - MATCH_RECORD_ANSWER_COUNT,
+  ).first();
 }

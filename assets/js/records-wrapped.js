@@ -3,6 +3,9 @@
     loading: document.getElementById("wrapped-loading"),
     gate: document.getElementById("wrapped-gate"),
     gateMessage: document.getElementById("wrapped-gate-message"),
+    gateTitle: document.getElementById("wrapped-gate-title"),
+    gateLink: document.getElementById("wrapped-gate-link"),
+    lock: document.getElementById("wrapped-lock"),
     app: document.getElementById("wrapped-app"),
     memberName: document.getElementById("wrapped-member-name"),
     season: document.getElementById("wrapped-season"),
@@ -786,6 +789,14 @@
     if (message) elements.gateMessage.textContent = message;
   }
 
+  // Wrapped gives away the games' answers, so it waits until the member has played.
+  function showLocked(unlock) {
+    showGate("Liner Notes are waiting for you behind the minigames.");
+    elements.gateTitle.textContent = "Liner Notes are locked.";
+    elements.gateLink.hidden = true;
+    if (unlock) window.RecordClubUnlock?.renderCard(elements.lock, unlock);
+  }
+
   async function start() {
     try {
       const session = await api("/api/auth/me");
@@ -793,10 +804,25 @@
         showGate();
         return;
       }
+      const recordClub = session.user.recordClub || {};
+      if (!recordClub.gamesOpen) {
+        showGate("Liner Notes open with the Record Club minigames.");
+        return;
+      }
+      if (!recordClub.wrappedUnlock?.unlocked) {
+        showLocked(recordClub.wrappedUnlock);
+        return;
+      }
       elements.memberName.textContent = session.user.username;
       viewerId = session.user.id;
       viewerName = session.user.username;
-      const payload = await api("/api/wrapped");
+      let payload;
+      try {
+        payload = await api("/api/wrapped");
+      } catch (error) {
+        if (error.code === "wrapped_locked") return showLocked(recordClub.wrappedUnlock);
+        throw error;
+      }
       elements.loading.hidden = true;
       elements.gate.hidden = true;
       elements.app.hidden = false;

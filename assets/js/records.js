@@ -21,6 +21,7 @@
     standoutOwnerName: document.getElementById("standout-owner-name"),
     wrappedLink: document.getElementById("records-wrapped-link"),
     gameLink: document.getElementById("record-game-link"),
+    unlockCard: document.getElementById("records-unlock"),
     logoutButton: document.getElementById("logout-button"),
     searchForm: document.getElementById("album-search-form"),
     searchInput: document.getElementById("album-search"),
@@ -126,8 +127,14 @@
     elements.memberName.textContent = user.username;
     elements.listOwnerName.textContent = user.username;
     elements.standoutOwnerName.textContent = user.username;
-    elements.wrappedLink.hidden = !user.recordClubOwner;
-    elements.gameLink.hidden = !user.recordClubOwner;
+    const recordClub = user.recordClub || {};
+    elements.gameLink.hidden = !recordClub.gamesOpen;
+    elements.wrappedLink.hidden = !recordClub.wrappedUnlock?.unlocked;
+    if (recordClub.gamesOpen && recordClub.wrappedUnlock) {
+      window.RecordClubUnlock?.renderCard(elements.unlockCard, recordClub.wrappedUnlock);
+    } else {
+      elements.unlockCard.hidden = true;
+    }
     document.body.classList.add("records-app-active");
     elements.loading.hidden = true;
     elements.intro.hidden = false;
@@ -661,7 +668,9 @@
     try {
       const payload = await api(path, { method: "POST", body: data });
       form.reset();
-      await showApp(payload.user);
+      // The session view also carries the games' release state and Wrapped progress.
+      const session = await api("/api/auth/me").catch(() => null);
+      await showApp(session?.user || payload.user);
     } catch (error) {
       setMessage(elements.authMessage, error.message, true);
     } finally {

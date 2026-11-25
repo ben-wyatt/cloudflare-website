@@ -22,7 +22,10 @@
     detailsSpotify: document.getElementById("match-details-spotify"),
     detailsTracks: document.getElementById("match-details-tracks"),
     detailsClose: document.getElementById("match-details-close"),
+    unlockChip: document.getElementById("match-unlock-chip"),
+    unlockMoment: document.getElementById("match-unlock-moment"),
   };
+  const unlockView = window.RecordClubUnlock;
 
   if (!elements.loading) return;
 
@@ -348,6 +351,8 @@
     elements.next.hidden = true;
     setStatus();
     renderScoreboard(payload.scoreboard);
+    unlockView?.renderChip(elements.unlockChip, payload.wrappedUnlock);
+    unlockView?.hideMoment(elements.unlockMoment);
     elements.clues.replaceChildren();
     renderClues();
     renderChoices();
@@ -460,6 +465,10 @@
         elements.round.classList.add("is-finished");
         elements.next.hidden = false;
         renderScoreboard(payload.scoreboard);
+        unlockView?.renderChip(elements.unlockChip, payload.wrappedUnlock, {
+          justUnlocked: Boolean(payload.wrappedUnlock?.justUnlocked),
+        });
+        unlockView?.renderMoment(elements.unlockMoment, payload.wrappedUnlock);
       }
       takeNewLink();
       renderClues();
@@ -511,12 +520,13 @@
         showGate("Sign in to play.");
         return;
       }
-      if (!payload.user.recordClubOwner) {
-        showGate("This game is not available on this account.");
+      if (!payload.user.recordClub?.gamesOpen) {
+        showGate("The Record Club minigames are not open yet.");
         return;
       }
 
       elements.memberName.textContent = payload.user.username;
+      unlockView?.renderChip(elements.unlockChip, payload.user.recordClub.wrappedUnlock);
       elements.loading.hidden = true;
       elements.gate.hidden = true;
       elements.app.hidden = false;

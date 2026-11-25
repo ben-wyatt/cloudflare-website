@@ -33,6 +33,7 @@
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="stylesheet" href="/styles/palettes.css">
   {% if pageStyles %}<link rel="stylesheet" href="{{ pageStyles }}">{% endif %}
+  {% for href in pageExtraStyles %}<link rel="stylesheet" href="{{ href }}">{% endfor %}
   {% if "<pre" in content %}
   <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism.css">
   <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism-okaidia.css" media="(prefers-color-scheme: dark)">
@@ -345,6 +346,7 @@
       }
     })();
   </script>
+  {% for src in pageExtraScripts %}<script src="{{ src }}" defer></script>{% endfor %}
   {% if pageScript %}<script src="{{ pageScript }}" defer></script>{% endif %}
 </body>
 </html>
