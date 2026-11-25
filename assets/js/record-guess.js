@@ -1,9 +1,9 @@
 (() => {
-  // Guess the Record: ask yes-or-no questions; records that don't fit turn over.
+  // Flip Side: ask yes-or-no questions; records that do not fit flip over.
   const $ = (id) => document.getElementById(id);
   const elements = {
     loading: $("ask-loading"), gate: $("ask-gate"), gateMessage: $("ask-gate-message"), app: $("ask-app"),
-    memberName: $("ask-member-name"), deck: $("ask-deck"),
+    memberName: $("ask-member-name"),
     stats: [0, 1, 2].map((n) => ({ value: $(`ask-stat-${n}`), label: $(`ask-stat-${n}-label`) })),
     form: $("ask-form"), label: $("ask-label"), input: $("ask-input"), submit: $("ask-submit"),
     answer: $("ask-answer"), answerQuestion: $("ask-answer-question"), answerLine: $("ask-answer-line"),
@@ -263,7 +263,6 @@
     }
   }
 
-  elements.deck.textContent = `Find the secret record. Ask yes-or-no questions about the music, the artist, the cover or who picked it. Tap a record to guess.`;
   elements.label.textContent = "ask a yes-or-no question";
   elements.input.placeholder = "Is it by a band?";
   elements.form.addEventListener("submit", submit);

@@ -1,6 +1,6 @@
 ---
 layout: layout.njk
-title: Guess the Record · Record Club
+title: Flip Side · Record Club
 permalink: "/records/guess/"
 pageStyles: "/styles/records-lab.css?v=lab-3"
 pageScript: "/assets/js/record-guess.js?v=lab-3"
@@ -29,8 +29,8 @@ eleventyExcludeFromCollections: true
 
     <header class="game-masthead game-masthead-compact">
       <div class="game-masthead-copy">
-        <h1 id="ask-title">Guess the Record</h1>
-        <p id="ask-deck" class="game-deck"></p>
+        <h1 id="ask-title">Flip Side</h1>
+        <p id="ask-deck" class="game-deck">{{ recordCopy.flipSideInstructions | safe }}</p>
       </div>
       <div class="game-scoreboard" aria-label="This round">
         <div class="game-score-stat game-score-stat-primary">

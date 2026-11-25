@@ -1,4 +1,4 @@
-// Who Picked It? clues. A round starts with only the cover.
+// Whose Wax? (formerly Who Picked It?) clues. A round starts with only the cover.
 //   Clue 1 (first miss): the album itself (name, artist, year, genres and so on).
 //   Clue 2 (second miss): every listener's top tracks and note.
 // A listener the player has already found shows their tracks and note at once.

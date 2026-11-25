@@ -22,44 +22,60 @@ For the songs you loved from albums you were kinda meh on, or the ones that stay
 
 ## Games introduction
 
-Some games before the wrapped!
+Some games before the Liner Notes!
 
-## Who Picked It game listing
+## Whose Wax game listing
 
 Match each mystery record to the person who picked it. Every miss unlocks another clue.
 
-## Match The Record game listing
+## Staff Picks game listing
 
 Start with one listener and eight covers. Find the two records they picked.
 
-## Records Wrapped game listing
+## Liner Notes game listing
 
 Not really a game: the little coincidences, shared favorites, long listens, and handwritten margins hiding in your group’s picks.
 
-## Who Picked It instructions
+## Flip Side game listing
+
+Twenty-four records, one secret. Ask yes-or-no questions; the records that don't fit flip over.
+
+## Crates game listing
+
+Sixteen records, four hidden groups of four. Sort them by what they share.
+
+## Whose Wax instructions
 
 Match the mystery record to everyone who picked it. You get three misses; the first two unlock clues.
 
-## Who Picked It scoring
+## Whose Wax scoring
 
 **Accuracy pays:** 0 misses 1,000 · 1 miss 750 · 2 misses 500
 
-## Match The Record instructions
+## Staff Picks instructions
 
 One listener picked two of these eight records. Explore the track lists, then find both picks.
 
-## Match The Record round prompt
+## Staff Picks round prompt
 
 Tap a cover you think they picked. Each miss unlocks one of their notes; the third miss ends the round.
+
+## Flip Side instructions
+
+We randomly selected 24 records from the group's picks, with one being the right selection. Ask yes or no questions about the music, artist, album cover, or the listener who picked it to narrow down your selection. You win when you guess the right record.
+
+## Crates instructions
+
+Sixteen records, four hidden groups of four. Each group shares a fact: who made the records, where, how, or what is in a name. Watch for records that fit two groups. Pick four, then check.
 
 ## The whole room introduction
 
 Every member’s records, notes, favorite tracks, and standout songs. Choose a shelf to read one list in full, or search the whole room.
 
-## Records Wrapped introduction
+## Liner Notes introduction
 
 The group’s listening year, told through the records and notes you left for one another. A few awards, a few coincidences, and plenty of room to disagree.
 
-## Records Wrapped source note
+## Liner Notes source note
 
 Made from this group’s album picks, Last.fm tags and audience sizes, standout tracks, and notes.

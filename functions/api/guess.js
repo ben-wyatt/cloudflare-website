@@ -29,7 +29,7 @@ import {
   shuffle,
 } from "../_shared/question-games.js";
 
-// Guess the Record. The player types; Jev reads each record of the player's group and answers
+// Flip Side. The player types; Jev reads each record of the player's group and answers
 // one yes/no judgment per record; code turns that into an answer.
 const ROUND_TTL_MS = 12 * 60 * 60 * 1000;
 const randomIndex = (length) => crypto.getRandomValues(new Uint32Array(1))[0] % length;

@@ -224,7 +224,7 @@ export async function onRequestPost({ request, env }) {
     const db = requireDb(env);
     const body = await readJson(request);
     if (body.action !== "enrich") {
-      throw new HttpError("That Wrapped action is not supported.", 400, "invalid_action");
+      throw new HttpError("That Liner Notes action is not supported.", 400, "invalid_action");
     }
 
     const seasonInfo = await getSeason(db, user.groupId);
@@ -232,7 +232,7 @@ export async function onRequestPost({ request, env }) {
       const snapshot = await getSnapshot(db, user.groupId);
       if (snapshot) {
         throw new HttpError(
-          "This edition of Wrapped has already been published.",
+          "This edition of Liner Notes has already been published.",
           409,
           "wrapped_published",
         );

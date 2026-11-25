@@ -6,16 +6,22 @@ const headings = {
   "Ballot introduction": "ballotIntroduction",
   "Standout tracks explanation": "standoutExplanation",
   "Games introduction": "gamesIntroduction",
-  "Who Picked It game listing": "whoPickedListing",
-  "Match The Record game listing": "matchListing",
-  "Records Wrapped game listing": "wrappedListing",
-  "Who Picked It instructions": "whoPickedInstructions",
-  "Who Picked It scoring": "whoPickedScoring",
-  "Match The Record instructions": "matchInstructions",
-  "Match The Record round prompt": "matchRoundPrompt",
+  // Whose Wax? was Who Picked It?, Staff Picks was Match The Record, and Liner Notes was
+  // Records Wrapped; the keys keep the old names.
+  "Whose Wax game listing": "whoPickedListing",
+  "Staff Picks game listing": "matchListing",
+  "Liner Notes game listing": "wrappedListing",
+  "Flip Side game listing": "flipSideListing",
+  "Crates game listing": "cratesListing",
+  "Whose Wax instructions": "whoPickedInstructions",
+  "Whose Wax scoring": "whoPickedScoring",
+  "Staff Picks instructions": "matchInstructions",
+  "Staff Picks round prompt": "matchRoundPrompt",
+  "Flip Side instructions": "flipSideInstructions",
+  "Crates instructions": "cratesInstructions",
   "The whole room introduction": "listsIntroduction",
-  "Records Wrapped introduction": "wrappedIntroduction",
-  "Records Wrapped source note": "wrappedSourceNote",
+  "Liner Notes introduction": "wrappedIntroduction",
+  "Liner Notes source note": "wrappedSourceNote",
 };
 
 const source = fs.readFileSync(path.join(__dirname, "record-club-copy.md"), "utf8");

@@ -30,7 +30,7 @@ eleventyExcludeFromCollections: true
     <header class="game-masthead game-masthead-compact">
       <div class="game-masthead-copy">
         <h1 id="crates-title">Crates</h1>
-        <p class="game-deck">Sixteen records, four hidden groups of four. Each group shares a fact: who made the records, where, how, or what is in a name. Watch for records that fit two groups. Pick four, then check.</p>
+        <p class="game-deck">{{ recordCopy.cratesInstructions | safe }}</p>
         <p class="game-scoring-rule lab-modes">
           <button id="crates-previous" class="records-text-button" type="button">← Previous</button>
           <span aria-hidden="true">·</span>

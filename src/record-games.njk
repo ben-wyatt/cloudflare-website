@@ -19,7 +19,7 @@ bodyClass: "games-page record-games-page"
       <article class="games-entry">
         <div class="games-entry-heading">
           <span class="games-number" aria-hidden="true">01</span>
-          <h2><a href="/records/game/">Who Picked It? <span aria-hidden="true">→</span></a></h2>
+          <h2><a href="/records/game/">Whose Wax? <span aria-hidden="true">→</span></a></h2>
         </div>
         <p>{{ recordCopy.whoPickedListing | safe }}</p>
       </article>
@@ -28,7 +28,7 @@ bodyClass: "games-page record-games-page"
       <article class="games-entry">
         <div class="games-entry-heading">
           <span class="games-number" aria-hidden="true">02</span>
-          <h2><a href="/records/match/">Match The Record <span aria-hidden="true">→</span></a></h2>
+          <h2><a href="/records/match/">Staff Picks <span aria-hidden="true">→</span></a></h2>
         </div>
         <p>{{ recordCopy.matchListing | safe }}</p>
       </article>
@@ -37,7 +37,7 @@ bodyClass: "games-page record-games-page"
       <article class="games-entry">
         <div class="games-entry-heading">
           <span class="games-number" aria-hidden="true">03</span>
-          <h2><a href="/records/wrapped/">Records Wrapped <span aria-hidden="true">→</span></a></h2>
+          <h2><a href="/records/wrapped/">Liner Notes <span aria-hidden="true">→</span></a></h2>
         </div>
         <p>{{ recordCopy.wrappedListing | safe }}</p>
       </article>
@@ -46,9 +46,9 @@ bodyClass: "games-page record-games-page"
       <article class="games-entry">
         <div class="games-entry-heading">
           <span class="games-number" aria-hidden="true">04</span>
-          <h2><a href="/records/guess/">Guess the Record <span aria-hidden="true">→</span></a></h2>
+          <h2><a href="/records/guess/">Flip Side <span aria-hidden="true">→</span></a></h2>
         </div>
-        <p>Twenty-four records, one secret. Ask yes-or-no questions; the records that don't fit turn over.</p>
+        <p>{{ recordCopy.flipSideListing | safe }}</p>
       </article>
     </li>
     <li>
@@ -57,7 +57,7 @@ bodyClass: "games-page record-games-page"
           <span class="games-number" aria-hidden="true">05</span>
           <h2><a href="/records/crates/">Crates <span aria-hidden="true">→</span></a></h2>
         </div>
-        <p>Sixteen records, four hidden groups of four. Sort them by what they share.</p>
+        <p>{{ recordCopy.cratesListing | safe }}</p>
       </article>
     </li>
   </ol>

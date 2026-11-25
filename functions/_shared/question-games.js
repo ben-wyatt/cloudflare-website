@@ -1,6 +1,6 @@
 import { genreTags } from "./record-game-clues.js";
 
-// Guess the Record: the player types plain yes/no questions and Jev answers one judgment per
+// Flip Side: the player types plain yes/no questions and Jev answers one judgment per
 // record on the board. Everything Jev needs is written into each record's facts, so it reads
 // what the friends picked instead of recalling new albums. This file is pure: the facts each
 // record carries, the questions sent, and the rules that turn probabilities into answers and

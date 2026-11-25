@@ -1,6 +1,6 @@
 ---
 layout: layout.njk
-title: Match The Record · Record Club
+title: Staff Picks · Record Club
 permalink: "/records/match/"
 pageStyles: "/styles/records.css?v=clues-under-cover"
 pageScript: "/assets/js/match-record.js?v=side-by-side"
@@ -30,10 +30,10 @@ bodyClass: "records-page record-game-page record-match-page"
 
     <header class="game-masthead game-masthead-compact">
       <div class="game-masthead-copy">
-        <h1 id="match-title">Match The Record</h1>
+        <h1 id="match-title">Staff Picks</h1>
         <p class="game-deck">{{ recordCopy.matchInstructions | safe }}</p>
       </div>
-      <div class="game-scoreboard" aria-label="Your Match The Record statistics">
+      <div class="game-scoreboard" aria-label="Your Staff Picks statistics">
         <div class="game-score-stat game-score-stat-primary">
           <strong id="match-total-matches">0</strong>
           <span>matches</span>
@@ -53,7 +53,7 @@ bodyClass: "records-page record-game-page record-match-page"
       <div class="match-side">
         <div class="match-prompt">
           <p class="records-eyebrow">this listener chose two</p>
-          <h2 id="match-listener-prompt"><span id="match-listener-name"></span>'s records</h2>
+          <h2 id="match-listener-prompt"><span id="match-listener-name"></span>'s staff picks</h2>
           <p>{{ recordCopy.matchRoundPrompt | safe }}</p>
         </div>
         <ol id="match-clues" class="match-clues" aria-live="polite" hidden></ol>
