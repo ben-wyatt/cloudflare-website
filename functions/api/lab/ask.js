@@ -37,7 +37,7 @@ import {
   shuffle,
 } from "../../_shared/question-games.js";
 
-// Yes or No: three question games for the development account. The player types; Jev reads
+// Yes or No: three question games for the Record Club owners. The player types; Jev reads
 // each card's facts and answers one yes/no judgment per card; code turns that into an answer.
 const ROUND_TTL_MS = 12 * 60 * 60 * 1000;
 const randomIndex = (length) => crypto.getRandomValues(new Uint32Array(1))[0] % length;

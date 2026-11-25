@@ -160,8 +160,8 @@ export async function onRequestGet({ request, env }) {
     requireRecordClubOwner(user);
     requireGroup(user);
     const db = requireDb(env);
-    // The lab account can view another group's Wrapped (?group=), live and never saved,
-    // with the slides still being tried out.
+    // Lab users (the owners) see Wrapped live, never saved, with the slides still being tried
+    // out, and can view another group's with ?group=.
     const lab = isLabUser(user);
     const labGroupId = lab ? labViewGroup(new URL(request.url).searchParams.get("group")) : null;
     if (lab) {
@@ -170,7 +170,11 @@ export async function onRequestGet({ request, env }) {
       const rows = await loadWrappedRows(db, groupId);
       const payload = makePayload(RECORD_SEASON, groupId, seasonInfo, rows, new Date().toISOString());
       payload.cards = insertBeforeLast(payload.cards, await coverTwinsCard(db, groupId));
-      return json({ ...payload, snapshot: false, metadataPending: 0, lab: true });
+      // The page enriches the viewer's own group, so only that group's gaps are reported.
+      const metadataPending = groupId === user.groupId
+        ? new Set(rows.picks.filter((row) => !row.metadataEnrichedAt).map((row) => row.spotifyId)).size
+        : 0;
+      return json({ ...payload, snapshot: false, metadataPending, lab: true });
     }
 
     const seasonInfo = await getSeason(db, user.groupId);

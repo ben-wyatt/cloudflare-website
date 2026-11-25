@@ -1,15 +1,14 @@
-import { normalizeUsername } from "./auth.js";
+import { isRecordClubOwner } from "./auth.js";
 import { HttpError } from "./http.js";
 
-// The Record Club lab: new games and Wrapped slides that only the development account sees
-// while they are tried out. The development group holds only seed lists, so the lab reads a
-// real group's picks; LAB_GROUPS are the groups it may read, the first being the default.
-export const LAB_USERNAME = "ben_dev";
-export const LAB_ACCOUNT_GROUP = "development";
+// The Record Club lab: new games and Wrapped slides that only the Record Club owners see
+// while they are tried out. The owners are RECORD_CLUB_OWNER_USERNAMES in auth.js; add a
+// username there to let someone in. The lab reads a real group's picks (the development
+// group holds only seed lists); LAB_GROUPS are the groups it may read, the first the default.
 export const LAB_GROUPS = ["badabing", "development"];
 
 export function isLabUser(user) {
-  return normalizeUsername(user?.username) === LAB_USERNAME && user?.groupId === LAB_ACCOUNT_GROUP;
+  return isRecordClubOwner(user);
 }
 
 export function requireLabUser(user) {

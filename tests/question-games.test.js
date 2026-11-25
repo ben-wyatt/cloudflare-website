@@ -97,10 +97,11 @@ test("compact removes empty values all the way down", () => {
   assert.deepEqual(compact({ a: "", b: [], c: { d: null }, e: 0, f: ["x", ""] }), { e: 0, f: ["x"] });
 });
 
-test("only the development account is a lab user, and only known groups can be read", () => {
+test("only Record Club owners are lab users, and only known groups can be read", () => {
   assert.equal(isLabUser({ username: "ben_dev", groupId: "development" }), true);
-  assert.equal(isLabUser({ username: "ben", groupId: "badabing" }), false);
-  assert.equal(isLabUser({ username: "ben_dev", groupId: "badabing" }), false);
+  assert.equal(isLabUser({ username: "Ben", groupId: "badabing" }), true);
+  assert.equal(isLabUser({ username: "graham", groupId: "badabing" }), false);
+  assert.equal(isLabUser(null), false);
   assert.equal(labGroup("development"), "development");
   assert.equal(labGroup("ey-mt-juniors"), "badabing");
   assert.equal(labViewGroup("nope"), null);
