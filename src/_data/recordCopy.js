@@ -5,7 +5,7 @@ const markdownIt = require("markdown-it");
 const headings = {
   "Ballot introduction": "ballotIntroduction",
   "Standout tracks explanation": "standoutExplanation",
-  "Games introduction": "gamesIntroduction",
+  "Minigames introduction": "gamesIntroduction",
   // Whose Wax? was Who Picked It?, Staff Picks was Match The Record, and Liner Notes was
   // Records Wrapped; the keys keep the old names.
   "Whose Wax game listing": "whoPickedListing",

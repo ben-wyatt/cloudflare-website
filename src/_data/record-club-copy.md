@@ -20,9 +20,9 @@ For questions, comments, suggestions, feature requests feel free to text me.
 
 For the songs you loved from albums you were kinda meh on, or the ones that stayed in rotation and deserve specific attention.
 
-## Games introduction
+## Minigames introduction
 
-Some games before the Liner Notes!
+Some minigames before the Liner Notes!
 
 ## Whose Wax game listing
 
