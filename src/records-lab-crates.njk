@@ -2,16 +2,17 @@
 layout: layout.njk
 title: Crates · Record Club Lab
 permalink: "/records/lab/crates/"
-pageStyles: "/styles/records-lab.css?v=lab-1"
-pageScript: "/assets/js/records-lab-crates.js?v=lab-1"
+pageStyles: "/styles/records-lab.css?v=lab-2"
+pageScript: "/assets/js/records-lab-crates.js?v=lab-2"
 bodyClass: "records-page record-game-page lab-page lab-crates-page"
 eleventyExcludeFromCollections: true
 ---
 
-<section class="game-shell lab-shell" aria-labelledby="crates-title">
+<section class="game-shell lab-shell crates-shell" aria-labelledby="crates-title">
   <div id="crates-loading" class="records-panel game-loading" role="status">Filling the crates…</div>
 
   <section id="crates-gate" class="records-panel game-gate" hidden aria-labelledby="crates-gate-title">
+    <p class="records-eyebrow">record club lab</p>
     <h1 id="crates-gate-title">No crates yet</h1>
     <p id="crates-gate-message"></p>
     <a class="records-primary game-back-link" href="/records/lab/">Back to the lab</a>
@@ -19,37 +20,58 @@ eleventyExcludeFromCollections: true
 
   <div id="crates-app" class="game-app" hidden data-fullscreen-target>
     <div class="records-member-bar game-member-bar">
-      <p>Playing with <strong id="crates-group-name"></strong></p>
+      <p>Playing as <strong id="crates-member-name"></strong></p>
       <div class="game-member-actions">
         <button class="game-fullscreen" type="button" data-fullscreen-toggle hidden aria-label="Full screen"></button>
-        <a class="game-back-link" href="/records/lab/">Lab</a>
+        <a class="game-back-link" href="/records/lab/">Back to lab</a>
       </div>
     </div>
 
-    <header class="lab-ask-head">
-      <h1 id="crates-title">Crates</h1>
-      <p class="game-deck">Sixteen covers, four groups of four that look alike. Pick four and check.</p>
-      <p class="lab-puzzle-nav">
-        <button id="crates-previous" class="records-text-button" type="button" aria-label="Previous puzzle">←</button>
-        <span id="crates-number"></span>
-        <button id="crates-next-puzzle" class="records-text-button" type="button" aria-label="Next puzzle">→</button>
-      </p>
+    <header class="game-masthead game-masthead-compact">
+      <div class="game-masthead-copy">
+        <h1 id="crates-title">Crates</h1>
+        <p class="game-deck">Sixteen covers, four groups of four that look alike. Pick four, then check.</p>
+        <p class="game-scoring-rule lab-modes">
+          <button id="crates-previous" class="records-text-button" type="button">← Previous</button>
+          <span aria-hidden="true">·</span>
+          <span id="crates-number"></span>
+          <span aria-hidden="true">·</span>
+          <button id="crates-next-puzzle" class="records-text-button" type="button">Next →</button>
+        </p>
+      </div>
+      <div class="game-scoreboard" aria-label="This puzzle">
+        <div class="game-score-stat game-score-stat-primary">
+          <strong id="crates-found">0</strong>
+          <span>of 4 found</span>
+        </div>
+        <div class="game-score-stat">
+          <strong id="crates-mistakes">0</strong>
+          <span>mistakes</span>
+        </div>
+        <div class="game-score-stat">
+          <strong id="crates-left">16</strong>
+          <span>covers left</span>
+        </div>
+      </div>
     </header>
 
-    <ol id="crates-solved" class="crates-solved" aria-label="Groups found"></ol>
-    <ul id="crates-grid" class="crates-grid" aria-label="Covers"></ul>
+    <section class="crates-round" aria-label="The puzzle">
+      <ol id="crates-solved" class="crates-solved" aria-label="Groups found"></ol>
+      <ul id="crates-grid" class="crates-grid" aria-label="Covers"></ul>
 
-    <p id="crates-status" class="game-status" role="status" aria-live="polite"></p>
-
-    <div class="crates-actions">
-      <button id="crates-shuffle" class="records-text-button" type="button">Shuffle</button>
-      <button id="crates-clear" class="records-text-button" type="button">Deselect</button>
-      <button id="crates-check" class="records-primary" type="button" disabled>Check</button>
-    </div>
-    <div class="crates-actions crates-actions-secondary">
-      <span id="crates-mistakes" class="lab-progress"></span>
-      <button id="crates-give-up" class="records-text-button" type="button">Show the groups</button>
-    </div>
+      <div class="crates-end">
+        <p id="crates-status" class="game-status" role="status" aria-live="polite"></p>
+        <p class="crates-actions">
+          <button id="crates-shuffle" class="records-text-button" type="button">Shuffle</button>
+          <span aria-hidden="true">·</span>
+          <button id="crates-clear" class="records-text-button" type="button">Deselect</button>
+          <span aria-hidden="true">·</span>
+          <button id="crates-give-up" class="records-text-button" type="button">Show the groups</button>
+          <button id="crates-check" class="records-text-button game-next" type="button" disabled>Check <kbd aria-hidden="true">↵</kbd></button>
+          <button id="crates-next" class="records-text-button game-next" type="button" hidden>Next puzzle <kbd aria-hidden="true">↵</kbd></button>
+        </p>
+      </div>
+    </section>
   </div>
 </section>
 <script src="/assets/js/game-fullscreen.js?v=fullscreen" defer></script>

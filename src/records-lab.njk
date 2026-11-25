@@ -2,55 +2,70 @@
 layout: layout.njk
 title: Lab · Record Club
 permalink: "/records/lab/"
-pageStyles: "/styles/records-lab.css?v=lab-1"
-pageScript: "/assets/js/records-lab.js?v=lab-1"
-bodyClass: "records-page record-game-page lab-page"
+pageStyles: "/styles/records-lab.css?v=lab-2"
+pageScript: "/assets/js/records-lab.js?v=lab-2"
+bodyClass: "games-page record-games-page lab-page"
 eleventyExcludeFromCollections: true
 ---
 
-<section class="game-shell lab-shell" aria-labelledby="lab-title">
-  <header class="game-masthead game-masthead-compact">
-    <p class="records-eyebrow">record club · lab</p>
+<section class="games-index" aria-labelledby="lab-title">
+  <div class="games-intro">
+    <p class="games-kicker">record club · lab</p>
     <h1 id="lab-title">Lab</h1>
-    <p class="game-deck">New games and slides being tried out. Only Record Club owners can see this page.</p>
-  </header>
-
-  <div class="lab-group" role="group" aria-labelledby="lab-group-label">
-    <span id="lab-group-label" class="records-eyebrow">play with</span>
-    <button type="button" class="lab-group-option" data-lab-group="badabing">Badabing</button>
-    <button type="button" class="lab-group-option" data-lab-group="development">Development seed lists</button>
+    <p>New games and slides, tried out before friends see them. Only Record Club owners can see this page.</p>
+    <p class="lab-group" role="group" aria-label="Whose records to play with">Playing with
+      <button type="button" class="records-text-button lab-group-option" data-lab-group="badabing">Badabing</button>
+      <span aria-hidden="true">·</span>
+      <button type="button" class="records-text-button lab-group-option" data-lab-group="development">the development seed lists</button>
+    </p>
+    <p><a href="/records/games/">← Back to games</a></p>
   </div>
 
-  <ol class="lab-list">
+  <ol class="games-list">
     <li>
-      <a class="lab-entry" data-lab-link href="/records/lab/ask/?game=record">
-        <span class="lab-entry-name">Guess the Record →</span>
-        <span class="lab-entry-copy">Twenty-four covers, one secret. Ask yes-or-no questions; the covers that don't fit turn over.</span>
-      </a>
+      <article class="games-entry">
+        <div class="games-entry-heading">
+          <span class="games-number" aria-hidden="true">01</span>
+          <h2><a data-lab-link href="/records/lab/ask/?game=record">Guess the Record <span aria-hidden="true">→</span></a></h2>
+        </div>
+        <p>Twenty-four covers, one secret. Ask yes-or-no questions; the records that don't fit turn over.</p>
+      </article>
     </li>
     <li>
-      <a class="lab-entry" data-lab-link href="/records/lab/ask/?game=listener">
-        <span class="lab-entry-name">Guess the Listener →</span>
-        <span class="lab-entry-copy">Everyone's shelves, one secret friend. Ask about their records, notes and standout tracks.</span>
-      </a>
+      <article class="games-entry">
+        <div class="games-entry-heading">
+          <span class="games-number" aria-hidden="true">02</span>
+          <h2><a data-lab-link href="/records/lab/ask/?game=listener">Guess the Listener <span aria-hidden="true">→</span></a></h2>
+        </div>
+        <p>Everyone's shelves, one secret friend. Ask about their records, notes and standout tracks.</p>
+      </article>
     </li>
     <li>
-      <a class="lab-entry" data-lab-link href="/records/lab/ask/?game=only-one">
-        <span class="lab-entry-name">Only One →</span>
-        <span class="lab-entry-copy">You get a record. Describe it so it fits that record and nothing else on the board.</span>
-      </a>
+      <article class="games-entry">
+        <div class="games-entry-heading">
+          <span class="games-number" aria-hidden="true">03</span>
+          <h2><a data-lab-link href="/records/lab/ask/?game=only-one">Only One <span aria-hidden="true">→</span></a></h2>
+        </div>
+        <p>You get a record. Describe it so the description fits that record and nothing else on the board.</p>
+      </article>
     </li>
     <li>
-      <a class="lab-entry" data-lab-link href="/records/lab/crates/">
-        <span class="lab-entry-name">Crates →</span>
-        <span class="lab-entry-copy">Sixteen covers, four groups of look-alikes. Sort them.</span>
-      </a>
+      <article class="games-entry">
+        <div class="games-entry-heading">
+          <span class="games-number" aria-hidden="true">04</span>
+          <h2><a data-lab-link href="/records/lab/crates/">Crates <span aria-hidden="true">→</span></a></h2>
+        </div>
+        <p>Sixteen covers, four groups of look-alikes. Sort them.</p>
+      </article>
     </li>
     <li>
-      <a class="lab-entry" data-lab-link data-lab-wrapped href="/records/wrapped/">
-        <span class="lab-entry-name">Wrapped: Cover twins →</span>
-        <span class="lab-entry-copy">The most alike album art, picked by different people. Second-to-last slide.</span>
-      </a>
+      <article class="games-entry">
+        <div class="games-entry-heading">
+          <span class="games-number" aria-hidden="true">05</span>
+          <h2><a data-lab-link href="/records/wrapped/">Wrapped: Cover twins <span aria-hidden="true">→</span></a></h2>
+        </div>
+        <p>The most alike album art, picked by different people. Second-to-last slide.</p>
+      </article>
     </li>
   </ol>
 </section>

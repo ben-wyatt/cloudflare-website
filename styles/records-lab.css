@@ -1,166 +1,145 @@
-/* Record Club lab: the question games and Crates. Builds on the Record Club game styles. */
-@import url("/styles/records.css?v=lab-1");
+/* Record Club lab: the question games and Crates. They reuse the Record Club game styles
+   (member bar, double-ruled masthead, scoreboard, eyebrows, text buttons) and add only
+   what the new games need. Actions are underlined text, as in the other games. */
+@import url("/styles/records.css?v=lab-2");
+@import url("/styles/games.css?v=lab-2");
 
 .lab-shell {
-  --game-max: 860px;
-  max-width: 860px;
+  --game-max: 960px;
+  max-width: var(--game-max);
 }
 
-.lab-page {
-  max-width: 900px;
-}
-
-/* ---- Lab index ---- */
-.lab-group {
+/* ---- Text controls: the current choice is plain bold text, the others are links ---- */
+.lab-group,
+.lab-modes {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0 0 1.5rem;
+  align-items: baseline;
+  gap: 0.2rem 0.45rem;
 }
 
 .lab-group-option,
-.lab-mode {
-  padding: 0.35rem 0.7rem;
-  border: 1px solid var(--color-border-strong);
-  border-radius: 999px;
-  background: transparent;
-  color: inherit;
+.lab-round-actions button,
+.lab-guess-line button,
+.crates-actions button,
+.lab-modes button {
+  padding: 0;
+  border: 0;
+  background: none;
   font: inherit;
-  font-size: 0.9rem;
-  text-decoration: none;
   cursor: pointer;
 }
 
 .lab-group-option[aria-pressed="true"],
-/* The site's internal-link color rule is very specific, so the current game is scoped by id. */
-#ask-app .lab-mode[aria-current="page"],
-#ask-app .lab-mode[aria-current="page"]:visited {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.lab-group-option:focus-visible,
-.lab-mode:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
-}
-
-.lab-list {
-  display: grid;
-  gap: 0.75rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.lab-entry {
-  display: grid;
-  gap: 0.25rem;
-  padding: 1rem 1.1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background: var(--color-surface);
-  color: inherit;
-  text-decoration: none;
-}
-
-.lab-entry:hover {
-  border-color: var(--color-primary);
-}
-
-.lab-entry-name {
-  color: var(--link-internal);
+.lab-modes .lab-mode[aria-current="page"] {
+  color: var(--color-text);
   font-weight: 700;
+  text-decoration: none;
+  cursor: default;
 }
 
-.lab-entry-copy {
-  color: var(--em-color);
-}
-
-/* ---- Shared head ---- */
 .lab-modes {
+  margin-top: 0.3rem;
+}
+
+.lab-modes .lab-mode:not([aria-current]) {
+  font-weight: 400;
+}
+
+.records-text-button:disabled {
+  color: var(--color-text-subtle);
+  text-decoration: none;
+  cursor: default;
+}
+
+/* ---- The round: the question column beside the board (phones: one column) ---- */
+.lab-round {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1rem 0 1.5rem;
+}
+
+.lab-side {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin: 1rem 0 0.5rem;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
 }
 
-.lab-ask-head {
-  margin: 1.25rem 0 1rem;
+@media (min-width: 761px) {
+  .lab-round {
+    grid-template-columns: minmax(15rem, 19rem) minmax(0, 1fr);
+    align-items: start;
+    gap: 2rem;
+  }
+
+  .lab-side {
+    position: sticky;
+    top: 1rem;
+  }
 }
 
-.lab-ask-head h1 {
-  margin: 0 0 0.35rem;
-  font-family: var(--font-heading);
-  font-size: clamp(2rem, 7vw, 3.2rem);
-  line-height: 1;
-  letter-spacing: -0.04em;
-}
-
-.lab-ask-head .game-deck {
-  margin: 0;
-  max-width: 640px;
-}
-
-/* ---- Question form and answer ---- */
+/* ---- Question form: an underlined field, like the album search ---- */
 .lab-ask-form {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.6rem 0;
-  background: var(--color-bg);
+  display: grid;
+  gap: 0.35rem;
 }
 
-.lab-ask-form input {
+.lab-ask-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.lab-ask-row input {
   flex: 1;
   min-width: 0;
-  padding: 0.65rem 0.8rem;
-  border: 1px solid var(--color-border-strong);
-  border-radius: 8px;
-  background: var(--color-surface);
+  padding: 0.55rem 0.1rem 0.65rem;
+  -webkit-appearance: none;
+  appearance: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: inset 0 -1px 0 var(--color-border-strong);
   color: inherit;
   font: inherit;
   font-size: 1rem;
 }
 
-.lab-ask-form input:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 1px;
+.lab-ask-row input::placeholder {
+  color: var(--em-color);
+  opacity: 0.72;
+}
+
+.lab-ask-row input:focus {
+  outline: 0;
+  box-shadow: inset 0 -2px 0 var(--color-primary);
+}
+
+.lab-ask-row .game-next {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
 }
 
 .lab-ask-form.is-pending input {
   animation: lab-thinking 900ms ease-in-out infinite;
 }
 
+/* ---- The answer ---- */
 .lab-answer {
   display: grid;
-  gap: 0.1rem;
-  margin: 0.4rem 0 0.9rem;
-  padding: 0.7rem 0.9rem;
-  border-left: 4px solid var(--color-border-strong);
-  background: var(--color-surface-soft);
+  gap: 0.15rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--game-rule);
+  border-bottom: 1px solid var(--game-rule);
 }
 
-.lab-answer.is-new {
-  animation: lab-answer-in 260ms ease-out;
-}
-
-.lab-answer[data-kind="yes"],
-.lab-answer[data-kind="probably"] {
-  border-left-color: var(--color-success);
-}
-
-.lab-answer[data-kind="no"],
-.lab-answer[data-kind="probably-not"] {
-  border-left-color: var(--color-danger);
-}
-
-.lab-answer[data-kind="unsure"] {
-  border-left-color: var(--color-warning);
+.lab-answer.is-new .game-status {
+  animation: game-clue-text 360ms ease-out;
 }
 
 .lab-answer p {
@@ -172,43 +151,25 @@
   font-size: 0.9rem;
 }
 
-.lab-answer-word {
-  font-family: var(--font-heading);
-  font-size: 1.6rem;
-  font-weight: 700;
-  line-height: 1.15;
+.game-status.is-unsure {
+  color: var(--color-warning);
 }
 
-.lab-answer-detail {
+.lab-guess-line,
+.lab-round-actions {
+  margin: 0;
   color: var(--em-color);
-  font-size: 0.9rem;
 }
 
-.lab-guess-bar {
-  position: sticky;
-  top: 3.6rem;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.6rem;
-  margin: 0 0 0.8rem;
-  padding: 0.55rem 0.8rem;
-  border: 1px solid var(--color-primary);
-  border-radius: 8px;
-  background: var(--color-surface);
-}
-
-.lab-guess-bar span {
-  flex: 1 1 12rem;
-  font-weight: 700;
+.lab-guess-line strong {
+  color: var(--color-text);
 }
 
 /* ---- Board ---- */
 .lab-board {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
-  gap: 0.55rem;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 0.75rem 0.6rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -219,48 +180,56 @@
 }
 
 .lab-card {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   transition: opacity 320ms ease, transform 320ms ease, filter 320ms ease;
 }
 
 .lab-card-button {
   position: relative;
-  display: grid;
-  gap: 0.3rem;
+  display: block;
   width: 100%;
   padding: 0;
-  border: 0;
-  background: transparent;
+  overflow: hidden;
+  border: 1px solid var(--game-rule);
+  border-radius: 3px;
+  background: var(--game-soft);
   color: inherit;
   font: inherit;
-  text-align: left;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
+/* records.css dims every disabled button; a card that can't be tapped keeps its cover. */
 .lab-card-button:disabled {
   cursor: default;
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lab-card-button:hover:not(:disabled) {
+    border-color: var(--game-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--game-primary) 18%, transparent);
+  }
 }
 
 .lab-card-button:focus-visible {
-  outline: 2px solid var(--color-focus);
+  outline: 3px solid var(--color-focus);
   outline-offset: 3px;
 }
 
-.lab-card-cover,
-.lab-card-mosaic {
+.lab-card-cover {
   display: block;
   width: 100%;
   aspect-ratio: 1;
-  border-radius: 4px;
   object-fit: cover;
-  background: var(--color-surface-sunken);
-  box-shadow: 0 0 0 1px var(--color-border);
 }
 
 .lab-card-mosaic {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  overflow: hidden;
 }
 
 .lab-card-mosaic img {
@@ -271,131 +240,157 @@
 
 .lab-card-caption {
   display: grid;
-  min-width: 0;
-  font-size: 0.75rem;
-  line-height: 1.25;
+  gap: 0.05rem;
+  padding: 0.35rem 0.1rem 0;
+  line-height: 1.2;
 }
 
-.lab-card-title,
-.lab-card-subtitle {
+.lab-card-caption strong,
+.lab-card-caption span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.lab-card-title {
-  font-weight: 700;
+.lab-card-caption strong {
+  font-size: 0.8rem;
 }
 
-.lab-board.is-listeners .lab-card-title {
+.lab-card-caption span {
+  color: var(--em-color);
+  font-size: 0.72rem;
+}
+
+.lab-board.is-listeners .lab-card-caption strong {
   font-size: 0.9rem;
 }
 
-.lab-card-subtitle {
-  color: var(--em-color);
-}
-
 .lab-card.is-down {
-  opacity: 0.22;
+  opacity: 0.2;
   filter: grayscale(1);
-  transform: scale(0.94);
 }
 
-.lab-card.is-selected .lab-card-cover,
-.lab-card.is-selected .lab-card-mosaic {
-  box-shadow: 0 0 0 3px var(--color-primary);
+.lab-card.is-selected .lab-card-button {
+  border-color: var(--game-primary);
+  box-shadow: 0 0 0 3px var(--game-primary);
 }
 
-.lab-card.is-target .lab-card-cover {
-  box-shadow: 0 0 0 3px var(--color-secondary);
+.lab-card.is-secret .lab-card-button {
+  border-color: var(--game-correct);
+  box-shadow: 0 0 0 3px var(--game-correct);
+}
+
+.lab-card.is-target .lab-card-button {
+  border-color: var(--game-secondary);
+  box-shadow: 0 0 0 3px var(--game-secondary);
 }
 
 .lab-card-badge,
 .lab-card-number {
   position: absolute;
-  top: 0.3rem;
-  padding: 0.05rem 0.35rem;
-  border-radius: 3px;
-  font-size: 0.7rem;
-  font-weight: 700;
+  top: 0.25rem;
+  padding: 0 0.3rem;
+  background: var(--color-bg);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .lab-card-badge {
-  left: 0.3rem;
-  background: var(--color-secondary);
-  color: var(--color-on-secondary);
+  left: 0.25rem;
+  color: var(--game-secondary);
 }
 
 .lab-card-number {
-  right: 0.3rem;
-  background: var(--color-bg);
+  right: 0.25rem;
   color: var(--color-text);
-  box-shadow: 0 0 0 1px var(--color-border);
+  letter-spacing: 0;
 }
 
-/* Only One: what the last description fits. */
-.lab-card[data-level="fits"] .lab-card-cover {
-  box-shadow: 0 0 0 3px var(--color-success);
+/* Only One: which records the last description fits. */
+.lab-card[data-level="fits"]:not(.is-target) .lab-card-button {
+  border-color: var(--game-correct);
+  box-shadow: 0 0 0 2px var(--game-correct);
 }
 
-.lab-card[data-level="maybe"] .lab-card-cover {
-  box-shadow: 0 0 0 3px var(--color-warning);
+.lab-card[data-level="maybe"]:not(.is-target) .lab-card-button {
+  border-color: var(--color-warning);
+  box-shadow: 0 0 0 2px var(--color-warning);
 }
 
 .lab-card[data-level="no"]:not(.is-target) {
   opacity: 0.35;
 }
 
-.lab-card.is-target[data-level="no"] .lab-card-cover,
-.lab-card.is-target[data-level="maybe"] .lab-card-cover {
-  box-shadow: 0 0 0 3px var(--color-danger);
-}
-
-/* ---- Footer, history, reveal ---- */
-.lab-ask-footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
+/* ---- Reveal, history, footer ---- */
+.lab-reveal {
+  display: grid;
   gap: 0.6rem;
-  margin: 1rem 0;
+  justify-items: start;
 }
 
-.lab-ask-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.9rem;
+.lab-reveal-head {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
 }
 
-.lab-progress {
+.lab-reveal-head .lab-card-cover {
+  border: 1px solid var(--game-rule);
+  border-radius: 3px;
+}
+
+.lab-reveal-head .lab-card-mosaic {
+  overflow: hidden;
+}
+
+.lab-reveal-title {
+  font-weight: 700;
+}
+
+.lab-reveal-subtitle {
+  margin: 0.15rem 0 0;
+  color: var(--em-color);
+  font-size: 0.86rem;
+}
+
+.lab-reveal-note {
   margin: 0;
-  color: var(--em-color);
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--game-correct);
   font-size: 0.9rem;
+  line-height: 1.5;
 }
 
-.lab-numbers {
+.lab-reveal-note cite {
   color: var(--em-color);
-  font-size: 0.85rem;
+  font-style: normal;
 }
 
 .lab-history-wrap {
-  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--game-rule);
 }
 
 .lab-history {
   display: grid;
-  gap: 0.3rem;
-  margin: 0.5rem 0 0;
+  margin: 0.4rem 0 0;
   padding: 0;
   list-style: none;
+  font-size: 0.86rem;
+}
+
+.lab-history:empty::after {
+  content: "Nothing yet.";
+  color: var(--em-color);
 }
 
 .lab-history-item {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.35rem 0;
+  padding: 0.3rem 0;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -406,96 +401,64 @@
 
 .lab-history-item.is-yes .lab-history-answer,
 .lab-history-item.is-probably .lab-history-answer {
-  color: var(--color-success);
+  color: var(--game-correct);
 }
 
 .lab-history-item.is-no .lab-history-answer,
 .lab-history-item.is-probably-not .lab-history-answer {
-  color: var(--color-danger);
+  color: var(--game-wrong);
 }
 
-.lab-reveal {
-  margin: 1rem 0;
+.lab-history-item.is-unsure .lab-history-answer {
+  color: var(--color-warning);
 }
 
-.lab-reveal-head {
-  display: grid;
-  grid-template-columns: minmax(110px, 180px) 1fr;
-  gap: 1rem;
-  align-items: start;
-}
-
-.lab-reveal-copy {
-  display: grid;
-  gap: 0.45rem;
-  justify-items: start;
-}
-
-.lab-reveal-copy p {
-  margin: 0;
-}
-
-.lab-reveal-title {
-  font-family: var(--font-heading);
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.lab-reveal-subtitle,
-.lab-reveal-pickers {
-  color: var(--em-color);
-}
-
-.lab-reveal-note {
-  margin: 0;
-  padding-left: 0.8rem;
-  border-left: 2px solid var(--color-border-strong);
-}
-
-.lab-reveal-note cite {
-  color: var(--em-color);
-  font-style: normal;
+.lab-numbers input {
+  margin: 0 0.3rem 0 0;
+  vertical-align: middle;
 }
 
 /* ---- Crates ---- */
-.lab-puzzle-nav {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin: 0.6rem 0 0;
-  color: var(--em-color);
+.crates-round {
+  display: grid;
+  gap: 1rem;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 1rem 0 1.5rem;
 }
 
 .crates-solved {
   display: grid;
-  gap: 0.5rem;
-  margin: 0 0 0.5rem;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .crates-row {
   --row: var(--color-warning);
-  padding: 0.5rem 0.6rem 0.6rem;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--row) 22%, var(--color-surface));
-  animation: lab-answer-in 300ms ease-out;
+  padding: 0.6rem 0 0.75rem;
+  border-bottom: 1px solid var(--game-rule);
+  animation: game-clue-reveal 320ms ease-out;
 }
 
-.crates-row[data-level="2"] { --row: var(--color-success); }
+.crates-row:first-child {
+  border-top: 1px solid var(--game-rule);
+}
+
+.crates-row[data-level="2"] { --row: var(--game-correct); }
 .crates-row[data-level="3"] { --row: var(--color-info); }
-.crates-row[data-level="4"] { --row: var(--color-secondary); }
+.crates-row[data-level="4"] { --row: var(--game-secondary); }
 
 .crates-row-label {
-  margin: 0 0 0.4rem;
+  margin: 0 0 0.45rem;
+  color: var(--row);
   font-weight: 700;
-  text-align: center;
 }
 
 .crates-row-covers {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.4rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -505,14 +468,34 @@
   display: block;
   width: 100%;
   aspect-ratio: 1;
+  border: 1px solid var(--game-rule);
   border-radius: 3px;
   object-fit: cover;
+  box-sizing: border-box;
+}
+
+.crates-row-caption {
+  display: grid;
+  padding-top: 0.25rem;
+  line-height: 1.2;
+}
+
+.crates-row-caption strong,
+.crates-row-caption span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.7rem;
+}
+
+.crates-row-caption span {
+  color: var(--em-color);
 }
 
 .crates-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.45rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -526,107 +509,116 @@
   display: block;
   width: 100%;
   padding: 0;
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
+  overflow: hidden;
+  border: 1px solid var(--game-rule);
+  border-radius: 3px;
+  background: var(--game-soft);
   cursor: pointer;
-  transition: transform 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .crates-tile-button img {
   display: block;
   width: 100%;
   aspect-ratio: 1;
-  border-radius: 5px;
   object-fit: cover;
-  box-shadow: 0 0 0 1px var(--color-border);
 }
 
 .crates-tile-button[aria-pressed="true"] {
-  transform: scale(0.93);
-}
-
-.crates-tile-button[aria-pressed="true"] img {
-  box-shadow: 0 0 0 4px var(--color-primary);
-  filter: brightness(0.85);
+  border-color: var(--game-primary);
+  box-shadow: 0 0 0 3px var(--game-primary);
 }
 
 .crates-tile-button:focus-visible {
-  outline: 2px solid var(--color-focus);
+  outline: 3px solid var(--color-focus);
   outline-offset: 3px;
+}
+
+.crates-end {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+  text-align: center;
+}
+
+.crates-end .game-status {
+  min-height: 1.5em;
+  margin: 0;
 }
 
 .crates-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin: 0.8rem 0;
+  align-items: baseline;
+  gap: 0.35rem 0.5rem;
+  margin: 0;
+  color: var(--em-color);
 }
 
-.crates-actions-secondary {
-  justify-content: space-between;
-}
-
-@keyframes lab-answer-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: none; }
+.crates-actions .game-next {
+  margin-left: 0.75rem;
 }
 
 @keyframes lab-thinking {
-  0%, 100% { border-color: var(--color-border-strong); }
-  50% { border-color: var(--color-primary); }
+  0%, 100% { box-shadow: inset 0 -2px 0 var(--color-border-strong); }
+  50% { box-shadow: inset 0 -2px 0 var(--color-primary); }
 }
 
-@media (max-width: 560px) {
-  .lab-ask-head {
-    margin: 0.8rem 0 0.4rem;
-  }
-
-  .lab-ask-head h1 {
-    font-size: 1.9rem;
-  }
-
-  .lab-ask-head .game-deck {
-    font-size: 0.9rem;
-    line-height: 1.45;
+/* Phones: the question stays in reach, records show only their titles. */
+@media (max-width: 760px) {
+  .lab-ask-form {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding: 0.4rem 0;
+    background: var(--color-bg);
   }
 
   .lab-board {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.4rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.6rem 0.45rem;
+    order: 1;
   }
 
   .lab-board.is-listeners {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  /* On a phone a record shows its title only; the artist appears in the guess bar. */
-  .lab-card-subtitle {
+  .lab-card-caption span {
     display: none;
   }
 
-  .lab-board.is-listeners .lab-card-subtitle {
+  .lab-board.is-listeners .lab-card-caption span {
     display: block;
   }
 
-  .lab-card-caption {
-    font-size: 0.68rem;
+  .lab-card-caption strong {
+    font-size: 0.7rem;
   }
 
-  .lab-reveal-head {
-    grid-template-columns: 1fr;
+  /* The board comes right after the answer; the history follows it. */
+  .lab-side {
+    display: contents;
   }
 
-  .lab-reveal-head .lab-card-cover {
-    max-width: 200px;
+  .lab-round {
+    display: flex;
+    flex-direction: column;
   }
+
+  .lab-ask-form { order: 0; }
+  .lab-answer { order: 0; }
+  .lab-guess-line { order: 0; }
+  .lab-reveal { order: 2; }
+  .lab-round-actions { order: 3; }
+  .lab-history-wrap { order: 4; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .lab-card,
-  .lab-answer.is-new,
+  .lab-answer.is-new .game-status,
   .crates-row,
   .crates-grid.is-shaking {
     animation: none;

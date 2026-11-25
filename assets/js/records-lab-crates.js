@@ -2,14 +2,14 @@
   const $ = (id) => document.getElementById(id);
   const elements = {
     loading: $("crates-loading"), gate: $("crates-gate"), gateMessage: $("crates-gate-message"), app: $("crates-app"),
-    groupName: $("crates-group-name"), number: $("crates-number"), previous: $("crates-previous"), nextPuzzle: $("crates-next-puzzle"),
+    memberName: $("crates-member-name"), number: $("crates-number"), previous: $("crates-previous"), nextPuzzle: $("crates-next-puzzle"),
+    found: $("crates-found"), mistakes: $("crates-mistakes"), left: $("crates-left"),
     solved: $("crates-solved"), grid: $("crates-grid"), status: $("crates-status"),
-    shuffle: $("crates-shuffle"), clear: $("crates-clear"), check: $("crates-check"),
-    mistakes: $("crates-mistakes"), giveUp: $("crates-give-up"),
+    shuffle: $("crates-shuffle"), clear: $("crates-clear"), check: $("crates-check"), next: $("crates-next"), giveUp: $("crates-give-up"),
   };
   if (!elements.loading) return;
 
-  const GROUP_NAMES = { badabing: "Badabing", development: "Development seed lists" };
+  const GROUP_NAMES = { badabing: "Badabing", development: "the development seed lists" };
   const params = new URLSearchParams(window.location.search);
   const savedGroup = localStorage.getItem("recordLabGroup");
   const group = GROUP_NAMES[params.get("group")] ? params.get("group") : GROUP_NAMES[savedGroup] ? savedGroup : "badabing";
@@ -38,13 +38,19 @@
     elements.status.classList.toggle("is-correct", kind === "correct");
   }
 
+  function renderStats() {
+    elements.found.textContent = String(state.done ? state.found.length - state.revealed : state.found.length);
+    elements.mistakes.textContent = String(state.mistakes);
+    elements.left.textContent = String(state.tiles.length);
+  }
+
   function renderSolved() {
     elements.solved.replaceChildren();
     for (const groupIndex of state.found) {
       const puzzleGroup = state.groups[groupIndex];
       const row = element("li", "crates-row");
       row.dataset.level = String(puzzleGroup.level);
-      row.append(element("p", "crates-row-label", puzzleGroup.label));
+      row.append(element("p", "records-eyebrow crates-row-label", puzzleGroup.label));
       const covers = element("ul", "crates-row-covers");
       for (const album of puzzleGroup.albums) {
         const item = element("li");
@@ -52,12 +58,13 @@
         link.href = `https://open.spotify.com/album/${album.spotifyId}`;
         link.target = "_blank";
         link.rel = "noopener";
-        link.title = `${album.name} — ${album.artistName}`;
         const image = element("img");
         image.src = album.imageUrl;
         image.alt = `${album.name} by ${album.artistName}`;
         link.append(image);
-        item.append(link);
+        const caption = element("span", "crates-row-caption");
+        caption.append(element("strong", "", album.name), element("span", "", album.artistName));
+        item.append(link, caption);
         covers.append(item);
       }
       row.append(covers);
@@ -81,9 +88,12 @@
       item.append(button);
       elements.grid.append(item);
     }
+    elements.grid.hidden = !state.tiles.length;
     elements.check.disabled = state.selected.size !== 4 || state.done;
+    elements.check.hidden = state.done;
+    elements.next.hidden = !state.done;
     elements.clear.disabled = !state.selected.size;
-    elements.mistakes.textContent = state.mistakes ? `${state.mistakes} ${state.mistakes === 1 ? "mistake" : "mistakes"}` : "";
+    renderStats();
   }
 
   function toggle(id) {
@@ -113,7 +123,7 @@
       state.found.push(best);
       state.tiles = state.tiles.filter((tile) => !state.selected.has(tile.spotifyId));
       state.selected.clear();
-      setStatus(state.groups[best].label, "correct");
+      setStatus(`${state.groups[best].label}.`, "correct");
       if (state.found.length === state.groups.length) finish(true);
       renderSolved();
       renderGrid();
@@ -129,9 +139,13 @@
 
   function finish(solved) {
     state.done = true;
+    state.revealed = 0;
     if (!solved) {
       for (let index = 0; index < state.groups.length; index += 1) {
-        if (!state.found.includes(index)) state.found.push(index);
+        if (!state.found.includes(index)) {
+          state.found.push(index);
+          state.revealed += 1;
+        }
       }
       state.tiles = [];
       setStatus("Here are the four groups.");
@@ -139,8 +153,10 @@
       setStatus(state.mistakes ? `Sorted, with ${state.mistakes} ${state.mistakes === 1 ? "mistake" : "mistakes"}.` : "Sorted, without a mistake.", "correct");
     }
     elements.giveUp.hidden = true;
+    elements.giveUp.previousElementSibling.hidden = true;
     renderSolved();
     renderGrid();
+    elements.next.focus({ preventScroll: true });
   }
 
   async function load(number = 0) {
@@ -158,10 +174,11 @@
     Object.assign(state, {
       number: payload.number, count: payload.count, groups: payload.groups,
       tiles: shuffle(payload.groups.flatMap((puzzleGroup) => puzzleGroup.albums)),
-      selected: new Set(), found: [], mistakes: 0, tried: new Set(), done: false,
+      selected: new Set(), found: [], mistakes: 0, tried: new Set(), done: false, revealed: 0,
     });
-    elements.number.textContent = `Puzzle ${payload.number} of ${payload.count}`;
+    elements.number.textContent = `puzzle ${payload.number} of ${payload.count}`;
     elements.giveUp.hidden = false;
+    elements.giveUp.previousElementSibling.hidden = false;
     elements.loading.hidden = true;
     elements.app.hidden = false;
     setStatus("");
@@ -170,12 +187,21 @@
   }
 
   const step = (delta) => load(((state.number - 1 + delta + state.count) % state.count) + 1);
-  elements.groupName.textContent = GROUP_NAMES[group];
   elements.shuffle.addEventListener("click", () => { state.tiles = shuffle(state.tiles); renderGrid(); });
   elements.clear.addEventListener("click", () => { state.selected.clear(); setStatus(""); renderGrid(); });
   elements.check.addEventListener("click", check);
+  elements.next.addEventListener("click", () => step(1));
   elements.giveUp.addEventListener("click", () => finish(false));
   elements.previous.addEventListener("click", () => step(-1));
   elements.nextPuzzle.addEventListener("click", () => step(1));
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.target.closest?.("button, a, input")) return;
+    if (state.done) step(1);
+    else check();
+  });
+  fetch("/api/auth/me", { credentials: "same-origin" })
+    .then((response) => response.json())
+    .then((session) => { elements.memberName.textContent = session?.user?.username || ""; })
+    .catch(() => {});
   load(Number(params.get("n")) || 0);
 })();
