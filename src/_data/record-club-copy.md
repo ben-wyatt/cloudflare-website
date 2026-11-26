@@ -30,11 +30,11 @@ Ballots lock at the same moment, so finish yours before then. Leave this page op
 
 ## Return to Sender game listing
 
-Match each mystery record to the person who picked it. Every miss unlocks another clue.
+Figure out who chose the mystery record.
 
 ## Staff Picks game listing
 
-Start with one listener and eight covers. Find the two records they picked.
+Guess which records a listener selected.
 
 ## Liner Notes game listing
 
@@ -42,11 +42,11 @@ Not really a game: the little coincidences, shared favorites, long listens, and 
 
 ## Flip Side game listing
 
-Twenty-four records, one secret. Ask yes-or-no questions; the records that don't fit flip over.
+Guess Who but for albums. Ask yes/no questions to narrow down your choices.
 
 ## Crates game listing
 
-Sixteen records, four hidden groups of four. Sort them by what they share.
+NYTimes Connections but it's our music.
 
 ## Return to Sender instructions
 
