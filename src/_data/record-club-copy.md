@@ -24,6 +24,10 @@ For the songs you loved from albums you were kinda meh on, or the ones that stay
 
 Some minigames before the Liner Notes!
 
+## Minigames countdown note
+
+Ballots lock at the same moment, so finish yours before then. Leave this page open and the minigames will appear when the clock runs out.
+
 ## Whose Wax game listing
 
 Match each mystery record to the person who picked it. Every miss unlocks another clue.

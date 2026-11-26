@@ -1,5 +1,11 @@
 import { requireUser } from "../_shared/auth.js";
-import { GAME_IDS, finishedRoundStatement, requireRecordGames } from "../_shared/record-access.js";
+import {
+  GAME_IDS,
+  finishedRoundStatement,
+  getWrappedUnlock,
+  requireRecordGames,
+  wrappedUnlockAfterRound,
+} from "../_shared/record-access.js";
 import {
   HttpError,
   assertSameOrigin,
@@ -70,7 +76,7 @@ async function createRound(db, player) {
   const groupId = player.groupId;
   const albums = shuffle(await loadGroupAlbums(db, groupId)).slice(0, RECORD_BOARD_SIZE);
   if (albums.length < 6) throw new HttpError("This group needs more records with covers to play.", 404, "not_enough_records");
-  const cards = await recordCards(db, groupId, albums);
+  const [cards, wrappedUnlock] = await Promise.all([recordCards(db, groupId, albums), getWrappedUnlock(db, player)]);
   const secretId = cards[randomIndex(cards.length)].id;
   const now = new Date();
   const roundId = crypto.randomUUID();
@@ -84,7 +90,7 @@ async function createRound(db, player) {
     ).bind(roundId, player.id, groupId, secretId, JSON.stringify({ cards, down: [] }), now.toISOString(),
       new Date(now.getTime() + ROUND_TTL_MS).toISOString()),
   ]);
-  return { roundId, group: groupId, cards: cards.map(publicCard), maxTurns: MAX_TURNS };
+  return { roundId, group: groupId, cards: cards.map(publicCard), maxTurns: MAX_TURNS, wrappedUnlock };
 }
 
 async function getRound(db, roundId, player) {
@@ -120,7 +126,8 @@ function turnStatement(db, roundId, { kind, text, answer, judgments = null, turn
     turnedDown ? JSON.stringify(turnedDown) : null, inputTokens, new Date().toISOString());
 }
 
-// Ending a round, won or not, also counts it toward unlocking Liner Notes.
+// Ending a round, won or not, also counts it toward unlocking Liner Notes; the answer that
+// ends it carries the new progress (wrappedUnlock).
 function finishStatements(db, roundId, playerId, solved) {
   const finishedAt = new Date().toISOString();
   return [
@@ -160,7 +167,9 @@ async function ask(db, env, player, body) {
   ];
   if (solved) statements.push(...finishStatements(db, round.id, player.id, true));
   await db.batch(statements);
-  return { answer, label, turnedDown, upCount, judgments, solved, reveal: solved ? reveal(round) : null };
+  const result = { answer, label, turnedDown, upCount, judgments, solved, reveal: solved ? reveal(round) : null };
+  if (solved) result.wrappedUnlock = await wrappedUnlockAfterRound(db, player);
+  return result;
 }
 
 async function guess(db, player, body) {
@@ -177,13 +186,15 @@ async function guess(db, player, body) {
       .bind(JSON.stringify({ ...round.board, down: [...round.board.down, id] }), round.id));
   }
   await db.batch(statements);
-  return { correct, turnedDown: correct ? [] : [id], reveal: correct ? reveal(round) : null };
+  const result = { correct, turnedDown: correct ? [] : [id], reveal: correct ? reveal(round) : null };
+  if (correct) result.wrappedUnlock = await wrappedUnlockAfterRound(db, player);
+  return result;
 }
 
 async function giveUp(db, player, body) {
   const round = await getRound(db, body.roundId, player);
   await db.batch(finishStatements(db, round.id, player.id, false));
-  return { reveal: reveal(round) };
+  return { reveal: reveal(round), wrappedUnlock: await wrappedUnlockAfterRound(db, player) };
 }
 
 export async function onRequestPost({ request, env }) {

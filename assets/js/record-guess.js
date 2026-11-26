@@ -10,8 +10,11 @@
     guessLine: $("ask-guess-line"), guessLabel: $("ask-guess-label"), guess: $("ask-guess"), guessCancel: $("ask-guess-cancel"),
     board: $("ask-board"), reveal: $("ask-reveal"),
     numbers: $("ask-numbers"), giveUp: $("ask-give-up"), newRound: $("ask-new"), history: $("ask-history"),
+    unlockChip: $("ask-unlock-chip"), unlockMoment: $("ask-unlock-moment"),
   };
   if (!elements.loading) return;
+  // Liner Notes progress (assets/js/wrapped-unlock.js): every finished round counts, won or not.
+  const unlockView = window.RecordClubUnlock;
 
   const state = {
     roundId: "", cards: [], down: new Set(), selectedId: "", secretId: "",
@@ -114,7 +117,7 @@
     elements.answer.classList.add("is-new");
   }
 
-  function renderReveal(reveal, solved) {
+  function renderReveal(reveal, solved, wrappedUnlock) {
     state.finished = true;
     state.selectedId = "";
     state.secretId = reveal?.id || "";
@@ -124,6 +127,10 @@
     elements.reveal.hidden = false;
     elements.reveal.replaceChildren();
     renderBoard();
+    if (wrappedUnlock) {
+      unlockView?.renderChip(elements.unlockChip, wrappedUnlock, { justUnlocked: Boolean(wrappedUnlock.justUnlocked) });
+      unlockView?.renderMoment(elements.unlockMoment, wrappedUnlock);
+    }
     if (!reveal) return;
     const headline = solved
       ? `found in ${state.questions} ${state.questions === 1 ? "question" : "questions"}${state.guesses ? ` and ${state.guesses} wrong ${state.guesses === 1 ? "guess" : "guesses"}` : ""}`
@@ -186,7 +193,7 @@
         turned ? `${turned} ${turned === 1 ? "record turns" : "records turn"} over.` : "Nothing turns over.", result.answer);
       addHistory(text, result.label, result.answer);
       renderBoard();
-      if (result.solved) renderReveal(result.reveal, true);
+      if (result.solved) renderReveal(result.reveal, true, result.wrappedUnlock);
     } catch (error) {
       showAnswer(text, "Hmm", error.message, "unsure");
     } finally {
@@ -210,7 +217,7 @@
       if (result.correct) {
         addHistory(question, "Yes", "yes");
         showAnswer(question, "Yes", "", "yes");
-        renderReveal(result.reveal, true);
+        renderReveal(result.reveal, true, result.wrappedUnlock);
       } else {
         state.guesses += 1;
         state.down.add(id);
@@ -230,7 +237,7 @@
     state.pending = true;
     try {
       const result = await api({ action: "give-up", roundId: state.roundId });
-      renderReveal(result.reveal, false);
+      renderReveal(result.reveal, false, result.wrappedUnlock);
     } catch (error) {
       showAnswer("", "Hmm", error.message, "unsure");
     } finally {
@@ -253,6 +260,8 @@
       const round = await api({ action: "new" });
       state.roundId = round.roundId;
       state.cards = round.cards;
+      unlockView?.renderChip(elements.unlockChip, round.wrappedUnlock);
+      unlockView?.hideMoment(elements.unlockMoment);
       elements.loading.hidden = true;
       elements.gate.hidden = true;
       elements.app.hidden = false;

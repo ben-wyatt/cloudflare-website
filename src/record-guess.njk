@@ -3,7 +3,9 @@ layout: layout.njk
 title: Flip Side · Record Club
 permalink: "/records/guess/"
 pageStyles: "/styles/records-lab.css?v=lab-4"
-pageScript: "/assets/js/record-guess.js?v=lab-4"
+pageScript: "/assets/js/record-guess.js?v=lab-5"
+pageExtraStyles: ["/styles/wrapped-unlock.css?v=unlock-2"]
+pageExtraScripts: ["/assets/js/wrapped-unlock.js?v=unlock-2"]
 bodyClass: "records-page record-game-page lab-page lab-ask-page"
 eleventyExcludeFromCollections: true
 ---
@@ -22,6 +24,7 @@ eleventyExcludeFromCollections: true
     <div class="records-member-bar game-member-bar">
       <p>Playing as <strong id="ask-member-name"></strong></p>
       <div class="game-member-actions">
+        <a id="ask-unlock-chip" hidden></a>
         <button class="game-fullscreen" type="button" data-fullscreen-toggle hidden aria-label="Full screen"></button>
         <a class="game-back-link" href="/records/games/">Back to minigames</a>
       </div>
@@ -71,6 +74,7 @@ eleventyExcludeFromCollections: true
         </p>
 
         <section id="ask-reveal" class="lab-reveal" hidden aria-live="polite"></section>
+        <p id="ask-unlock-moment" class="wrapped-unlock-moment" role="status" hidden></p>
 
         <p class="lab-round-actions">
           <button id="ask-give-up" class="records-text-button" type="button">Show me</button>

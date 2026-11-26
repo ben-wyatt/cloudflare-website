@@ -1,0 +1,44 @@
+---
+layout: layout.njk
+title: Minigames · Record Club
+permalink: "/records/opening/"
+pageStyles: "/styles/records.css?v=clues-under-cover"
+pageExtraStyles: ["/styles/record-opening.css?v=opening-1"]
+pageScript: "/assets/js/record-opening.js?v=opening-1"
+bodyClass: "records-page record-game-page record-opening-page"
+eleventyExcludeFromCollections: true
+---
+
+{# Shown in place of the minigames until RECORD_CLUB_OPENS_AT (functions/records/_middleware.js
+   writes the opening time and the server's clock into the two data attributes). #}
+<section id="opening" class="game-shell opening-shell" aria-labelledby="opening-title" data-opens-at="" data-server-now="">
+  <header class="game-masthead">
+    <p class="records-eyebrow">record club · minigames</p>
+    <h1 id="opening-title">Minigames</h1>
+    <p id="opening-when" class="game-deck">Opening soon.</p>
+    <div id="opening-clock" class="game-scoreboard opening-clock" role="timer" aria-label="Time until the minigames open" hidden>
+      <div class="game-score-stat game-score-stat-primary">
+        <strong id="opening-days">0</strong>
+        <span id="opening-days-label">days</span>
+      </div>
+      <div class="game-score-stat">
+        <strong id="opening-hours">00</strong>
+        <span id="opening-hours-label">hours</span>
+      </div>
+      <div class="game-score-stat">
+        <strong id="opening-minutes">00</strong>
+        <span id="opening-minutes-label">minutes</span>
+      </div>
+      <div class="game-score-stat">
+        <strong id="opening-seconds">00</strong>
+        <span id="opening-seconds-label">seconds</span>
+      </div>
+    </div>
+  </header>
+
+  <p id="opening-note" class="opening-note">{{ recordCopy.openingNote | safe }}</p>
+  <p class="opening-links">
+    <a id="opening-play" class="game-back-link" href="/records/games/" hidden>Play the minigames →</a>
+    <a class="game-back-link" href="/records/">← Back to your ballot</a>
+  </p>
+</section>

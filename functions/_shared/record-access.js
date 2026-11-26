@@ -4,8 +4,9 @@ import { findMatchTarget } from "./match-record-game.js";
 import { RECORD_SEASON, WRAPPED_UNLOCK_ROUNDS } from "./records-config.js";
 
 // RECORD_CLUB_RELEASE (wrangler.toml [vars], or .dev.vars locally) opens the games, Wrapped
-// and the group lists. "" or "off": owner accounts only. "all": every group. A comma list
-// such as "development,badabing": only those groups. Owners can always play.
+// and the group lists. "" or "off": owner accounts only, until RECORD_CLUB_OPENS_AT (below).
+// "all": every group. A comma list such as "development,badabing": only those groups.
+// Owners can always play.
 export function parseRelease(value) {
   const text = String(value ?? "").trim().toLowerCase();
   if (!text || text === "off") return { all: false, groups: new Set() };
@@ -13,16 +14,36 @@ export function parseRelease(value) {
   return { all: false, groups: new Set(text.split(",").map((group) => group.trim()).filter(Boolean)) };
 }
 
-export function isAnyGroupReleased(env) {
-  const release = parseRelease(env?.RECORD_CLUB_RELEASE);
+// RECORD_CLUB_OPENS_AT opens the games for every group at a set moment, with no deploy: each
+// request compares the clock with it. Write the time with its UTC offset, such as
+// "2026-12-01T00:00:00-05:00" (midnight Eastern); a time without an offset is ignored.
+export function opensAt(env) {
+  const text = String(env?.RECORD_CLUB_OPENS_AT ?? "").trim();
+  if (!/(?:Z|[+-]\d\d:\d\d)$/i.test(text)) return null;
+  const time = Date.parse(text);
+  return Number.isFinite(time) ? new Date(time) : null;
+}
+
+export function hasOpened(env, now = Date.now()) {
+  const time = opensAt(env);
+  return Boolean(time) && now >= time.getTime();
+}
+
+function currentRelease(env, now) {
+  if (hasOpened(env, now)) return { all: true, groups: new Set() };
+  return parseRelease(env?.RECORD_CLUB_RELEASE);
+}
+
+export function isAnyGroupReleased(env, now = Date.now()) {
+  const release = currentRelease(env, now);
   return release.all || release.groups.size > 0;
 }
 
-export function canPlayRecordGames(env, user) {
+export function canPlayRecordGames(env, user, now = Date.now()) {
   if (!user) return false;
   if (isRecordClubOwner(user)) return true;
   if (!user.groupId) return false;
-  const release = parseRelease(env?.RECORD_CLUB_RELEASE);
+  const release = currentRelease(env, now);
   return release.all || release.groups.has(user.groupId);
 }
 

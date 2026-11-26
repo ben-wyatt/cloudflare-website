@@ -8,7 +8,8 @@
     "/records/wrapped/*",
     "/records/lists/*",
     "/records/guess/*",
-    "/records/crates/*"
+    "/records/crates/*",
+    "/records/opening/*"
   ],
   "exclude": []
 }

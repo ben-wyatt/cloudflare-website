@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
   canPlayRecordGames,
   getWrappedUnlock,
+  hasOpened,
   isAnyGroupReleased,
+  opensAt,
   parseRelease,
   requireWrappedAccess,
   wrappedUnlockAfterRound,
@@ -46,6 +49,42 @@ test("games open for owners always, and for friends only in a released group", (
   assert.equal(canPlayRecordGames({ RECORD_CLUB_RELEASE: "all" }, friend), true);
   assert.equal(canPlayRecordGames({ RECORD_CLUB_RELEASE: "all" }, null), false);
   assert.equal(canPlayRecordGames({ RECORD_CLUB_RELEASE: "all" }, { ...friend, groupId: null }), false);
+});
+
+test("the opening time opens every group at that moment, and only then", () => {
+  const env = { RECORD_CLUB_OPENS_AT: "2026-12-01T00:00:00-05:00" };
+  const opening = Date.parse("2026-12-01T05:00:00Z");
+  assert.equal(opensAt(env).toISOString(), "2026-12-01T05:00:00.000Z");
+  assert.equal(hasOpened(env, opening - 1), false);
+  assert.equal(hasOpened(env, opening), true);
+  assert.equal(canPlayRecordGames(env, friend, opening - 1000), false);
+  assert.equal(canPlayRecordGames(env, friend, opening), true);
+  assert.equal(isAnyGroupReleased(env, opening - 1000), false);
+  assert.equal(isAnyGroupReleased(env, opening), true);
+  // Before the opening, the release flag still opens chosen groups early.
+  assert.equal(canPlayRecordGames({ ...env, RECORD_CLUB_RELEASE: "badabing" }, friend, opening - 1000), true);
+  // Signed out, or with no group, the time alone does not let a member in.
+  assert.equal(canPlayRecordGames(env, null, opening), false);
+  assert.equal(canPlayRecordGames(env, { ...friend, groupId: null }, opening), false);
+});
+
+test("an opening time without a UTC offset, or not a time, opens nothing", () => {
+  for (const value of ["", "2026-12-01T00:00:00", "December 1", "soon", undefined]) {
+    assert.equal(opensAt({ RECORD_CLUB_OPENS_AT: value }), null, String(value));
+    assert.equal(hasOpened({ RECORD_CLUB_OPENS_AT: value }, Date.parse("2030-01-01T00:00:00Z")), false);
+  }
+});
+
+test("wrangler.toml opens the games at midnight Eastern on Dec 1, when ballots lock", () => {
+  const toml = readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
+  const value = toml.match(/^RECORD_CLUB_OPENS_AT = "([^"]*)"/m)?.[1];
+  const lock = readFileSync(new URL("../migrations/0010_records_wrapped.sql", import.meta.url), "utf8")
+    .match(/'(2026-12-01T[\d:.]+Z)'/)[1];
+  assert.equal(opensAt({ RECORD_CLUB_OPENS_AT: value })?.toISOString(), new Date(lock).toISOString());
+  const eastern = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).format(opensAt({ RECORD_CLUB_OPENS_AT: value }));
+  assert.equal(eastern, "12/01/2026, 00:00");
 });
 
 test("Wrapped stays locked until enough rounds are finished", async () => {

@@ -17,3 +17,6 @@ migrations_dir = "migrations"
 # "" = owner accounts only; "all" = every group; or group IDs, e.g. "development,badabing".
 # Wrapped and the lists also wait until a member finishes WRAPPED_UNLOCK_ROUNDS game rounds.
 RECORD_CLUB_RELEASE = ""
+# Opens the same things for every group at this moment, with no deploy needed; until then
+# friends see a countdown. Keep the UTC offset. Ballots lock at the same moment (locks_at in D1).
+RECORD_CLUB_OPENS_AT = "2026-12-01T00:00:00-05:00"
