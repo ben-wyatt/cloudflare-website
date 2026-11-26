@@ -356,10 +356,6 @@
   padding: 1rem 0 1.5rem;
 }
 
-.crates-review {
-  color: var(--em-color);
-}
-
 .crates-solved {
   display: grid;
   margin: 0;
@@ -529,28 +525,6 @@
 
 .crates-actions .game-next {
   margin-left: 0.75rem;
-}
-
-/* Review notes for owners, after a puzzle is finished. */
-.crates-notes {
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--game-rule);
-  font-size: 0.82rem;
-}
-
-.crates-notes-heading {
-  margin: 0.75rem 0 0.25rem;
-  font-weight: 700;
-}
-
-.crates-notes-list {
-  margin: 0;
-  padding-left: 1.1rem;
-  color: var(--em-color);
-}
-
-.crates-notes-list li + li {
-  margin-top: 0.2rem;
 }
 
 @media (max-width: 560px) {

@@ -2,8 +2,8 @@
 layout: layout.njk
 title: Crates · Record Club
 permalink: "/records/crates/"
-pageStyles: "/styles/records-lab.css?v=lab-4"
-pageScript: "/assets/js/record-crates.js?v=lab-4"
+pageStyles: "/styles/records-lab.css?v=lab-5"
+pageScript: "/assets/js/record-crates.js?v=lab-5"
 bodyClass: "records-page record-game-page lab-page lab-crates-page"
 eleventyExcludeFromCollections: true
 ---
@@ -38,15 +38,6 @@ eleventyExcludeFromCollections: true
           <span aria-hidden="true">·</span>
           <button id="crates-next-puzzle" class="records-text-button" type="button">Next →</button>
         </p>
-        <p id="crates-review" class="game-scoring-rule lab-modes crates-review" hidden>
-          <span id="crates-status-label"></span>
-          <span aria-hidden="true">·</span>
-          <button class="records-text-button" type="button" data-review="approved">Approve</button>
-          <span aria-hidden="true">·</span>
-          <button class="records-text-button" type="button" data-review="rejected">Reject</button>
-          <span aria-hidden="true">·</span>
-          <button class="records-text-button" type="button" data-review="draft">Back to draft</button>
-        </p>
       </div>
       <div class="game-scoreboard" aria-label="This puzzle">
         <div class="game-score-stat game-score-stat-primary">
@@ -74,17 +65,10 @@ eleventyExcludeFromCollections: true
           <button id="crates-shuffle" class="records-text-button" type="button">Shuffle</button>
           <span aria-hidden="true">·</span>
           <button id="crates-clear" class="records-text-button" type="button">Deselect</button>
-          <span aria-hidden="true">·</span>
-          <button id="crates-give-up" class="records-text-button" type="button">Show the groups</button>
           <button id="crates-check" class="records-text-button game-next" type="button" disabled>Check <kbd aria-hidden="true">↵</kbd></button>
           <button id="crates-next" class="records-text-button game-next" type="button" hidden>Next puzzle <kbd aria-hidden="true">↵</kbd></button>
         </p>
       </div>
-
-      <section id="crates-notes" class="crates-notes" hidden aria-labelledby="crates-notes-title">
-        <h2 id="crates-notes-title" class="records-eyebrow">review notes · owners only</h2>
-        <div id="crates-notes-body"></div>
-      </section>
     </section>
   </div>
 </section>

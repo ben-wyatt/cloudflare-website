@@ -146,15 +146,13 @@ test("a Crates puzzle needs four groups of four different records that the group
   assert.match(checkPuzzle(stranger, known).join(" "), /not one of this group's records/);
 });
 
-test("players see the puzzle with covers; review notes only for owners", () => {
+test("players see covers, titles and reasons, never the puzzle writer's notes", () => {
   const covers = new Map([["r11", "https://i.scdn.co/image/a"]]);
-  const payload = { ...cratesPuzzle(), status: "draft" };
-  const forOwner = publicPuzzle(payload, covers, { owner: true });
-  assert.equal(forOwner.groups[0].records[0].imageUrl, "https://i.scdn.co/image/a");
-  assert.equal(forOwner.groups[0].records[0].why, "Because.");
-  assert.deepEqual(forOwner.review.redHerrings, ["One looks like another."]);
-  assert.equal("review" in publicPuzzle(payload, covers, { owner: false }), false);
-  assert.equal("source" in forOwner.groups[0].records[0], false);
+  const puzzle = publicPuzzle(cratesPuzzle(), covers);
+  assert.equal(puzzle.groups[0].records[0].imageUrl, "https://i.scdn.co/image/a");
+  assert.equal(puzzle.groups[0].records[0].why, "Because.");
+  assert.deepEqual(Object.keys(puzzle).sort(), ["groups", "id", "title"]);
+  assert.equal("source" in puzzle.groups[0].records[0], false);
 });
 
 test("look-alike pairs skip records picked by the same people", () => {

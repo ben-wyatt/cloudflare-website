@@ -4,21 +4,14 @@
   const elements = {
     loading: $("crates-loading"), gate: $("crates-gate"), gateMessage: $("crates-gate-message"), app: $("crates-app"),
     memberName: $("crates-member-name"), number: $("crates-number"), previous: $("crates-previous"), nextPuzzle: $("crates-next-puzzle"),
-    review: $("crates-review"), statusLabel: $("crates-status-label"),
     found: $("crates-found"), mistakes: $("crates-mistakes"), left: $("crates-left"),
     solved: $("crates-solved"), grid: $("crates-grid"), status: $("crates-status"),
-    shuffle: $("crates-shuffle"), clear: $("crates-clear"), check: $("crates-check"), next: $("crates-next"), giveUp: $("crates-give-up"),
-    notes: $("crates-notes"), notesBody: $("crates-notes-body"),
+    shuffle: $("crates-shuffle"), clear: $("crates-clear"), check: $("crates-check"), next: $("crates-next"),
   };
   if (!elements.loading) return;
 
   const params = new URLSearchParams(window.location.search);
-  const STATUS_WORDS = { draft: "Draft, not reviewed", approved: "Approved", rejected: "Rejected" };
-
-  const state = {
-    number: 0, count: 0, counts: {}, puzzle: null, tiles: [], selected: new Set(),
-    found: [], revealed: 0, mistakes: 0, tried: new Set(), done: false,
-  };
+  const state = { number: 0, count: 0, puzzle: null, tiles: [], selected: new Set(), found: [], mistakes: 0, tried: new Set(), done: false };
 
   function element(tag, className = "", text = "") {
     const node = document.createElement(tag);
@@ -51,23 +44,12 @@
   }
 
   function renderStats() {
-    elements.found.textContent = String(state.found.length - state.revealed);
+    elements.found.textContent = String(state.found.length);
     elements.mistakes.textContent = String(state.mistakes);
     elements.left.textContent = String(state.tiles.length);
   }
 
-  function renderReview() {
-    const status = state.puzzle?.status || "draft";
-    const counts = state.counts || {};
-    elements.review.hidden = !state.puzzle?.review;
-    elements.statusLabel.textContent = `${STATUS_WORDS[status]} (${counts.approved || 0} approved, ${counts.draft || 0} drafts)`;
-    for (const button of elements.review.querySelectorAll("[data-review]")) {
-      const current = button.dataset.review === status;
-      button.hidden = current;
-      button.previousElementSibling.hidden = current;
-    }
-  }
-
+  // A found group: its label, then each record with what puts it in the group.
   function renderSolved() {
     elements.solved.replaceChildren();
     for (const groupIndex of state.found) {
@@ -116,43 +98,11 @@
     elements.check.hidden = state.done;
     elements.next.hidden = !state.done;
     elements.clear.disabled = !state.selected.size;
-    // Once the puzzle is over, only "Next puzzle" is left to do.
+    // Once the puzzle is solved, only "Next puzzle" is left to do.
     elements.shuffle.hidden = state.done;
     elements.shuffle.nextElementSibling.hidden = state.done;
     elements.clear.hidden = state.done;
-    elements.clear.nextElementSibling.hidden = state.done;
     renderStats();
-  }
-
-  function renderNotes() {
-    const review = state.puzzle?.review;
-    elements.notes.hidden = !(state.done && review);
-    if (elements.notes.hidden) return;
-    elements.notesBody.replaceChildren();
-    const add = (title, items) => {
-      if (!items.length) return;
-      elements.notesBody.append(element("p", "crates-notes-heading", title));
-      const list = element("ul", "crates-notes-list");
-      for (const item of items) list.append(item);
-      elements.notesBody.append(list);
-    };
-    add("Red herrings", review.redHerrings.map((text) => element("li", "", text)));
-    if (review.doubts) add("Doubts", [element("li", "", review.doubts)]);
-    if (review.confidence) add("Confidence", [element("li", "", review.confidence)]);
-    add("Sources", review.sources.map((entry) => {
-      const item = element("li");
-      item.append(`${entry.title}: `);
-      if (/^https?:\/\//.test(entry.source)) {
-        const link = element("a", "", entry.source.replace(/^https?:\/\/(www\.)?/, "").slice(0, 60));
-        link.href = entry.source;
-        link.target = "_blank";
-        link.rel = "noopener";
-        item.append(link);
-      } else {
-        item.append(entry.source || "none given");
-      }
-      return item;
-    }));
   }
 
   function toggle(id) {
@@ -180,10 +130,15 @@
       state.found.push(best);
       state.tiles = state.tiles.filter((tile) => !state.selected.has(tile.spotifyId));
       state.selected.clear();
-      setStatus(`${state.puzzle.groups[best].label}.`, "correct");
-      if (state.found.length === state.puzzle.groups.length) finish(true);
+      if (state.found.length === state.puzzle.groups.length) {
+        state.done = true;
+        setStatus(state.mistakes ? `Sorted, with ${state.mistakes} ${state.mistakes === 1 ? "mistake" : "mistakes"}.` : "Sorted, without a mistake.", "correct");
+      } else {
+        setStatus(`${state.puzzle.groups[best].label}.`, "correct");
+      }
       renderSolved();
       renderGrid();
+      if (state.done) elements.next.focus({ preventScroll: true });
       return;
     }
     state.mistakes += 1;
@@ -192,28 +147,6 @@
     void elements.grid.offsetWidth;
     elements.grid.classList.add("is-shaking");
     renderGrid();
-  }
-
-  function finish(solved) {
-    state.done = true;
-    if (!solved) {
-      state.puzzle.groups.forEach((_, index) => {
-        if (!state.found.includes(index)) {
-          state.found.push(index);
-          state.revealed += 1;
-        }
-      });
-      state.tiles = [];
-      setStatus("Here are the four groups.");
-    } else {
-      setStatus(state.mistakes ? `Sorted, with ${state.mistakes} ${state.mistakes === 1 ? "mistake" : "mistakes"}.` : "Sorted, without a mistake.", "correct");
-    }
-    elements.giveUp.hidden = true;
-    elements.giveUp.previousElementSibling.hidden = true;
-    renderSolved();
-    renderGrid();
-    renderNotes();
-    elements.next.focus({ preventScroll: true });
   }
 
   async function load(number = 0) {
@@ -229,39 +162,16 @@
       return;
     }
     Object.assign(state, {
-      number: payload.number, count: payload.count, counts: payload.counts, puzzle: payload.puzzle,
+      number: payload.number, count: payload.count, puzzle: payload.puzzle,
       tiles: shuffle(payload.puzzle.groups.flatMap((puzzleGroup) => puzzleGroup.records)),
-      selected: new Set(), found: [], revealed: 0, mistakes: 0, tried: new Set(), done: false,
+      selected: new Set(), found: [], mistakes: 0, tried: new Set(), done: false,
     });
     elements.number.textContent = `puzzle ${payload.number} of ${payload.count}${payload.puzzle.title ? `: ${payload.puzzle.title}` : ""}`;
-    elements.giveUp.hidden = false;
-    elements.giveUp.previousElementSibling.hidden = false;
     elements.loading.hidden = true;
     elements.app.hidden = false;
     setStatus("");
-    renderReview();
     renderSolved();
     renderGrid();
-    renderNotes();
-  }
-
-  async function review(status) {
-    const response = await fetch("/api/crates", {
-      method: "POST",
-      credentials: "same-origin",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "review", id: state.puzzle.id, status }),
-    });
-    const payload = await response.json().catch(() => null);
-    if (!response.ok) {
-      setStatus(payload?.error?.message || "That review did not save.", "wrong");
-      return;
-    }
-    const before = state.puzzle.status || "draft";
-    state.counts = { ...state.counts, [before]: Math.max(0, (state.counts[before] || 1) - 1), [status]: (state.counts[status] || 0) + 1 };
-    state.puzzle.status = status;
-    renderReview();
-    setStatus(status === "rejected" ? "Rejected. It will not come up again." : status === "approved" ? "Approved." : "Back to draft.", "correct");
   }
 
   const step = (delta) => load(((state.number - 1 + delta + state.count) % state.count) + 1);
@@ -269,12 +179,8 @@
   elements.clear.addEventListener("click", () => { state.selected.clear(); setStatus(""); renderGrid(); });
   elements.check.addEventListener("click", check);
   elements.next.addEventListener("click", () => step(1));
-  elements.giveUp.addEventListener("click", () => finish(false));
   elements.previous.addEventListener("click", () => step(-1));
   elements.nextPuzzle.addEventListener("click", () => step(1));
-  for (const button of elements.review.querySelectorAll("[data-review]")) {
-    button.addEventListener("click", () => review(button.dataset.review));
-  }
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" || event.target.closest?.("button, a, input")) return;
     if (state.done) step(1);

@@ -1,9 +1,6 @@
 // Crates: sixteen records, four hidden groups of four, each group a fact the records share
-// (Connections-style, with deliberate red herrings). Puzzles are written and researched ahead
-// of time, loaded with scripts/load-crates.mjs, and stay drafts until an owner approves them.
-// Stored in record_cover_puzzles.payload_json.
-
-export const CRATE_STATUSES = ["draft", "approved", "rejected"];
+// (Connections-style). Puzzles are written by hand, loaded with scripts/load-crates.mjs, and
+// stored in record_cover_puzzles.payload_json.
 
 // Problems with a puzzle, as plain sentences; an empty list means it can be saved.
 // knownIds: the Spotify album ids this group picked.
@@ -30,13 +27,11 @@ export function checkPuzzle(puzzle, knownIds) {
   return problems;
 }
 
-// What the page gets. Players see covers, titles and each record's "why" (shown once its
-// group is found); owners also get the review notes: red herrings, doubts and sources.
-export function publicPuzzle(payload, coversById, { owner = false } = {}) {
-  const puzzle = {
+// What the page gets: covers, titles and each record's "why", shown once its group is found.
+export function publicPuzzle(payload, coversById) {
+  return {
     id: payload.id,
     title: payload.title || "",
-    status: CRATE_STATUSES.includes(payload.status) ? payload.status : "draft",
     groups: (payload.groups || []).map((group) => ({
       level: Number(group.level),
       label: String(group.label || ""),
@@ -49,14 +44,4 @@ export function publicPuzzle(payload, coversById, { owner = false } = {}) {
       })),
     })).sort((a, b) => a.level - b.level),
   };
-  if (owner) {
-    puzzle.review = {
-      redHerrings: payload.red_herrings || [],
-      doubts: payload.doubts || "",
-      confidence: payload.confidence || "",
-      sources: (payload.groups || []).flatMap((group) => (group.records || [])
-        .map((record) => ({ title: record.title, source: record.source || "" }))),
-    };
-  }
-  return puzzle;
 }
