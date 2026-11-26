@@ -72,3 +72,30 @@ test("the countdown page itself gets the times, and other pages pass through", a
   assert.doesNotMatch(body, /data-opens-at=""/);
   assert.equal((await visit("/records/", { RECORD_CLUB_OPENS_AT: hourFromNow() })).body, "the game");
 });
+
+test("the session tells a closed member when the minigames open, and no one else", async () => {
+  const { onRequestGet } = await import("../functions/api/auth/me.js");
+  const me = async (user, opensAt) => {
+    const db = {
+      prepare(sql) {
+        return {
+          bind() { return this; },
+          async first(column) {
+            if (sql.includes("record_sessions")) return user;
+            if (sql.includes("record_game_plays")) return column ? 12 : { count: 12 };
+            return { ready: 1 };
+          },
+        };
+      },
+    };
+    const request = new Request("https://ben-wyatt.com/api/auth/me", { headers: { cookie: "record_session=token" } });
+    const payload = await (await onRequestGet({ request, env: { DB: db, RECORD_CLUB_OPENS_AT: opensAt } })).json();
+    return payload.user.recordClub;
+  };
+  const future = hourFromNow();
+  assert.deepEqual(await me(friend, future), { gamesOpen: false, opensAt: new Date(future).toISOString(), wrappedUnlock: null });
+  assert.equal((await me({ ...friend, username: "ben" }, future)).opensAt, null);
+  const opened = await me(friend, secondAgo());
+  assert.equal(opened.gamesOpen, true);
+  assert.equal(opened.opensAt, null);
+});

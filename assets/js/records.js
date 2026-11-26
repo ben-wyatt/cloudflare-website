@@ -122,13 +122,35 @@
     document.querySelectorAll(".record-note").forEach(resizeReview);
   }
 
+  // "4 days", "7 hours", "12 minutes": how long until the minigames open, roughly.
+  function timeUntil(milliseconds) {
+    const days = Math.floor(milliseconds / 86400000);
+    if (days >= 1) return `${days} ${days === 1 ? "day" : "days"}`;
+    const hours = Math.floor(milliseconds / 3600000);
+    if (hours >= 1) return `${hours} ${hours === 1 ? "hour" : "hours"}`;
+    const minutes = Math.max(1, Math.ceil(milliseconds / 60000));
+    return `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  }
+
+  // Before the minigames open, the Play link counts down to them; it leads to the countdown page.
+  let gameLinkTimer = 0;
+  function renderGameLink(recordClub) {
+    window.clearTimeout(gameLinkTimer);
+    const opensAt = Date.parse(recordClub.opensAt || "");
+    const counting = !recordClub.gamesOpen && Number.isFinite(opensAt);
+    elements.gameLink.hidden = !recordClub.gamesOpen && !counting;
+    const remaining = counting ? opensAt - Date.now() : 0;
+    elements.gameLink.textContent = remaining > 0 ? `Minigames open in ${timeUntil(remaining)}` : "Play";
+    if (remaining > 0) gameLinkTimer = window.setTimeout(() => renderGameLink(recordClub), 60000);
+  }
+
   async function showApp(user) {
     state.user = user;
     elements.memberName.textContent = user.username;
     elements.listOwnerName.textContent = user.username;
     elements.standoutOwnerName.textContent = user.username;
     const recordClub = user.recordClub || {};
-    elements.gameLink.hidden = !recordClub.gamesOpen;
+    renderGameLink(recordClub);
     elements.wrappedLink.hidden = !recordClub.wrappedUnlock?.unlocked;
     if (recordClub.gamesOpen && recordClub.wrappedUnlock) {
       window.RecordClubUnlock?.renderCard(elements.unlockCard, recordClub.wrappedUnlock);
