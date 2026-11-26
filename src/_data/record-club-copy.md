@@ -66,7 +66,7 @@ We randomly selected 24 records from the group's picks, with one being the right
 
 ## Crates instructions
 
-Sixteen records, four hidden groups of four. Each group shares a fact: who made the records, where, how, or what is in a name. Watch for records that fit two groups. Pick four, then check.
+Make groups of four based on what the records have in common. Connections but our own records! These are quite difficult and require background knowledge on the artist or the album, so feel free to google for extra details.
 
 ## The whole room introduction
 
