@@ -132,13 +132,14 @@
       state.selected.clear();
       if (state.found.length === state.puzzle.groups.length) {
         state.done = true;
+        state.doneAt = Date.now();
         setStatus(state.mistakes ? `Sorted, with ${state.mistakes} ${state.mistakes === 1 ? "mistake" : "mistakes"}.` : "Sorted, without a mistake.", "correct");
       } else {
         setStatus(`${state.puzzle.groups[best].label}.`, "correct");
       }
+      // A finished puzzle stays on screen with all four groups; only a tap moves on.
       renderSolved();
       renderGrid();
-      if (state.done) elements.next.focus({ preventScroll: true });
       return;
     }
     state.mistakes += 1;
@@ -178,13 +179,16 @@
   elements.shuffle.addEventListener("click", () => { state.tiles = shuffle(state.tiles); renderGrid(); });
   elements.clear.addEventListener("click", () => { state.selected.clear(); setStatus(""); renderGrid(); });
   elements.check.addEventListener("click", check);
-  elements.next.addEventListener("click", () => step(1));
+  // A tap that lands just as the puzzle finishes (a double tap on Check) does not skip ahead.
+  elements.next.addEventListener("click", () => {
+    if (Date.now() - (state.doneAt || 0) > 800) step(1);
+  });
   elements.previous.addEventListener("click", () => step(-1));
   elements.nextPuzzle.addEventListener("click", () => step(1));
+  // Enter checks the selected four; it never leaves a puzzle, and a held key does not repeat.
   document.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter" || event.target.closest?.("button, a, input")) return;
-    if (state.done) step(1);
-    else check();
+    if (event.key !== "Enter" || event.repeat || state.done || event.target.closest?.("button, a, input")) return;
+    check();
   });
   fetch("/api/auth/me", { credentials: "same-origin" })
     .then((response) => response.json())
