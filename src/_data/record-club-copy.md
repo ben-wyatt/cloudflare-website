@@ -28,7 +28,7 @@ Some minigames before the Liner Notes!
 
 Ballots lock at the same moment, so finish yours before then. Leave this page open and the minigames will appear when the clock runs out.
 
-## Whose Wax game listing
+## Return to Sender game listing
 
 Match each mystery record to the person who picked it. Every miss unlocks another clue.
 
@@ -48,11 +48,11 @@ Twenty-four records, one secret. Ask yes-or-no questions; the records that don't
 
 Sixteen records, four hidden groups of four. Sort them by what they share.
 
-## Whose Wax instructions
+## Return to Sender instructions
 
 Match the mystery record to everyone who picked it. You get three misses; the first two unlock clues.
 
-## Whose Wax scoring
+## Return to Sender scoring
 
 **Accuracy pays:** 0 misses 1,000 · 1 miss 750 · 2 misses 500
 
@@ -86,4 +86,4 @@ Made from this group’s album picks, Last.fm tags and audience sizes, standout 
 
 ## Liner Notes unlock explanation
 
-Liner Notes includes everyone’s full lists, and the lists give away the minigames’ answers. So play first: every finished round of Whose Wax?, Staff Picks or Flip Side counts, win or lose.
+Liner Notes includes everyone’s full lists, and the lists give away the minigames’ answers. So play first: every finished round of Return to Sender, Staff Picks or Flip Side counts, win or lose.

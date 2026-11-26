@@ -4,7 +4,7 @@
 // finished round. The server decides; this only shows { required, played, unlocked }.
 (() => {
   const GAMES = [
-    { href: "/records/game/", name: "Whose Wax?" },
+    { href: "/records/game/", name: "Return to Sender" },
     { href: "/records/match/", name: "Staff Picks" },
     { href: "/records/guess/", name: "Flip Side" },
   ];

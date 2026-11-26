@@ -7,15 +7,15 @@ const headings = {
   "Standout tracks explanation": "standoutExplanation",
   "Minigames introduction": "gamesIntroduction",
   "Minigames countdown note": "openingNote",
-  // Whose Wax? was Who Picked It?, Staff Picks was Match The Record, and Liner Notes was
+  // Return to Sender was Whose Wax? and Who Picked It?, Staff Picks was Match The Record, and Liner Notes was
   // Records Wrapped; the keys keep the old names.
-  "Whose Wax game listing": "whoPickedListing",
+  "Return to Sender game listing": "whoPickedListing",
   "Staff Picks game listing": "matchListing",
   "Liner Notes game listing": "wrappedListing",
   "Flip Side game listing": "flipSideListing",
   "Crates game listing": "cratesListing",
-  "Whose Wax instructions": "whoPickedInstructions",
-  "Whose Wax scoring": "whoPickedScoring",
+  "Return to Sender instructions": "whoPickedInstructions",
+  "Return to Sender scoring": "whoPickedScoring",
   "Staff Picks instructions": "matchInstructions",
   "Staff Picks round prompt": "matchRoundPrompt",
   "Flip Side instructions": "flipSideInstructions",
