@@ -5,119 +5,51 @@ description: Preserve the dense, quiet, monospace design language of Ben Wyatt's
 
 # Preserve Blog Style
 
-## Start from the source of truth
+## Read before styling
 
-- Treat the checked-out repository as authoritative. Read `styles/main.css`, the affected page stylesheet, and the relevant Nunjucks or Markdown before choosing a pattern.
-- Read `src/_data/palettes.js` before changing palette behavior. Keep it as the palette authority and use the generated `/styles/palettes.css` output.
-- Preserve existing user changes. Make the smallest coherent change that satisfies the request.
-- Follow current user instructions and `AGENTS.md` when they intentionally revise this guide.
+- Inspect `styles/main.css`, the affected stylesheet, and relevant Nunjucks or Markdown; the checkout is authoritative, so reuse its closest pattern.
+- Before palette work, read `src/_data/palettes.js`; `/styles/palettes.css` is generated from it.
 
-## Hold the north star
+## Keep the north star
 
-Make the site feel like “a personal instrument panel with the manners of a book.” Keep it direct, text-led, dense, quiet, and slightly playful.
+Make the site “a personal instrument panel with the manners of a book”: direct, dense, quiet, and slightly playful. Put text first, useful structure second, and play only where it adds clarity, warmth, or shared activity. If it resembles a generic SaaS shell, marketing template, or component gallery, subtract.
 
-- Lead with readable text; add structure only when it improves meaning, access, or interaction.
-- Create density through a narrow measure, simple markup, compact rhythms, and low chrome. Do not create density by shrinking body text or crushing line-height.
-- Let useful structure come second and optional play come third.
-- Make novelty earn its place through clarity, warmth, or shared activity.
-- Avoid turning a personal notebook into a generic SaaS dashboard, marketing page, or component gallery.
+## Preserve type and content
 
-## Keep the typography disciplined
+Use local Inconsolata for all copy, headings, navigation, controls, code, and games via the existing font variables or `font: inherit`; add no remote font or serif exception.
 
-Use the Blog as the ceiling for normal page copy and interface text.
-
-| Role | Established rule |
+| Role | Rule |
 | --- | --- |
-| Font | Local Inconsolata everywhere by default |
-| Body and list copy | `1rem` / 16px, weight 400, line-height `1.6` |
+| Body/list copy | `1rem` / 16px, weight 400, line-height `1.6`, including mobile |
 | H1 | `clamp(2rem, 3.2vw, 2.6rem)`, line-height `1.2` |
 | H2 | `clamp(1.6rem, 2.6vw, 2.1rem)`, line-height `1.2` |
 | H3 | `clamp(1.3rem, 2vw, 1.6rem)`, line-height `1.2` |
-| Headings | Inconsolata, weight 700, `-0.01em` letter-spacing |
-| Metadata | Usually `0.95rem` or smaller and muted |
+| Headings | Weight 700, `-0.01em` letter-spacing |
+| Small UI | Usually `0.95rem` or smaller; may reach `0.72rem`, but body copy may not |
+| Display exception | Only the Record game masthead, up to `5.4rem` |
 
-- Use `var(--font-body)`, `var(--font-heading)`, or `font: inherit`; do not introduce a new font stack or remote font dependency.
-- Keep controls, labels, code, navigation, and headings in the same monospace family.
-- Keep body copy at `1rem` on mobile. Allow the heading clamps to reduce hierarchy naturally.
-- Reserve oversized display type for a documented exception. Do not copy the local design guide's large hero sizing into production pages.
-- Keep every visible text role in Inconsolata, including Record Club games. Do not introduce an editorial serif exception.
+- Keep content Markdown-first with shallow H2/H3 hierarchy and native elements before wrappers. Posts require `title`, `layout`, `date_published`, `date_updated`, and tags; omit the title H1 supplied by `post.njk`. Preserve wiki links, heading anchors, highlighting, and attachments.
+- Use `*italics*` sparingly for stress, titles, or asides, retaining true italic and muted `--em-color`; use `**bold**` for key anchors, retaining weight 700 and `--bold-color`. Neither may override link color. Prefer sentence case.
 
-## Preserve the reading measure and spacing
+## Keep UI quiet
 
-- Keep text-led pages on `--content-width` (`720px` maximum).
-- Keep the body centered with `margin: auto` and `padding: 1rem`. Expect a 720px content area plus 16px padding per side on wide screens and a 16px gutter on narrow screens.
-- Use `--wide-content-width` (`1120px`) only for a real multi-column workspace state, not because a desktop has spare room.
-- Keep normal paragraphs at the browser's compact `1rem` vertical rhythm and normal copy at `1.6` line-height.
-- Keep header and footer separation around the established `2rem` rhythm.
-- Keep utility lists and tables compact: small row gaps, roughly `0.25rem` row padding, thin rules, and little decorative indentation.
-- Prefer whitespace and thin borders over nested cards. Do not wrap every section in a rounded panel.
-- Keep most reading content left-aligned. Center only compact navigation or an explicitly editorial/display moment.
+- Center the `--content-width` (`720px`) column with `margin: auto` and 16px gutters. Use `--wide-content-width` (`1120px`) only for a real multi-column workspace; keep prose left-aligned and return it to 720px.
+- Create density with simple markup and compact rhythm, never tiny body text or crushed line-height. Keep paragraph rhythm near `1rem`, header/footer separation near `2rem`, and utility rows near `0.25rem` padding.
+- Prefer prose, lists, whitespace, thin 1px rules, underlined text links, and underline inputs. Use panels only for real grouping, filled buttons only for the primary action, and modest radii (about 4px inline, 8px for controls/code blocks).
+- Keep controls compact and visibly focused. Prefer text links for navigation and secondary actions. Motion is optional feedback and must respect reduced motion.
+- Avoid nested cards, gratuitous pills or icons, gradients, glass, heavy shadows, oversized production heroes, decorative charts, ambient animation, and centering ordinary reading content.
 
-## Use emphasis semantically
+## Use color semantically
 
-- Write Markdown italics as `*text*` for stress, titles, a changed reading of a phrase, or a small tonal aside. Let `<em>` keep its true italic form and muted `--em-color` treatment.
-- Write Markdown bold as `**text**` for a name, key anchor, or genuinely important takeaway. Let `<strong>` use weight 700 and `--bold-color` / the strong primary accent.
-- Use both sparingly. Do not bold whole paragraphs, decorate every noun, or use italics as generic gray metadata.
-- Preserve link color when emphasis appears inside a link; do not let nested bold or italics override the internal/external link signal.
-- Prefer sentence case and ordinary prose. Avoid streams of uppercase labels unless a compact instrument-panel label genuinely benefits from them.
+- Use indigo, forest, amber, rose, teal, or purple through semantic `--color-*` roles; never add component hex. Add a role only when none fits.
+- Let one accent speak: primary is the main action/internal link; secondary is the counterpoint/external link. Preserve their underlined distinction and nested-emphasis color.
+- Use subtle surface shifts before decoration. Communicate focus, success, warning, danger, loading, and selection with text, icons, position, or state as well as color.
+- Keep the palette cycler hidden behind the footer-year Easter egg. Add no visible picker unless explicitly requested.
 
-## Keep content Markdown-first
+## Verify
 
-- Prefer headings, paragraphs, lists, links, rules, inline code, and code fences over custom wrappers.
-- Use short, direct sections without fragmenting every idea into its own card or oversized heading.
-- Keep article hierarchy shallow. Use H2 for major sections and H3 only when a section needs real subdivision.
-- Preserve post frontmatter requirements: `title`, `layout`, `date_published`, `date_updated`, and tags.
-- Do not add a title H1 inside exported post Markdown; `src/_includes/post.njk` supplies it.
-- Preserve wiki-link, heading-anchor, syntax-highlighting, and attachment conventions already implemented by the build.
-
-## Use semantic color and quiet surfaces
-
-- Consume semantic variables such as `--color-bg`, `--color-surface`, `--color-surface-soft`, `--color-surface-sunken`, `--color-text`, `--color-text-muted`, `--color-text-subtle`, `--color-border`, `--color-border-strong`, `--color-primary`, `--color-primary-strong`, `--color-secondary`, `--color-secondary-strong`, `--color-on-primary`, `--color-on-secondary`, `--color-focus`, and the status roles.
-- Do not scatter raw hex values in components. Add a semantic role to the system when an existing role cannot express the requirement.
-- Let one accent speak. Use primary for the main action or signal and secondary for a counterpoint, not a competing headline.
-- Keep the internal/external link distinction and visible underlines. Never remove focus styling.
-- Use subtle surface shifts and 1px rules before shadows, gradients, or saturated fills.
-- Use modest radii: roughly 4px for inline code or small media and 8px for ordinary controls/code blocks. Reserve pills for compact badges or round controls.
-- Make success, warning, danger, loading, and selection understandable through text, icons, position, or state—not color alone.
-- Verify every change in both light and dark mode and across multiple palettes.
-- Keep the palette cycler hidden behind the footer-year Easter egg. Do not add a visible palette picker unless explicitly requested.
-
-## Build simple, accessible interaction
-
-- Prefer semantic HTML and the least markup that communicates the interaction.
-- Inherit the house font in inputs and buttons.
-- Keep controls compact but usable; preserve clear labels, keyboard access, and visible focus rings.
-- Use motion as optional feedback. Respect reduced motion and avoid adding ambient animation to reading pages.
-- Prefer text links for navigation and secondary actions. Use filled buttons only for a clear primary action.
-- Avoid gratuitous icon sets, floating glass panels, heavy drop shadows, gradients, and decorative charts.
-
-## Respect the exception ledger
-
-- Keep `src/design.njk` local-only behind `DESIGN_GUIDE=1`. Its oversized hero and showcase layout document the system; they do not redefine production defaults.
-- Keep Record game typography on the same Inconsolata system as the rest of the site.
-- Allow `--wide-content-width` only when multi-column work truly needs it; return reading content to the 720px measure.
-- Document any new intentional exception close to its CSS and keep its scope narrow.
-
-## Apply changes with this workflow
-
-1. Inspect the affected page, shared layout, `styles/main.css`, and any page-specific stylesheet.
-2. Identify the closest existing pattern and reuse its tokens, scale, spacing, and markup.
-3. Implement the smallest complete change. Prefer semantic HTML and semantic CSS variables.
-4. Review the result at a wide desktop viewport and around a 390px mobile viewport. Confirm that body copy stays 16px, mobile gutters stay near 16px, and prose never expands beyond 720px.
-5. Check typography, emphasis, focus, status meaning, light/dark mode, and at least two palettes.
-6. Run `npm run build` after template, style, or content changes.
-7. When shared design infrastructure or the guide changes, verify `npm run serve:design`, then run a clean production build and confirm that no `/design/` page or design navigation is emitted.
-
-## Reject drift before shipping
-
-Confirm all of the following:
-
-- Use Inconsolata for every visible text role, including games.
-- Keep normal copy at 1rem with 1.6 line-height.
-- Keep prose at or below 720px and retain 16px mobile gutters.
-- Preserve density without crowding or cardifying the page.
-- Use italics as muted semantic emphasis and bold as sparse strong emphasis.
-- Use semantic tokens rather than raw component colors.
-- Preserve internal/external link treatment and visible focus.
-- Keep hierarchy readable in light and dark themes without relying on color alone.
-- Preserve the local-only design-guide boundary and the narrow scope of documented exceptions.
+1. Check wide desktop and about 390px mobile: 16px copy/gutters, prose at most 720px, compact hierarchy, focus, and reduced motion.
+2. Check light and dark mode with at least two palettes; confirm status and hierarchy do not rely on color alone.
+3. Run `npm run build` after content, template, or style changes.
+4. For shared design infrastructure or guide changes, also verify `npm run serve:design`; then run a clean production build and confirm `/design/` and its navigation remain absent. Keep `src/design.njk` gated by `DESIGN_GUIDE=1`; its showcase hero is not a production precedent.
+5. Scope and document any new intentional exception beside its CSS.

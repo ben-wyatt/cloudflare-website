@@ -26,7 +26,21 @@ Use `npm install` for dependencies, `npm run serve` for the normal Eleventy watc
 
 ## Cloudflare deployment
 
-`wrangler.toml` is configured for Cloudflare Pages with the project `name` and `pages_build_output_dir = "_site"`; Pages projects do not need an `account_id`, so do not add one. Production uses build command `npm run build`, deploys `_site`, and should cache `.cache/` for incremental embedding work. The dynamic surface expects secrets such as `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, and `SIGNUP_ACCESS_CODE`, with optional `MAX_RECORD_MEMBERS`; never commit them. D1 schema changes are tracked in `migrations/0001_record_club.sql`, `0002_record_game.sql`, and `0003_record_game_scoring.sql`. `_routes.json` and `assets/` are passed through as part of the static output.
+`wrangler.toml` is configured for Cloudflare Pages with the project `name` and `pages_build_output_dir = "_site"`; Pages projects do not need an `account_id`, so do not add one. Production uses build command `npm run build`, deploys `_site`, and should cache `.cache/` for incremental embedding work. The dynamic surface expects secrets such as `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, the group-specific Record Club access-code bindings, and optional `MAX_RECORD_MEMBERS`; never commit them. D1 schema changes are tracked as ordered SQL files in `migrations/`; never rely on editing an already-applied migration to change production. `_routes.json` and `assets/` are passed through as part of the static output.
+
+## Adding a Record Club access group
+
+Each access code represents one real group. Never create a generic `friends` group, reuse one code for multiple groups, or assign users to a group based on their username. The current group IDs are `development`, `wyatt-fam`, `badabing`, and `ey-mt-juniors`; game album selection, answers, and member choices must remain filtered by the signed-in user's `group_id`.
+
+To add another group correctly:
+
+1. Create the next numbered D1 migration. Insert a stable kebab-case ID and display name into `record_groups`; do not change an applied migration as the production fix.
+2. Add one explicit mapping in `resolveAccessGroup()` in `functions/_shared/auth.js`, using a group-specific secret such as `NEW_GROUP_ACCESS_CODE`. Do not restore or overload `SIGNUP_ACCESS_CODE`.
+3. Add the placeholder binding to `.dev.vars.example`. Put the real production value with the interactive `wrangler pages secret put NEW_GROUP_ACCESS_CODE --project-name cloudflare-website` prompt; never put a secret in source, a command argument, or tool output.
+4. Run `npm run build`, test access-code resolution, commit, and push. Apply the new migration with `npm run db:migrate:remote`. A Pages secret change only reaches the Function after a new production deployment, so verify the deployment after setting the secret.
+5. Query production D1 read-only and confirm the exact `record_groups` rows. Test the live registration API with a known-taken username: `username_taken` with HTTP 409 proves the code was accepted without creating an account; `invalid_access_code` with HTTP 403 means it was rejected. Also verify obsolete or generic codes are rejected.
+
+Do not declare success from a build, secret upload, migration, or HTTP 200 alone. Confirm the expected commit is the active Pages deployment, every intended code is accepted live, unwanted codes are rejected, and no test accounts were created.
 
 ## Working rules and recent corrections
 
