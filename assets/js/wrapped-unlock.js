@@ -64,7 +64,7 @@
     container.dataset.state = state.unlocked ? "unlocked" : "locked";
 
     const head = make("div", "wrapped-unlock-head");
-    head.append(make("p", "wrapped-unlock-eyebrow", state.unlocked ? "records wrapped · unlocked" : "records wrapped · locked"));
+    head.append(make("p", "wrapped-unlock-eyebrow", state.unlocked ? "liner notes · unlocked" : "liner notes · locked"));
     if (!state.noGames) {
       const count = make("p", "wrapped-unlock-count");
       count.append(make("strong", "", String(state.shown)), ` / ${state.required} rounds`);
@@ -82,7 +82,7 @@
     if (!state.noGames) container.append(meter(state));
 
     if (state.noGames) {
-      container.append(make("p", "wrapped-unlock-note", "Your group doesn’t have enough picks for the games yet, so Wrapped opened without them."));
+      container.append(make("p", "wrapped-unlock-note", "Your group doesn’t have enough picks for the minigames yet, so Liner Notes opened without them."));
     } else if (why) {
       why.hidden = state.unlocked;
       container.append(why);
@@ -116,7 +116,7 @@
       chip.append("Liner Notes unlocked →");
       chip.setAttribute("aria-label", "Liner Notes are unlocked. Open them.");
     } else {
-      chip.append(make("span", "wrapped-unlock-chip-label", "Wrapped"), meter(state, "wrapped-unlock-meter is-mini"), make("span", "", `${state.shown}/${state.required}`));
+      chip.append(make("span", "wrapped-unlock-chip-label", "Liner Notes"), meter(state, "wrapped-unlock-meter is-mini"), make("span", "", `${state.shown}/${state.required}`));
       chip.setAttribute("aria-label", `Liner Notes unlock after ${state.required} rounds; you have played ${state.shown}.`);
     }
     chip.hidden = false;

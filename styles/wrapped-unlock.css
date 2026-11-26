@@ -1,19 +1,26 @@
-/* Records Wrapped unlock progress (assets/js/wrapped-unlock.js): a card, a chip for the
-   game bar, a line under a finished round, and a tag on the games list. */
+/* Liner Notes unlock progress (assets/js/wrapped-unlock.js): a card, a chip for the game bar,
+   a line under a finished round, and a tag on the games list. Styled like the rest of the
+   site: thin rules, an eyebrow, a slim meter and underlined text links; no panels or pills. */
 
 .wrapped-unlock {
   box-sizing: border-box;
   margin: 0 0 1.5rem;
-  padding: 1rem 1.15rem 1.1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  background: var(--color-surface);
+  padding: 0.9rem 0 1rem;
+  border-top: 1px solid var(--color-border-strong);
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-text);
   text-align: left;
 }
 
-.wrapped-unlock[data-state="unlocked"] {
-  border-color: color-mix(in srgb, var(--color-primary) 55%, var(--color-border));
+/* On the minigames page the list's own top rule closes the card, and while Liner Notes are
+   locked its "Play …" links would repeat the list right below, so they are left out. */
+.games-unlock.wrapped-unlock {
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+
+.games-unlock[data-state="locked"] .wrapped-unlock-actions {
+  display: none;
 }
 
 .wrapped-unlock-head {
@@ -43,8 +50,8 @@
 }
 
 .wrapped-unlock .wrapped-unlock-title {
-  margin: 0.35rem 0 0.7rem;
-  font-size: clamp(1.1rem, 2.4vw, 1.35rem);
+  margin: 0.3rem 0 0.6rem;
+  font-size: clamp(1.1rem, 2.4vw, 1.3rem);
   line-height: 1.3;
 }
 
@@ -52,24 +59,21 @@
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .wrapped-unlock-meter > span {
-  height: 10px;
-  border-radius: 2px;
-  background: var(--color-surface-sunken);
-  box-shadow: inset 0 0 0 1px var(--color-border);
+  height: 4px;
+  background: var(--color-border);
 }
 
 .wrapped-unlock-meter > span.is-filled {
   background: var(--color-primary);
-  box-shadow: none;
 }
 
 .wrapped-unlock-why,
 .wrapped-unlock-note {
-  margin: 0.8rem 0 0;
+  margin: 0.7rem 0 0;
   color: var(--color-text-muted);
   font-size: 0.92rem;
 }
@@ -77,34 +81,21 @@
 .wrapped-unlock-actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 0.6rem 1.1rem;
-  margin: 0.95rem 0 0;
+  align-items: baseline;
+  gap: 0.4rem 1.25rem;
+  margin: 0.8rem 0 0;
 }
 
+/* The first link is the one to follow, so it is bold; both are plain underlined links. */
 .wrapped-unlock-actions .wrapped-unlock-primary {
-  /* main.css colors every internal link with var(--link-internal) at high specificity. */
-  --link-internal: var(--color-on-primary);
-  padding: 0.4rem 0.75rem;
-  border-radius: 8px;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
   font-weight: 700;
-  text-decoration: none;
 }
 
-.wrapped-unlock-actions .wrapped-unlock-primary:hover {
-  filter: brightness(0.96);
-}
-
-/* The chip in a game's top bar. */
+/* The chip in a game's top bar: small text, not a pill. */
 .wrapped-unlock-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.15rem 0.55rem;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
   color: var(--color-text-muted);
   font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
@@ -114,14 +105,13 @@
 }
 
 .wrapped-unlock-chip:hover {
-  border-color: var(--color-border-strong);
   color: var(--color-text);
 }
 
 .wrapped-unlock-chip[data-state="unlocked"] {
-  border-color: color-mix(in srgb, var(--color-primary) 60%, var(--color-border));
-  color: var(--color-primary-strong);
-  font-weight: 700;
+  color: var(--link-internal);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 
 .wrapped-unlock-chip-label {
@@ -135,12 +125,11 @@
 
 .wrapped-unlock-meter.is-mini > span {
   width: 5px;
-  height: 9px;
-  border-radius: 1px;
+  height: 4px;
 }
 
 .wrapped-unlock-chip.is-just-unlocked {
-  animation: wrapped-unlock-ring 1.4s ease-out 2;
+  animation: wrapped-unlock-arrive 0.5s ease-out;
 }
 
 /* The line under a finished round. */
@@ -151,15 +140,13 @@
 }
 
 .wrapped-unlock-moment.is-unlocked {
-  padding: 0.55rem 0.75rem;
-  border-left: 3px solid var(--color-primary);
-  border-radius: 0 6px 6px 0;
-  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--color-primary);
   color: var(--color-text);
   animation: wrapped-unlock-arrive 0.5s ease-out;
 }
 
-/* The status beside Wrapped on the games list. */
+/* The status beside a list entry. */
 .wrapped-unlock-tag {
   margin-left: 0.5rem;
   color: var(--color-text-muted);
@@ -172,11 +159,6 @@
 
 .wrapped-unlock-tag[data-state="unlocked"] {
   color: var(--color-primary-strong);
-}
-
-@keyframes wrapped-unlock-ring {
-  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 55%, transparent); }
-  100% { box-shadow: 0 0 0 10px transparent; }
 }
 
 @keyframes wrapped-unlock-arrive {
