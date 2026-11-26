@@ -21,7 +21,7 @@ test("the Record Club page gate covers every game, the new ones included", async
     });
     return passedThrough ? "open" : response.status;
   };
-  for (const path of ["/records/game/", "/records/match/", "/records/wrapped/", "/records/guess/", "/records/crates"]) {
+  for (const path of ["/records/game/", "/records/match/", "/records/wrapped/", "/records/guess/", "/records/crates", "/records/mixtapes/"]) {
     assert.equal(await visit(path), 403, path);
   }
   assert.equal(await visit("/records/"), "open");

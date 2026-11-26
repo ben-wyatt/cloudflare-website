@@ -9,6 +9,7 @@
     "/records/lists/*",
     "/records/guess/*",
     "/records/crates/*",
+    "/records/mixtapes/*",
     "/records/opening/*"
   ],
   "exclude": []

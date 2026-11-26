@@ -13,6 +13,7 @@ const RELEASED_PATHS = new Set([
   "/records/lists/",
   "/records/guess/",
   "/records/crates/",
+  "/records/mixtapes/",
 ]);
 
 function normalizedPath(request) {

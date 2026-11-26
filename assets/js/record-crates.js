@@ -1,5 +1,7 @@
 (() => {
-  // Crates: sixteen records, four hidden groups of four that share a fact.
+  // Crates: sixteen records, four hidden groups of four that share a fact. Mixtapes uses this
+  // page too, with a group for each friend: its shell names its API in data-api, and its rounds
+  // are drawn fresh each time instead of numbered.
   const $ = (id) => document.getElementById(id);
   const elements = {
     loading: $("crates-loading"), gate: $("crates-gate"), gateMessage: $("crates-gate-message"), app: $("crates-app"),
@@ -9,6 +11,7 @@
     shuffle: $("crates-shuffle"), clear: $("crates-clear"), check: $("crates-check"), next: $("crates-next"),
   };
   if (!elements.loading) return;
+  const api = elements.loading.closest("[data-api]")?.dataset.api || "/api/crates";
 
   const params = new URLSearchParams(window.location.search);
   const state = { number: 0, count: 0, puzzle: null, tiles: [], selected: new Set(), found: [], mistakes: 0, tried: new Set(), done: false };
@@ -55,7 +58,8 @@
     for (const groupIndex of state.found) {
       const puzzleGroup = state.puzzle.groups[groupIndex];
       const row = element("li", "crates-row");
-      row.dataset.level = String(puzzleGroup.level);
+      // A group without a level (a mixtape) takes its color from the order it was found in.
+      row.dataset.level = String(puzzleGroup.level || state.found.indexOf(groupIndex) + 1);
       row.append(element("p", "records-eyebrow crates-row-label", puzzleGroup.label));
       const records = element("ul", "crates-row-records");
       for (const record of puzzleGroup.records) {
@@ -153,13 +157,13 @@
   async function load(number = 0) {
     const query = new URLSearchParams();
     if (number) query.set("n", String(number));
-    const response = await fetch(`/api/crates?${query}`, { credentials: "same-origin" });
+    const response = await fetch(`${api}?${query}`, { credentials: "same-origin" });
     const payload = await response.json().catch(() => null);
     if (!response.ok) {
       elements.loading.hidden = true;
       elements.app.hidden = true;
       elements.gate.hidden = false;
-      elements.gateMessage.textContent = payload?.error?.message || "The crates could not be loaded.";
+      elements.gateMessage.textContent = payload?.error?.message || "This puzzle could not be loaded.";
       return;
     }
     Object.assign(state, {
@@ -167,7 +171,9 @@
       tiles: shuffle(payload.puzzle.groups.flatMap((puzzleGroup) => puzzleGroup.records)),
       selected: new Set(), found: [], mistakes: 0, tried: new Set(), done: false,
     });
-    elements.number.textContent = `puzzle ${payload.number} of ${payload.count}${payload.puzzle.title ? `: ${payload.puzzle.title}` : ""}`;
+    if (elements.number && payload.count) {
+      elements.number.textContent = `puzzle ${payload.number} of ${payload.count}${payload.puzzle.title ? `: ${payload.puzzle.title}` : ""}`;
+    }
     elements.loading.hidden = true;
     elements.app.hidden = false;
     setStatus("");
@@ -175,7 +181,8 @@
     renderGrid();
   }
 
-  const step = (delta) => load(((state.number - 1 + delta + state.count) % state.count) + 1);
+  // Numbered puzzles step through the list; unnumbered ones (Mixtapes) just draw a new round.
+  const step = (delta) => load(state.count ? ((state.number - 1 + delta + state.count) % state.count) + 1 : 0);
   elements.shuffle.addEventListener("click", () => { state.tiles = shuffle(state.tiles); renderGrid(); });
   elements.clear.addEventListener("click", () => { state.selected.clear(); setStatus(""); renderGrid(); });
   elements.check.addEventListener("click", check);
@@ -183,8 +190,8 @@
   elements.next.addEventListener("click", () => {
     if (Date.now() - (state.doneAt || 0) > 800) step(1);
   });
-  elements.previous.addEventListener("click", () => step(-1));
-  elements.nextPuzzle.addEventListener("click", () => step(1));
+  elements.previous?.addEventListener("click", () => step(-1));
+  elements.nextPuzzle?.addEventListener("click", () => step(1));
   // Enter checks the selected four; it never leaves a puzzle, and a held key does not repeat.
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" || event.repeat || state.done || event.target.closest?.("button, a, input")) return;

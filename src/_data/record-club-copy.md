@@ -48,6 +48,10 @@ Guess Who but for albums. Ask yes/no questions to narrow down your choices.
 
 NYTimes Connections but it's our music.
 
+## Mixtapes game listing
+
+Connections again, but each group is one friend's picks.
+
 ## Return to Sender instructions
 
 Match the mystery record to everyone who picked it. You get three misses; the first two unlock clues.
@@ -71,6 +75,10 @@ We randomly selected 24 records from the group's picks, with one being the right
 ## Crates instructions
 
 Make groups of four based on what the records have in common. Connections but our own records! These are quite difficult and require background knowledge on the artist or the album, so feel free to google for extra details.
+
+## Mixtapes instructions
+
+Sixteen records from four friends' lists. Find each friend's four. Records that more than one friend picked are left out.
 
 ## The whole room introduction
 

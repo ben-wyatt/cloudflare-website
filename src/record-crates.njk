@@ -3,12 +3,12 @@ layout: layout.njk
 title: Crates · Record Club
 permalink: "/records/crates/"
 pageStyles: "/styles/records-lab.css?v=lab-6"
-pageScript: "/assets/js/record-crates.js?v=lab-6"
+pageScript: "/assets/js/record-crates.js?v=lab-7"
 bodyClass: "records-page record-game-page lab-page lab-crates-page"
 eleventyExcludeFromCollections: true
 ---
 
-<section class="game-shell lab-shell crates-shell" aria-labelledby="crates-title">
+<section class="game-shell lab-shell crates-shell" data-api="/api/crates" aria-labelledby="crates-title">
   <div id="crates-loading" class="records-panel game-loading" role="status">Filling the crates…</div>
 
   <section id="crates-gate" class="records-panel game-gate" hidden aria-labelledby="crates-gate-title">
