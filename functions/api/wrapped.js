@@ -1,5 +1,6 @@
 import { requireUser } from "../_shared/auth.js";
 import { coverTwinsCard, insertBeforeLast } from "../_shared/cover-twins.js";
+import { shareAlbums } from "../_shared/wrapped-albums.js";
 import {
   HttpError,
   assertSameOrigin,
@@ -46,8 +47,8 @@ async function getSeason(db, groupId) {
   };
 }
 
-async function loadWrappedRows(db, groupId) {
-  const [membersResult, picksResult, standoutsResult, favoritesResult, artistsResult] = await db.batch([
+export async function loadWrappedRows(db, groupId) {
+  const [membersResult, picksResult, standoutsResult, favoritesResult, artistsResult, factsResult] = await db.batch([
     db.prepare(
       `SELECT id AS userId, username
        FROM record_users
@@ -67,6 +68,7 @@ async function loadWrappedRows(db, groupId) {
          a.release_date AS releaseDate,
          a.total_tracks AS totalTracks,
          a.total_duration_ms AS totalDurationMs,
+         a.explicit_track_count AS explicitTrackCount,
          a.metadata_enriched_at AS metadataEnrichedAt,
          a.lastfm_listeners AS lastfmListeners,
          a.lastfm_tags_json AS lastfmTagsJson,
@@ -124,6 +126,30 @@ async function loadWrappedRows(db, groupId) {
        WHERE li.season = ? AND u.group_id = ?
        ORDER BY lower(ar.name), aa.spotify_album_id`,
     ).bind(RECORD_SEASON, groupId),
+    // Who made each record and where they are from (scripts/fetch-album-facts.mjs), with map
+    // coordinates for the begin area, or the country when the area is unknown (record_places).
+    db.prepare(
+      `WITH group_facts AS (
+         SELECT f.spotify_album_id AS spotifyAlbumId,
+           json_extract(f.facts_json, '$.artist.name') AS artistName,
+           json_extract(f.facts_json, '$.artist.type') AS artistType,
+           upper(trim(json_extract(f.facts_json, '$.artist.country'))) AS country,
+           trim(coalesce(json_extract(f.facts_json, '$.artist.beginArea'), '')) AS area,
+           json_extract(f.facts_json, '$.artist.similar') AS similarJson
+         FROM record_album_facts f
+         WHERE f.spotify_album_id IN (
+           SELECT li.spotify_album_id FROM record_list_items li
+           JOIN record_users u ON u.id = li.user_id
+           WHERE li.season = ? AND u.group_id = ?)
+       )
+       SELECT g.spotifyAlbumId, g.artistName, g.artistType, g.country, g.similarJson,
+         coalesce(pa.lat, pc.lat) AS lat,
+         coalesce(pa.lon, pc.lon) AS lon,
+         CASE WHEN pa.lat IS NOT NULL THEN g.area ELSE '' END AS placeArea
+       FROM group_facts g
+       LEFT JOIN record_places pa ON pa.country = g.country AND pa.area = g.area AND g.area <> ''
+       LEFT JOIN record_places pc ON pc.country = g.country AND pc.area = ''`,
+    ).bind(RECORD_SEASON, groupId),
   ]);
 
   return {
@@ -132,6 +158,7 @@ async function loadWrappedRows(db, groupId) {
     standouts: standoutsResult.results || [],
     favorites: favoritesResult.results || [],
     albumArtists: artistsResult.results || [],
+    facts: factsResult.results || [],
   };
 }
 
@@ -172,9 +199,11 @@ export async function onRequestGet({ request, env }) {
     const rows = await loadWrappedRows(db, user.groupId);
     const generatedAt = new Date().toISOString();
     const payload = makePayload(RECORD_SEASON, user.groupId, seasonInfo, rows, generatedAt);
-    // Cover twins reads look-alike pairs from the database, so it joins the slides here,
-    // before a sealed snapshot is saved.
-    payload.cards = insertBeforeLast(payload.cards, await coverTwinsCard(db, user.groupId));
+    // Cover twins reads the cover descriptions from the database, so it joins the slides
+    // here, before a sealed snapshot is saved.
+    const shared = shareAlbums(insertBeforeLast(payload.cards, await coverTwinsCard(db, user.groupId)));
+    payload.cards = shared.cards;
+    payload.albums = shared.albums;
     const metadataPending = new Set(
       rows.picks
         .filter((row) => !row.metadataEnrichedAt)

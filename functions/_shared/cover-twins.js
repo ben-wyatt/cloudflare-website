@@ -1,42 +1,35 @@
+import { coverClusters } from "./cover-clusters.js";
 import { RECORD_SEASON } from "./records-config.js";
 
-// The "Cover twins" Wrapped slide: the most alike album art in a group, picked by different
-// people. Similarity comes from the cover descriptions (scripts/cover-similarity.mjs), which
-// also wrote one line on what each pair shares. Shown only to the lab account for now.
-const PAIRS_SHOWN = 5;
-
+// The "Cover twins" Liner Notes slide: album art that had the same idea, grouped into named
+// clusters (the smoking section, the petting zoo…) from the cover descriptions. See
+// cover-clusters.js for the rules.
 export async function coverTwinsCard(db, groupId) {
-  const [pairsResult, picksResult] = await db.batch([
-    db.prepare(
-      `WITH group_albums AS (
-         SELECT DISTINCT li.spotify_album_id AS id
-         FROM record_list_items li
-         JOIN record_users u ON u.id = li.user_id
-         WHERE li.season = ? AND u.group_id = ?
-       )
-       SELECT p.album_a AS albumA, p.album_b AS albumB, p.similarity, p.reason
-       FROM record_cover_pairs p
-       WHERE p.album_a IN (SELECT id FROM group_albums)
-         AND p.album_b IN (SELECT id FROM group_albums)
-         AND trim(p.reason) <> ''
-       ORDER BY p.similarity DESC
-       LIMIT 20`,
-    ).bind(RECORD_SEASON, groupId),
-    db.prepare(
-      `SELECT li.spotify_album_id AS spotifyId, u.username,
-         a.name, a.artist_name AS artistName, a.image_url AS imageUrl, a.spotify_url AS spotifyUrl,
-         a.release_date AS releaseDate, a.total_tracks AS totalTracks, a.total_duration_ms AS totalDurationMs
-       FROM record_list_items li
-       JOIN record_users u ON u.id = li.user_id
-       JOIN record_albums a ON a.spotify_id = li.spotify_album_id
-       WHERE li.season = ? AND u.group_id = ?
-       ORDER BY u.username COLLATE NOCASE`,
-    ).bind(RECORD_SEASON, groupId),
-  ]);
+  const result = await db.prepare(
+    `SELECT li.spotify_album_id AS spotifyId, u.username,
+       a.name, a.artist_name AS artistName, a.image_url AS imageUrl, a.spotify_url AS spotifyUrl,
+       a.release_date AS releaseDate, a.total_tracks AS totalTracks, a.total_duration_ms AS totalDurationMs,
+       d.description_json AS descriptionJson
+     FROM record_list_items li
+     JOIN record_users u ON u.id = li.user_id
+     JOIN record_albums a ON a.spotify_id = li.spotify_album_id
+     JOIN record_cover_descriptions d ON d.spotify_album_id = li.spotify_album_id
+     WHERE li.season = ? AND u.group_id = ? AND a.image_url IS NOT NULL
+     ORDER BY u.username COLLATE NOCASE`,
+  ).bind(RECORD_SEASON, groupId).all();
+  return coverTwinsFromRows(result.results || []);
+}
 
+export function coverTwinsFromRows(rows) {
   const albums = new Map();
-  for (const row of picksResult.results || []) {
+  for (const row of rows) {
     if (!albums.has(row.spotifyId)) {
+      let description = null;
+      try {
+        description = JSON.parse(row.descriptionJson || "null");
+      } catch {
+        description = null;
+      }
       albums.set(row.spotifyId, {
         spotifyId: row.spotifyId,
         name: row.name,
@@ -47,56 +40,46 @@ export async function coverTwinsCard(db, groupId) {
         totalTracks: Number(row.totalTracks || 0),
         totalDurationMs: Number(row.totalDurationMs || 0),
         pickers: [],
+        description,
       });
     }
-    albums.get(row.spotifyId).pickers.push(row.username);
+    const album = albums.get(row.spotifyId);
+    if (!album.pickers.includes(row.username)) album.pickers.push(row.username);
   }
+  const clusters = coverClusters([...albums.values()]);
+  if (clusters.length < 2) return null;
 
-  // Each record appears once, and a pair needs at least one picker the other record lacks.
-  const used = new Set();
-  const pairs = [];
-  for (const row of pairsResult.results || []) {
-    const left = albums.get(row.albumA);
-    const right = albums.get(row.albumB);
-    if (!left || !right || used.has(left.spotifyId) || used.has(right.spotifyId)) continue;
-    const samePeople = left.pickers.length === right.pickers.length
-      && left.pickers.every((name) => right.pickers.includes(name));
-    if (samePeople) continue;
-    used.add(left.spotifyId);
-    used.add(right.spotifyId);
-    pairs.push({ left, right, similarity: Number(row.similarity), reason: String(row.reason) });
-    if (pairs.length >= PAIRS_SHOWN) break;
-  }
-  if (!pairs.length) return null;
-
-  const ranking = pairs.map((pair, index) => ({
-    name: `${pair.left.pickers.join(", ")} × ${pair.right.pickers.join(", ")}`,
-    // Similarities sit close together; stretch them so the meters show the order.
-    value: Math.max(0.05, (pair.similarity - 0.6) / 0.4),
-    display: "",
-    highlight: index === 0,
-    sub: `${pair.left.name} · ${pair.right.name}`,
-    imageUrl: null,
-    view: { records: [pair.left, pair.right], fact: pair.reason },
-  }));
-
+  const record = ({ description, ...album }) => album;
+  const view = (cluster) => ({
+    stat: { value: cluster.records.length, unit: `covers ${cluster.unit}` },
+    records: cluster.records.map(record),
+  });
   return {
     id: "cover-twins",
     title: "Cover twins.",
-    lede: "The most alike album art in the room, picked by different people.",
+    lede: "Album art that had the same idea. Pick a cluster.",
     detail: "",
-    records: [pairs[0].left, pairs[0].right],
+    ...view(clusters[0]),
     notes: [],
     wordMap: [],
     links: [],
     status: "",
     cast: [],
-    stat: null,
-    ranking,
+    ranking: clusters.map((cluster, index) => ({
+      name: cluster.name,
+      value: cluster.records.length,
+      display: String(cluster.records.length),
+      highlight: index === 0,
+      sub: cluster.pickers.join(", "),
+      imageUrl: cluster.records[0].imageUrl,
+      people: cluster.pickers,
+      view: view(cluster),
+    })),
+    unranked: true,
     mix: [],
     timeline: null,
     chips: [],
-    fact: pairs[0].reason,
+    fact: "",
     people: [],
   };
 }

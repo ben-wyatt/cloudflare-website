@@ -23,6 +23,8 @@
   let viewerId = "";
   let viewerName = "";
   let currentPayload = null;
+  // Album details arrive once, in payload.albums; slides refer to them by id.
+  let albumsById = {};
   let enriching = false;
 
   class ApiError extends Error {
@@ -186,13 +188,40 @@
     return block;
   }
 
-  function rankingBlock(ranking, selected = -1, onSelect = null) {
+  const isViewer = (people) => Boolean(viewerName) && (people || []).includes(viewerName);
+
+  // Where a value sits on an axis, from 0 (left) to 1 (right).
+  function axisPosition(axis, value) {
+    const number = Number(value) || 0;
+    const position = axis.scale === "log"
+      ? (Math.log10(Math.max(number, axis.min)) - Math.log10(axis.min)) / (Math.log10(axis.max) - Math.log10(axis.min))
+      : (number - axis.min) / ((axis.max - axis.min) || 1);
+    return Math.max(0, Math.min(1, position));
+  }
+
+  function axisTicks(axis, className) {
+    const row = element("div", className);
+    row.setAttribute("aria-hidden", "true");
+    for (const tick of axis.ticks || []) {
+      const label = element("span", "wrapped-axis-tick", tick.label);
+      const position = axisPosition(axis, tick.value);
+      label.style.left = `${position * 100}%`;
+      if (position <= 0) label.classList.add("is-start");
+      if (position >= 1) label.classList.add("is-end");
+      row.append(label);
+    }
+    return row;
+  }
+
+  // With an axis, each row's value is a dot on one shared scale instead of a bar.
+  function rankingBlock(ranking, selected = -1, onSelect = null, { axis = null, unranked = false } = {}) {
     const maximum = Math.max(...ranking.map((row) => Number(row.value) || 0)) || 1;
-    const list = element("ol", "wrapped-ranking");
+    const list = element("ol", `wrapped-ranking${axis ? " has-axis" : ""}${unranked ? " is-unranked" : ""}`);
     ranking.forEach((row, index) => {
       const item = element("li", "wrapped-rank");
       if (row.highlight) item.classList.add("is-highlight");
       if (index === selected) item.classList.add("is-selected");
+      if (isViewer(row.people)) item.classList.add("is-viewer");
       const interactive = Boolean(row.view && onSelect);
       const line = element(interactive ? "button" : "div", "wrapped-rank-row");
       if (interactive) {
@@ -201,7 +230,7 @@
         line.addEventListener("click", () => onSelect(index));
         item.classList.add("is-interactive");
       }
-      line.append(element("span", "wrapped-rank-number", String(index + 1)));
+      line.append(element("span", "wrapped-rank-number", unranked ? "" : String(index + 1)));
       if (row.imageUrl) {
         const thumb = document.createElement("img");
         thumb.className = "wrapped-rank-thumb";
@@ -211,16 +240,152 @@
         line.append(thumb);
       }
       const label = element("span", "wrapped-rank-label");
-      label.append(element("span", "wrapped-rank-name", row.name));
+      const name = element("span", "wrapped-rank-name", row.name);
+      if (isViewer(row.people)) name.append(" ", element("span", "wrapped-you", "you"));
+      label.append(name);
       if (row.sub) label.append(element("span", "wrapped-rank-sub", row.sub));
-      const value = element("span", "wrapped-rank-value");
-      value.append(element("span", "wrapped-rank-display", row.display),
-        meter((Number(row.value) || 0) / maximum, index === selected || row.highlight));
-      line.append(label, value);
+      line.append(label);
+      if (axis) {
+        const track = element("span", "wrapped-rank-track");
+        track.setAttribute("aria-hidden", "true");
+        const dot = element("span", "wrapped-rank-dot");
+        dot.style.left = `${axisPosition(axis, row.value) * 100}%`;
+        track.append(dot);
+        line.append(track, element("span", "wrapped-rank-display", row.display));
+      } else {
+        const value = element("span", "wrapped-rank-value");
+        value.append(element("span", "wrapped-rank-display", row.display),
+          meter((Number(row.value) || 0) / maximum, index === selected || row.highlight));
+        line.append(value);
+      }
       item.append(line);
       list.append(item);
     });
-    return list;
+    if (!axis) return list;
+    const block = element("div", "wrapped-ranking-block");
+    const ticks = element("div", "wrapped-rank-axis");
+    ticks.append(axisTicks(axis, "wrapped-rank-ticks"));
+    block.append(list, ticks);
+    return block;
+  }
+
+  // Strip: every item as a dot on one axis. Dots that would overlap stack upward, so the
+  // stacks also show where items bunch up. Hover, focus or tap a dot to read it.
+  const DOT_STEP = 12;
+
+  function layoutStrip(plot) {
+    const width = plot.clientWidth;
+    if (!width || plot.dataset.laidOutWidth === String(width)) return;
+    plot.dataset.laidOutWidth = String(width);
+    const dots = [...plot.querySelectorAll(".wrapped-strip-dot")]
+      .map((dot) => ({ dot, x: Number(dot.dataset.position) * width }))
+      .sort((a, b) => a.x - b.x);
+    const levels = [];
+    let tallest = 0;
+    for (const entry of dots) {
+      let level = 0;
+      while (levels[level] !== undefined && entry.x - levels[level] < DOT_STEP - 1) level += 1;
+      levels[level] = entry.x;
+      tallest = Math.max(tallest, level);
+      entry.dot.style.bottom = `${level * DOT_STEP}px`;
+    }
+    plot.style.height = `${(tallest + 1) * DOT_STEP + 4}px`;
+  }
+
+  const stripObserver = typeof ResizeObserver === "function"
+    ? new ResizeObserver((entries) => entries.forEach((entry) => layoutStrip(entry.target)))
+    : null;
+
+  function stripCaption(point) {
+    const people = point.people?.length ? ` · ${point.people.join(", ")}` : "";
+    return `${point.label} — ${point.display}${point.kind === "pairs" ? "" : people}`;
+  }
+
+  function stripBlock(strip, selected = -1, onSelect = null) {
+    const block = element("div", "wrapped-strip");
+    const kind = strip.you === "pairs" ? "pair of listeners" : "record";
+    const caption = element("p", "wrapped-strip-caption");
+    caption.setAttribute("aria-live", "polite");
+    const resting = selected >= 0 ? stripCaption({ ...strip.points[selected], kind: strip.you })
+      : `Each dot is a ${kind}. Hover or tap one.`;
+    caption.textContent = resting;
+    const plot = element("div", "wrapped-strip-plot");
+    strip.points.forEach((point, index) => {
+      const dot = element("button", "wrapped-strip-dot");
+      dot.type = "button";
+      dot.dataset.position = String(axisPosition(strip.axis, point.value));
+      dot.style.left = `${Number(dot.dataset.position) * 100}%`;
+      if (point.highlight) dot.classList.add("is-highlight");
+      if (isViewer(point.people)) dot.classList.add("is-viewer");
+      if (index === selected) dot.classList.add("is-selected");
+      const text = stripCaption({ ...point, kind: strip.you });
+      dot.setAttribute("aria-label", text);
+      dot.setAttribute("aria-pressed", String(index === selected));
+      const show = () => { caption.textContent = text; };
+      const rest = () => { caption.textContent = resting; };
+      dot.addEventListener("mouseenter", show);
+      dot.addEventListener("focus", show);
+      dot.addEventListener("mouseleave", rest);
+      dot.addEventListener("blur", rest);
+      if (onSelect && point.view) dot.addEventListener("click", () => onSelect(index));
+      plot.append(dot);
+    });
+    if (stripObserver) stripObserver.observe(plot);
+    else requestAnimationFrame(() => layoutStrip(plot));
+    const axis = element("div", "wrapped-strip-axis");
+    axis.append(axisTicks(strip.axis, "wrapped-strip-ticks"));
+    const ends = element("p", "wrapped-strip-ends");
+    ends.append(element("span", "", `← ${strip.lowLabel}`), element("span", "", `${strip.highLabel} →`));
+    block.append(plot, axis, ends, caption);
+    const mine = strip.points.filter((point) => isViewer(point.people));
+    if (mine.length && strip.you === "pairs") {
+      const closest = mine[0];
+      const furthest = mine.at(-1);
+      const other = (point) => point.people.find((name) => name !== viewerName);
+      block.append(element("p", "wrapped-strip-you",
+        `You: closest to ${other(closest)} (${closest.display.split(" ")[0]}), furthest from ${other(furthest)} (${furthest.display.split(" ")[0]}).`));
+    } else if (mine.length) {
+      block.append(element("p", "wrapped-strip-you", `Your ${mine.length === 1 ? "record is" : "records are"} the dark ${mine.length === 1 ? "dot" : "dots"}.`));
+    }
+    return block;
+  }
+
+  // World map: the outline is a mask so it takes the theme's colour; pins sit on top in the
+  // same coordinates (Equal Earth, made by the server). A focused listener lights up their pins.
+  function mapBlock(map, focus = "") {
+    const block = element("div", "wrapped-map-block");
+    const frame = element("div", "wrapped-map");
+    frame.style.setProperty("--map-ratio", `${map.width} / ${map.height}`);
+    frame.style.setProperty("--map-mask", `url("${map.src}")`);
+    const caption = element("p", "wrapped-strip-caption");
+    caption.setAttribute("aria-live", "polite");
+    const resting = focus ? `Showing ${focus}’s stamps. Hover or tap a pin.` : "Hover or tap a pin.";
+    caption.textContent = resting;
+    // Bigger pins first, so small ones stay on top and reachable.
+    for (const pin of [...map.pins].sort((a, b) => b.artists.length - a.artists.length)) {
+      const dot = element("button", `wrapped-map-pin${pin.country ? " is-country" : ""}`);
+      dot.type = "button";
+      dot.style.left = `${(pin.x / map.width) * 100}%`;
+      dot.style.top = `${(pin.y / map.height) * 100}%`;
+      dot.style.setProperty("--size", `${Math.min(18, 8 + 3 * Math.sqrt(pin.artists.length - 1))}px`);
+      if (focus) dot.classList.add(pin.people.includes(focus) ? "is-focus" : "is-dim");
+      const artists = pin.artists.map((artist) => `${artist.name} (${artist.pickers.join(", ")})`).join("; ");
+      const text = `${pin.place}: ${artists}`;
+      dot.setAttribute("aria-label", text);
+      const show = () => { caption.textContent = text; };
+      const rest = () => { caption.textContent = resting; };
+      dot.addEventListener("mouseenter", show);
+      dot.addEventListener("focus", show);
+      dot.addEventListener("click", show);
+      dot.addEventListener("mouseleave", rest);
+      dot.addEventListener("blur", rest);
+      frame.append(dot);
+    }
+    block.append(frame, caption);
+    if (map.pins.some((pin) => pin.country)) {
+      block.append(element("p", "wrapped-strip-you", "Rings mark artists whose hometown isn’t known, placed on their country."));
+    }
+    return block;
   }
 
   function mixBlock(mix) {
@@ -241,6 +406,23 @@
       block.append(column);
     }
     return block;
+  }
+
+  function mixesBlock(mixes) {
+    const block = element("div", "wrapped-mixes");
+    for (const entry of mixes) {
+      block.append(element("p", "wrapped-mix-heading", entry.heading), mixBlock(entry.mix));
+    }
+    return block;
+  }
+
+  // A pair's mix, built from the two listeners' genre mixes the slide sent once.
+  function pairMix(genreMixes, names) {
+    return names.map((name) => {
+      const other = new Set((genreMixes[names.find((item) => item !== name)] || []).map((entry) => entry.genre));
+      return { name, genres: (genreMixes[name] || []).slice(0, 5)
+        .map((entry) => ({ ...entry, shared: other.has(entry.genre) })) };
+    });
   }
 
   // The axis spans the whole group's release years, so it stays put between listeners.
@@ -506,23 +688,43 @@
     return table;
   }
 
+  // A selection is { ranking: index } or { strip: index }; nothing selected shows the slide's own parts.
   function defaultSelection(card) {
-    return (card.ranking || []).findIndex((row) => row.highlight && row.view);
+    if (card.noDefault) return {};
+    const index = (card.ranking || []).findIndex((row) => row.highlight && row.view);
+    return index >= 0 ? { ranking: index } : {};
   }
 
-  // A selected ranking row swaps its own view (stat, records, mix…) into the slide.
-  function buildStory(card, selected = defaultSelection(card), onSelect = null) {
-    const view = selected >= 0 ? card.ranking?.[selected]?.view || {} : {};
+  const expandRecord = (record) => (record?.spotifyId && albumsById[record.spotifyId]
+    ? { ...albumsById[record.spotifyId], ...record } : record);
+
+  // A selected ranking row or strip dot swaps its own view (stat, records, mix…) into the slide.
+  function buildStory(card, selection = defaultSelection(card), onSelect = null) {
+    const rankSelected = selection.ranking ?? -1;
+    const stripSelected = selection.strip ?? -1;
+    const view = rankSelected >= 0 ? card.ranking?.[rankSelected]?.view || {}
+      : stripSelected >= 0 ? card.strip?.points?.[stripSelected]?.view || {} : {};
     const {
-      id = "", title, lede, detail = "", records = [], notes = [], wordMap = [], links = [], status = "",
+      id = "", title, lede, detail = "", records: rawRecords = [], notes = [], wordMap = [], links = [], status = "",
       cast = [], stat = null, ranking = [], mix = [], timeline = null, chips = [], fact = "", people = [],
+      titleLines = [], axis = null, strip = null, map = null, mixes: cardMixes = [], unranked = false,
+      mixPair = null, mapFocus = "", genreMixes = null,
     } = { ...card, ...view };
+    const records = (rawRecords || []).map(expandRecord);
+    const mixes = mixPair && genreMixes
+      ? [{ heading: mixPair.heading, mix: pairMix(genreMixes, mixPair.names) }] : cardMixes;
     const article = element("article", "wrapped-story");
     article.setAttribute("aria-roledescription", "slide");
     if (id) article.dataset.card = id;
 
     const head = element("header", "wrapped-story-head");
-    head.append(element("h2", "", title));
+    const heading = element("h2", titleLines?.length ? "has-lines" : "");
+    if (titleLines?.length) {
+      for (const line of titleLines) heading.append(element("span", "wrapped-title-line", line));
+    } else {
+      heading.textContent = title;
+    }
+    head.append(heading);
     if (status) head.append(element("p", "wrapped-story-status", status));
     if (lede) head.append(element("p", "wrapped-story-lede", lede));
     if (detail) head.append(element("p", "wrapped-story-detail", detail));
@@ -532,7 +734,12 @@
     // A timeline slide always keeps the fact's room, so switching listeners does not jump.
     if (fact || timeline) main.append(element("p", `wrapped-fact${fact ? "" : " is-empty"}`, fact));
     if (timeline?.points?.length) main.append(timelineBlock(timeline));
+    if (strip?.points?.length) {
+      main.append(stripBlock(strip, stripSelected, onSelect && ((index) => onSelect({ strip: index }))));
+    }
+    if (map?.pins?.length) main.append(mapBlock(map, mapFocus));
     if (mix?.length) main.append(mixBlock(mix));
+    if (mixes?.length) main.append(mixesBlock(mixes));
     if (chips?.length) {
       const list = element("ul", "wrapped-chips");
       for (const chip of chips) list.append(element("li", "", chip));
@@ -543,7 +750,10 @@
     // A long run of notes goes under the ranking, so the ranking stays near the top.
     const longNotes = (notes?.length || 0) > 3;
     if (notes?.length && !longNotes) main.append(notesBlock(notes));
-    if (ranking?.length) main.append(rankingBlock(ranking, selected, onSelect));
+    if (ranking?.length) {
+      main.append(rankingBlock(ranking, rankSelected, onSelect && ((index) => onSelect({ ranking: index })),
+        { axis, unranked }));
+    }
     if (longNotes) main.append(notesBlock(notes));
     if (people?.length) main.append(shelfList(people));
     if (links?.length) main.append(linksBlock(links));
@@ -552,19 +762,20 @@
     const layout = unique.length ? recordLayout(unique.length) : "";
     const body = element("div", "wrapped-story-body");
     body.append(main);
-    if (layout === "feature" || layout === "pair") {
+    // A strip needs the slide's full width, so its records go underneath.
+    if ((layout === "feature" || layout === "pair") && !strip) {
       const side = element("div", "wrapped-story-side");
       side.append(recordBlock(unique));
       body.append(side);
       body.classList.add("has-side");
     }
     article.append(head, body);
-    if (layout === "grid" || layout === "list") article.append(recordBlock(unique));
+    if (layout === "grid" || layout === "list" || (layout && strip)) article.append(recordBlock(unique));
 
     // Size each slide by how much it carries: sparse slides center and grow, dense ones tighten.
     const blocks = main.children.length;
     const heavy = (ranking?.length || 0) > 5 || unique.length > 6 || (notes?.length || 0) > 1
-      || (cast?.length || 0) > 8 || (people?.length || 0) > 6;
+      || (cast?.length || 0) > 8 || (people?.length || 0) > 6 || Boolean(strip || map) || (mixes?.length || 0) > 1;
     article.dataset.density = heavy ? "dense" : blocks <= 2 && unique.length <= 2 ? "sparse" : "standard";
     return article;
   }
@@ -720,7 +931,7 @@
       elements.stories.append(empty);
       return;
     }
-    const buildSlide = (card, index, selected = defaultSelection(card)) => buildStory(card, selected, (choice) => {
+    const buildSlide = (card, index, selection = defaultSelection(card)) => buildStory(card, selection, (choice) => {
       const scrollTop = window.scrollY;
       const deckScrollTop = elements.deck.scrollTop;
       const next = buildSlide(card, index, choice);
@@ -728,7 +939,10 @@
       next.hidden = slides[index].hidden;
       elements.stories.replaceChild(next, slides[index]);
       slides[index] = next;
-      next.querySelectorAll(".wrapped-rank-row")[choice]?.focus({ preventScroll: true });
+      const focusTarget = choice.strip !== undefined
+        ? next.querySelectorAll(".wrapped-strip-dot")[choice.strip]
+        : next.querySelectorAll(".wrapped-rank-row")[choice.ranking];
+      focusTarget?.focus({ preventScroll: true });
       window.scrollTo({ top: scrollTop });
       elements.deck.scrollTop = deckScrollTop;
     });
@@ -753,6 +967,7 @@
 
   function renderPayload(payload) {
     currentPayload = payload;
+    albumsById = payload.albums || {};
     elements.season.textContent = payload.season;
     elements.editionStatus.textContent = payload.snapshot
       ? `Sealed edition · generated ${new Date(payload.generatedAt).toLocaleDateString()}`

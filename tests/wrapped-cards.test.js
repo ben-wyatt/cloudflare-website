@@ -34,37 +34,132 @@ const picks = [
   pick("casey", "c4", "Big Dance", "DJ", ["house"], 20000, "2026-01-01"),
 ];
 
-test("Wrapped includes note stories and clearly unfinished editorial awards", () => {
+test("Liner Notes pairs its mirror-image awards on one slide each", () => {
   const cards = generateWrappedCards({ season: 2026, picks });
   assert.deepEqual(cards.map((entry) => entry.id), [
-    "cast", "shared-records", "same-record-different-reasons", "artist-echo", "music-besties", "opposite-ends",
-    "most-basic", "not-like-other-girls", "biggest-tuba", "tiniest-violin",
-    "common-chord", "unexpected-detour", "genre-passport", "time-traveler",
-    "fresh-off-press", "word-map", "hill-worth-dying-on", "one-sentence-liner-note", "written-margins",
-    "everyone-lists",
+    "cast", "shared-records", "same-record-different-reasons", "artist-echo", "music-besties",
+    "most-basic", "biggest-tuba", "common-chord", "unexpected-detour", "genre-passport", "time-traveler",
+    "fresh-off-press", "word-map", "written-margins", "everyone-lists",
   ]);
   assert.deepEqual(cards.find((entry) => entry.id === "shared-records").records[0].pickers,
     ["alex", "blair"]);
-  assert.equal(cards.find((entry) => entry.id === "not-like-other-girls").ranking.find((row) => row.highlight).name, "alex");
-  assert.equal(cards.find((entry) => entry.id === "most-basic").ranking.find((row) => row.highlight).name, "casey");
-  const smallestAudience = cards.find((entry) => entry.id === "tiniest-violin");
-  const biggestAudience = cards.find((entry) => entry.id === "biggest-tuba");
-  assert.equal(smallestAudience.lede, "Least popular single record.");
-  assert.deepEqual(smallestAudience.records[0].pickers, ["alex", "blair"]);
-  assert.equal(biggestAudience.lede, "Most popular single record.");
-  assert.deepEqual(biggestAudience.records[0].pickers, ["casey"]);
-  assert.match(cards.find((entry) => entry.id === "common-chord").ranking.find((row) => row.highlight).name, /rock|electronic/);
-  const opposite = cards.find((entry) => entry.id === "opposite-ends");
-  assert.equal(opposite.ranking.find((row) => row.highlight).value, Math.min(...opposite.ranking.map((row) => row.value)));
-  assert.equal(opposite.mix.length, 2);
-  assert.match(opposite.stat.value, /^\d+%$/);
+
+  const basic = cards.find((entry) => entry.id === "most-basic");
+  assert.deepEqual(basic.titleLines, ["casey is the Most Basic Bitch.", "alex is Not Like Other Girls."]);
+  assert.equal(basic.title, basic.titleLines.join(" "));
+  assert.equal(basic.noDefault, true);
+  assert.deepEqual(basic.ranking.filter((row) => row.highlight).map((row) => row.name), ["casey", "alex"]);
+  assert.equal(basic.axis.scale, "log");
+  assert.ok(basic.ranking.every((row) => row.value >= basic.axis.min && row.value <= basic.axis.max));
+  assert.deepEqual(basic.ranking.map((row) => row.people), [["casey"], ["blair"], ["alex"]]);
+
+  const tuba = cards.find((entry) => entry.id === "biggest-tuba");
+  assert.deepEqual(tuba.titleLines, ["Biggest tuba award.", "Tiniest violin award."]);
+  assert.equal(tuba.strip.points.length, 11);
+  assert.deepEqual(tuba.strip.points.filter((point) => point.highlight).map((point) => point.value), [20000, 100]);
+  assert.deepEqual(tuba.records.map((record) => record.spotifyId), ["c4", "shared"]);
+  assert.match(tuba.records[1].caption, /^Tiniest violin · 100 listeners$/);
+
+  const besties = cards.find((entry) => entry.id === "music-besties");
+  assert.deepEqual(besties.titleLines, ["Music besties.", "Opposite ends of the couch."]);
+  assert.equal(besties.mixes.length, 2);
+  assert.equal(besties.strip.points.length, 3);
+  const scores = besties.strip.points.map((point) => point.value);
+  assert.deepEqual(scores, [...scores].sort((a, b) => b - a));
+  assert.deepEqual(besties.strip.points[0].view.mixPair.names.length, 2);
+  assert.ok(besties.genreMixes.alex.length > 0);
+
+  const chord = cards.find((entry) => entry.id === "common-chord");
+  assert.match(chord.ranking.find((row) => row.highlight).name, /rock|electronic/);
+  assert.match(chord.fact, /The room’s most-used Last\.fm tags:$/);
+  assert.ok(chord.ranking.every((row) => /^\d+ records?/.test(row.sub)));
+
   const sharedNotes = cards.find((entry) => entry.id === "same-record-different-reasons");
   assert.equal(sharedNotes.notes.length, 2);
   assert.equal(sharedNotes.notes[0].href, "/records/lists/?member=alex#album-note-alex-shared");
   assert.deepEqual(cards.find((entry) => entry.id === "word-map").wordMap[0],
     { word: "echo", count: 2 });
-  assert.equal(cards.find((entry) => entry.id === "hill-worth-dying-on").status, "in construction");
-  assert.equal(cards.find((entry) => entry.id === "one-sentence-liner-note").status, "in construction");
+  assert.equal(cards.some((entry) => entry.status === "in construction"), false);
+});
+
+test("the unexpected detour counts the other records that share a genre with it", () => {
+  const cards = generateWrappedCards({ season: 2026, picks });
+  const detour = cards.find((entry) => entry.id === "unexpected-detour");
+  // Alex's bluegrass record shares no genre family with alex's three rock and pop records.
+  assert.equal(detour.stat.value, "0 of 3");
+  assert.equal(detour.records[0].spotifyId, "a4");
+  assert.match(detour.fact, /^Bluegrass Turn is country; the rest of the list leans /);
+});
+
+const albumFacts = (rows) => rows.map(([spotifyAlbumId, artistName, artistType, country, similar = [], place = null]) => ({
+  spotifyAlbumId, artistName, artistType, country, similarJson: JSON.stringify(similar),
+  lat: place?.[0] ?? null, lon: place?.[1] ?? null, placeArea: place?.[2] ?? "",
+}));
+const facts = albumFacts([
+  ["shared", "Echo", "Group", "US", [], [40.65, -73.95, "Brooklyn"]],
+  ["a2", "Old Band", "Group", "GB", ["Club"], [51.5, -0.12, "London"]],
+  ["a3", "Pop Star", "Person", "US", [], [39.8, -98.5]],
+  ["a4", "Blue Band", "Group", "US", ["Quartet"], [36.1, -86.8, "Nashville"]],
+  ["b2", "Echo", "Group", "US", [], [40.65, -73.95, "Brooklyn"]],
+  ["b3", "Club", "Person", "GB", [], [51.5, -0.12, "London"]],
+  ["b4", "Quartet", "Group", "FR", [], [48.86, 2.35, "Paris"]],
+  ["c1", "MC One", "Person", "US", ["Old Band"], [34.05, -118.24, "Los Angeles"]],
+  ["c2", "MC Two", "Person", "US", []],
+  ["c3", "Singer", "Person", "JM", [], [18.0, -76.8, "Kingston"]],
+  ["c4", "DJ", "Person", "US", [], [39.8, -98.5]],
+]);
+
+test("Same neighborhood links records two people did not share, by similar artists", () => {
+  const cards = generateWrappedCards({ season: 2026, picks, facts });
+  const neighborhood = cards.find((entry) => entry.id === "same-neighborhood");
+  assert.deepEqual(neighborhood.ranking[0].people, ["alex", "blair"]);
+  assert.deepEqual(neighborhood.chips.sort(), ["Blue Band ↔ Quartet", "Old Band ↔ Club"]);
+  assert.equal(neighborhood.fact, "They also share 1 record.");
+});
+
+test("Passport stamps pins each artist's hometown and lets a listener focus their own", () => {
+  const cards = generateWrappedCards({ season: 2026, picks, facts });
+  const stamps = cards.find((entry) => entry.id === "passport-stamps");
+  assert.equal(stamps.stat.value, 4);
+  const brooklyn = stamps.map.pins.find((pin) => pin.place === "Brooklyn, United States");
+  assert.deepEqual(brooklyn.artists, [{ name: "Echo", pickers: ["alex", "blair"] }]);
+  // Artists with no known hometown sit on their country, and say so.
+  const country = stamps.map.pins.find((pin) => pin.country);
+  assert.equal(country.place, "Somewhere in United States");
+  assert.deepEqual(country.artists.map((artist) => artist.name).sort(), ["DJ", "Pop Star"]);
+  assert.ok(stamps.map.pins.every((pin) => pin.x >= 0 && pin.x <= stamps.map.width && pin.y >= 0 && pin.y <= stamps.map.height));
+  assert.equal(stamps.ranking.find((row) => row.name === "blair").view.mapFocus, "blair");
+});
+
+test("Band Kid and Solo Stan share one slide, from the artists' MusicBrainz types", () => {
+  const cards = generateWrappedCards({ season: 2026, picks, facts });
+  const band = cards.find((entry) => entry.id === "band-kid");
+  assert.deepEqual(band.titleLines, ["alex and blair are the Band Kids.", "casey is the Solo Stan."]);
+  assert.deepEqual(band.ranking.map((row) => row.display), ["75%", "75%", "0%"]);
+});
+
+test("record length, explicit tracks and starred tracks each get a slide", () => {
+  const timed = picks.map((row, index) => ({ ...row, totalTracks: 10, totalDurationMs: (20 + index * 5) * 60_000,
+    explicitTrackCount: row.userId === "casey" ? 8 : row.userId === "blair" ? 2 : 0, metadataEnrichedAt: "2026-11-01" }));
+  const favorites = Array.from({ length: 9 }, (_, index) => ({
+    userId: "blair", username: "blair", spotifyAlbumId: "b3", spotifyTrackId: `t${index}` }));
+  const cards = generateWrappedCards({ season: 2026, picks: timed, favorites });
+
+  const length = cards.find((entry) => entry.id === "bring-snacks");
+  assert.deepEqual(length.titleLines, ["Bring snacks award.", "Blink and you’ll miss it award."]);
+  // The shared record counts once: 11 different records.
+  assert.equal(length.stat.value, "9 hr 10 min");
+  assert.equal(length.strip.axis.scale, "log");
+  assert.deepEqual(length.records.map((record) => record.caption),
+    ["Bring snacks · 1 hr 15 min · 10 tracks", "Blink · 25 min · 10 tracks"]);
+
+  const advisory = cards.find((entry) => entry.id === "parental-advisory");
+  assert.deepEqual(advisory.titleLines, ["casey gets the Parental Advisory sticker.", "alex is the Radio Edit."]);
+  assert.equal(advisory.fact, "Filthiest record: Big Dance, 8 of 10 tracks explicit.");
+
+  const skips = cards.find((entry) => entry.id === "no-skips");
+  assert.equal(skips.stat.value, "9/10");
+  assert.equal(skips.records[0].spotifyId, "b3");
 });
 
 test("shared record card includes every record picked by at least two people", () => {
@@ -82,7 +177,6 @@ test("no unsupported taste awards appear from sparse or noisy tags", () => {
   ];
   const cards = generateWrappedCards({ season: 2026, picks: sparse });
   assert.equal(cards.some((entry) => entry.id === "music-besties"), false);
-  assert.equal(cards.some((entry) => entry.id === "opposite-ends"), false);
   assert.equal(cards.some((entry) => entry.id === "genre-passport"), false);
 });
 

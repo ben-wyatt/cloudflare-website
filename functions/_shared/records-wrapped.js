@@ -1,6 +1,6 @@
 import { generateWrappedCards } from "./wrapped-cards.js";
 
-export const WRAPPED_ALGORITHM_VERSION = 5;
+export const WRAPPED_ALGORITHM_VERSION = 6;
 
 function compareText(left, right) {
   return String(left || "").localeCompare(String(right || ""), "en", { sensitivity: "base" });
@@ -55,6 +55,7 @@ export function generateWrappedStats({
   standouts = [],
   favorites = [],
   albumArtists = [],
+  facts = [],
 }) {
   const peopleById = new Map();
   for (const member of members) peopleById.set(member.userId, person(member));
@@ -363,6 +364,6 @@ export function generateWrappedStats({
       favoritePileOns: favoritePileOns.slice(0, 5),
       standoutCrossovers: standoutCrossovers.slice(0, 5),
     },
-    cards: generateWrappedCards({ season, members, picks: uniquePicks, standouts, favorites, albumArtists }),
+    cards: generateWrappedCards({ season, members, picks: uniquePicks, standouts, favorites, albumArtists, facts }),
   };
 }

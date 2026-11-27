@@ -1,6 +1,6 @@
 # Record Club Wrapped: note reranking ideas
 
-The two note awards currently say **in construction**. Do not name winners from note length or keyword counts. This document records the intended editorial pass for a later iteration; no TypeSafe AI calls are implemented yet.
+The two note awards below were taken out of the deck on 2026-11-27 rather than shown as **in construction**; bring them back only once a real ranking exists. Do not name winners from note length or keyword counts. This document records the intended editorial pass for a later iteration; no TypeSafe AI calls are implemented yet.
 
 ## Approach
 

@@ -90,7 +90,7 @@ The group’s listening year, told through the records and notes you left for on
 
 ## Liner Notes source note
 
-Made from this group’s album picks, Last.fm tags and audience sizes, standout tracks, and notes.
+Made from this group’s album picks, standout tracks, favorites and notes, with Spotify track details, Last.fm tags and audience sizes, MusicBrainz artist facts, and places from © OpenStreetMap contributors on a Natural Earth map.
 
 ## Liner Notes unlock explanation
 

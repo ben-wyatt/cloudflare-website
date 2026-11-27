@@ -479,7 +479,7 @@ button.wrapped-rank-row:focus-visible {
 .wrapped-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 1.1rem;
+  gap: 0.35rem 0.55rem;
   max-width: 40rem;
   padding: 0;
   list-style: none;
@@ -487,13 +487,12 @@ button.wrapped-rank-row:focus-visible {
   font-weight: 700;
 }
 
-.wrapped-chips li + li::before {
-  margin-right: 1.1rem;
-  margin-left: -1.1rem;
+/* The dot trails each chip, so a wrapped line never starts with one. */
+.wrapped-chips li:not(:last-child)::after {
+  margin-left: 0.55rem;
   color: var(--color-text-subtle);
   content: "·";
   font-weight: 400;
-  translate: 0.55rem 0;
 }
 
 /* Timeline: picks as dots on one axis; the dashed span is the landmark comparison. */
@@ -1188,4 +1187,282 @@ button.wrapped-rank-row:focus-visible {
     grid-template-columns: 68px minmax(0, 1fr);
     gap: 0.75rem;
   }
+}
+
+/* Two awards on one slide: one award per line. */
+.wrapped-story h2.has-lines .wrapped-title-line {
+  display: block;
+}
+
+.wrapped-story h2.has-lines .wrapped-title-line + .wrapped-title-line {
+  margin-top: 0.2rem;
+}
+
+/* The reader's own rows say so in small muted text. */
+.wrapped-you {
+  margin-left: 0.2rem;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* A list of choices (cover clusters) has no rank numbers. */
+.wrapped-ranking.is-unranked .wrapped-rank-row {
+  grid-template-columns: 0 auto minmax(0, 1fr) minmax(4rem, 20%);
+}
+
+/* Rankings on an axis: each row's value is a dot on one shared scale. */
+.wrapped-ranking-block {
+  max-width: 42rem;
+}
+
+.wrapped-ranking.has-axis {
+  max-width: none;
+}
+
+.wrapped-ranking.has-axis .wrapped-rank-row,
+.wrapped-rank-axis {
+  grid-template-columns: 1.4rem minmax(6rem, 12rem) minmax(0, 1fr) 5.5rem;
+}
+
+.wrapped-rank-track {
+  position: relative;
+  height: 14px;
+}
+
+.wrapped-rank-track::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: var(--wrapped-rule);
+  content: "";
+}
+
+.wrapped-rank-dot {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-text-subtle);
+  box-shadow: 0 0 0 2px var(--color-bg);
+  translate: -50% -50%;
+}
+
+.wrapped-rank.is-highlight .wrapped-rank-dot,
+.wrapped-rank.is-selected .wrapped-rank-dot,
+.wrapped-rank:hover .wrapped-rank-dot {
+  background: var(--wrapped-accent);
+}
+
+.wrapped-ranking.has-axis .wrapped-rank-display {
+  text-align: right;
+}
+
+.wrapped-rank-axis {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.3rem 0.4rem 0 0;
+}
+
+.wrapped-rank-ticks {
+  position: relative;
+  grid-column: 3;
+  height: 1.1rem;
+}
+
+.wrapped-axis-tick {
+  position: absolute;
+  top: 0;
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  translate: -50% 0;
+}
+
+.wrapped-axis-tick.is-start {
+  translate: 0 0;
+}
+
+.wrapped-axis-tick.is-end {
+  translate: -100% 0;
+}
+
+/* Strip: every record (or pair) as a dot on one axis; overlapping dots stack upward. */
+.wrapped-strip {
+  display: grid;
+  gap: 0.4rem;
+  max-width: 44rem;
+}
+
+.wrapped-strip-plot {
+  position: relative;
+  min-height: 16px;
+  margin: 0 6px;
+}
+
+.wrapped-strip-dot {
+  position: absolute;
+  bottom: 0;
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-text-subtle) 60%, transparent);
+  box-shadow: 0 0 0 1px var(--color-bg);
+  cursor: pointer;
+  translate: -50% 0;
+}
+
+/* A hit target a little bigger than the dot. */
+.wrapped-strip-dot::after {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  content: "";
+}
+
+.wrapped-strip-dot.is-viewer {
+  background: var(--color-text);
+}
+
+.wrapped-strip-dot.is-highlight,
+.wrapped-strip-dot:hover,
+.wrapped-strip-dot.is-selected {
+  background: var(--wrapped-accent);
+}
+
+.wrapped-strip-dot.is-selected {
+  z-index: 1;
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 3.5px var(--wrapped-accent);
+}
+
+.wrapped-strip-dot:focus-visible,
+.wrapped-map-pin:focus-visible {
+  z-index: 2;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.wrapped-strip-axis {
+  margin: 0 6px;
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--wrapped-rule);
+}
+
+.wrapped-strip-ticks {
+  position: relative;
+  height: 1.1rem;
+}
+
+.wrapped-strip-ends {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.wrapped-strip-ends span {
+  overflow: hidden;
+  max-width: 48%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wrapped-strip-caption {
+  min-height: 2.8em;
+  margin: 0.2rem 0 0;
+  font-size: 0.92rem;
+}
+
+.wrapped-strip-you {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+/* World map: country outlines drawn as a mask, so the lines take the theme's colour. */
+.wrapped-map-block {
+  display: grid;
+  gap: 0.4rem;
+  max-width: 48rem;
+}
+
+.wrapped-map {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--map-ratio);
+}
+
+.wrapped-map::before {
+  position: absolute;
+  inset: 0;
+  background: var(--color-border-strong);
+  content: "";
+  -webkit-mask: var(--map-mask) center / 100% 100% no-repeat;
+  mask: var(--map-mask) center / 100% 100% no-repeat;
+}
+
+.wrapped-map-pin {
+  position: absolute;
+  width: var(--size, 8px);
+  height: var(--size, 8px);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--wrapped-accent);
+  box-shadow: 0 0 0 1.5px var(--color-bg);
+  cursor: pointer;
+  translate: -50% -50%;
+  transition: opacity 120ms ease-out;
+}
+
+.wrapped-map-pin.is-country {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--wrapped-accent), 0 0 0 1.5px var(--color-bg);
+}
+
+.wrapped-map-pin.is-dim {
+  opacity: 0.15;
+}
+
+.wrapped-map-pin:hover {
+  z-index: 2;
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 3.5px var(--color-text);
+}
+
+/* Several genre mixes, each under its own small heading. */
+.wrapped-mixes {
+  display: grid;
+  gap: 1.2rem;
+  max-width: 40rem;
+}
+
+.wrapped-mix-heading {
+  margin: 0 0 -0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 640px) {
+  .wrapped-ranking.has-axis .wrapped-rank-row,
+  .wrapped-rank-axis {
+    grid-template-columns: 1.2rem minmax(5rem, 8rem) minmax(0, 1fr) 4.2rem;
+    gap: 0.45rem;
+  }
+}
+
+/* Captions can carry a number worth reading in full, so they wrap instead of cutting off. */
+.wrapped-record-copy > .wrapped-record-caption {
+  white-space: normal;
 }
