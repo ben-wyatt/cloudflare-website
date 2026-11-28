@@ -57,7 +57,7 @@ export function coverTwinsFromRows(rows) {
   return {
     id: "cover-twins",
     title: "Cover twins.",
-    lede: "Album art that had the same idea. Pick a cluster.",
+    lede: "Album art that had the same idea.",
     detail: "",
     ...view(clusters[0]),
     notes: [],
@@ -76,6 +76,7 @@ export function coverTwinsFromRows(rows) {
       view: view(cluster),
     })),
     unranked: true,
+    artWall: true,
     mix: [],
     timeline: null,
     chips: [],

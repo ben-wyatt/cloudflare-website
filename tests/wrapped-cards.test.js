@@ -38,7 +38,7 @@ test("Liner Notes pairs its mirror-image awards on one slide each", () => {
   const cards = generateWrappedCards({ season: 2026, picks });
   assert.deepEqual(cards.map((entry) => entry.id), [
     "cast", "shared-records", "same-record-different-reasons", "artist-echo", "music-besties",
-    "most-basic", "biggest-tuba", "common-chord", "unexpected-detour", "genre-passport", "time-traveler",
+    "most-basic", "biggest-tuba", "common-chord", "genre-passport", "time-traveler",
     "fresh-off-press", "word-map", "written-margins", "everyone-lists",
   ]);
   assert.deepEqual(cards.find((entry) => entry.id === "shared-records").records[0].pickers,
@@ -53,16 +53,21 @@ test("Liner Notes pairs its mirror-image awards on one slide each", () => {
   assert.ok(basic.ranking.every((row) => row.value >= basic.axis.min && row.value <= basic.axis.max));
   assert.deepEqual(basic.ranking.map((row) => row.people), [["casey"], ["blair"], ["alex"]]);
 
+  // A chart of everything, with the two winners named underneath.
   const tuba = cards.find((entry) => entry.id === "biggest-tuba");
-  assert.deepEqual(tuba.titleLines, ["Biggest tuba award.", "Tiniest violin award."]);
+  assert.equal(tuba.title, "Records by Last.fm listeners.");
   assert.equal(tuba.strip.points.length, 11);
   assert.deepEqual(tuba.strip.points.filter((point) => point.highlight).map((point) => point.value), [20000, 100]);
-  assert.deepEqual(tuba.records.map((record) => record.spotifyId), ["c4", "shared"]);
-  assert.match(tuba.records[1].caption, /^Tiniest violin · 100 listeners$/);
+  assert.deepEqual(tuba.awards.map((award) => award.heading), ["Biggest tuba award.", "Tiniest violin award."]);
+  assert.deepEqual(tuba.awards.map((award) => award.records[0].spotifyId), ["c4", "shared"]);
+  assert.equal(tuba.awards[1].sub, "100 listeners");
+  assert.equal(tuba.strip.lowLabel, undefined);
 
   const besties = cards.find((entry) => entry.id === "music-besties");
-  assert.deepEqual(besties.titleLines, ["Music besties.", "Opposite ends of the couch."]);
-  assert.equal(besties.mixes.length, 2);
+  assert.equal(besties.title, "Listener pairs by genre similarity.");
+  assert.deepEqual(besties.awards.map((award) => award.heading), ["Music besties.", "Opposite ends of the couch."]);
+  assert.match(besties.awards[0].sub, /^\w+ \+ \w+ · \d+% alike$/);
+  assert.equal(besties.awards[0].mix.length, 2);
   assert.equal(besties.strip.points.length, 3);
   const scores = besties.strip.points.map((point) => point.value);
   assert.deepEqual(scores, [...scores].sort((a, b) => b - a));
@@ -71,7 +76,7 @@ test("Liner Notes pairs its mirror-image awards on one slide each", () => {
 
   const chord = cards.find((entry) => entry.id === "common-chord");
   assert.match(chord.ranking.find((row) => row.highlight).name, /rock|electronic/);
-  assert.match(chord.fact, /The room’s most-used Last\.fm tags:$/);
+  assert.deepEqual([chord.records.length, chord.chips.length, chord.fact], [0, 0, ""]);
   assert.ok(chord.ranking.every((row) => /^\d+ records?/.test(row.sub)));
 
   const sharedNotes = cards.find((entry) => entry.id === "same-record-different-reasons");
@@ -80,15 +85,7 @@ test("Liner Notes pairs its mirror-image awards on one slide each", () => {
   assert.deepEqual(cards.find((entry) => entry.id === "word-map").wordMap[0],
     { word: "echo", count: 2 });
   assert.equal(cards.some((entry) => entry.status === "in construction"), false);
-});
-
-test("the unexpected detour counts the other records that share a genre with it", () => {
-  const cards = generateWrappedCards({ season: 2026, picks });
-  const detour = cards.find((entry) => entry.id === "unexpected-detour");
-  // Alex's bluegrass record shares no genre family with alex's three rock and pop records.
-  assert.equal(detour.stat.value, "0 of 3");
-  assert.equal(detour.records[0].spotifyId, "a4");
-  assert.match(detour.fact, /^Bluegrass Turn is country; the rest of the list leans /);
+  assert.equal(cards.some((entry) => ["unexpected-detour", "same-neighborhood"].includes(entry.id)), false);
 });
 
 const albumFacts = (rows) => rows.map(([spotifyAlbumId, artistName, artistType, country, similar = [], place = null]) => ({
@@ -108,14 +105,6 @@ const facts = albumFacts([
   ["c3", "Singer", "Person", "JM", [], [18.0, -76.8, "Kingston"]],
   ["c4", "DJ", "Person", "US", [], [39.8, -98.5]],
 ]);
-
-test("Same neighborhood links records two people did not share, by similar artists", () => {
-  const cards = generateWrappedCards({ season: 2026, picks, facts });
-  const neighborhood = cards.find((entry) => entry.id === "same-neighborhood");
-  assert.deepEqual(neighborhood.ranking[0].people, ["alex", "blair"]);
-  assert.deepEqual(neighborhood.chips.sort(), ["Blue Band ↔ Quartet", "Old Band ↔ Club"]);
-  assert.equal(neighborhood.fact, "They also share 1 record.");
-});
 
 test("Passport stamps pins each artist's hometown and lets a listener focus their own", () => {
   const cards = generateWrappedCards({ season: 2026, picks, facts });

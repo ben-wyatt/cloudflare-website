@@ -45,6 +45,7 @@ test("the Cover twins slide is a list of clusters, smoking section first", () =>
   ]);
   assert.equal(card.id, "cover-twins");
   assert.equal(card.unranked, true);
+  assert.equal(card.artWall, true);
   assert.deepEqual(card.ranking.map((entry) => entry.name), ["Smoking section", "Petting zoo"]);
   assert.equal(card.stat.unit, "covers with a cigarette");
   assert.equal("description" in card.records[0], false);

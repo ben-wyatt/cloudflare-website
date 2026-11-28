@@ -262,10 +262,9 @@
       list.append(item);
     });
     if (!axis) return list;
+    // Each row prints its own value, so the shared scale needs no tick labels.
     const block = element("div", "wrapped-ranking-block");
-    const ticks = element("div", "wrapped-rank-axis");
-    ticks.append(axisTicks(axis, "wrapped-rank-ticks"));
-    block.append(list, ticks);
+    block.append(list);
     return block;
   }
 
@@ -301,15 +300,34 @@
     return `${point.label} — ${point.display}${point.kind === "pairs" ? "" : people}`;
   }
 
+  // A small label that floats over a chart next to the dot or pin being read.
+  function chartTip(frame) {
+    const tip = element("p", "wrapped-chart-tip");
+    tip.setAttribute("role", "status");
+    tip.hidden = true;
+    frame.append(tip);
+    return {
+      show(target, text) {
+        tip.textContent = text;
+        tip.hidden = false;
+        const box = frame.getBoundingClientRect();
+        const spot = target.getBoundingClientRect();
+        const x = spot.left + spot.width / 2 - box.left;
+        tip.style.left = `${x}px`;
+        tip.style.top = `${spot.top - box.top}px`;
+        tip.dataset.edge = x < box.width * 0.2 ? "start" : x > box.width * 0.8 ? "end" : "middle";
+      },
+      hide() {
+        tip.hidden = true;
+      },
+    };
+  }
+
   function stripBlock(strip, selected = -1, onSelect = null) {
     const block = element("div", "wrapped-strip");
-    const kind = strip.you === "pairs" ? "pair of listeners" : "record";
-    const caption = element("p", "wrapped-strip-caption");
-    caption.setAttribute("aria-live", "polite");
-    const resting = selected >= 0 ? stripCaption({ ...strip.points[selected], kind: strip.you })
-      : `Each dot is a ${kind}. Hover or tap one.`;
-    caption.textContent = resting;
     const plot = element("div", "wrapped-strip-plot");
+    const tip = chartTip(plot);
+    let selectedDot = null;
     strip.points.forEach((point, index) => {
       const dot = element("button", "wrapped-strip-dot");
       dot.type = "button";
@@ -317,12 +335,15 @@
       dot.style.left = `${Number(dot.dataset.position) * 100}%`;
       if (point.highlight) dot.classList.add("is-highlight");
       if (isViewer(point.people)) dot.classList.add("is-viewer");
-      if (index === selected) dot.classList.add("is-selected");
+      if (index === selected) {
+        dot.classList.add("is-selected");
+        selectedDot = dot;
+      }
       const text = stripCaption({ ...point, kind: strip.you });
       dot.setAttribute("aria-label", text);
       dot.setAttribute("aria-pressed", String(index === selected));
-      const show = () => { caption.textContent = text; };
-      const rest = () => { caption.textContent = resting; };
+      const show = () => tip.show(dot, text);
+      const rest = () => (selectedDot ? tip.show(selectedDot, selectedDot.getAttribute("aria-label")) : tip.hide());
       dot.addEventListener("mouseenter", show);
       dot.addEventListener("focus", show);
       dot.addEventListener("mouseleave", rest);
@@ -332,20 +353,16 @@
     });
     if (stripObserver) stripObserver.observe(plot);
     else requestAnimationFrame(() => layoutStrip(plot));
+    // A picked dot keeps its label once the dots have their places.
+    if (selectedDot) requestAnimationFrame(() => requestAnimationFrame(() =>
+      tip.show(selectedDot, selectedDot.getAttribute("aria-label"))));
     const axis = element("div", "wrapped-strip-axis");
     axis.append(axisTicks(strip.axis, "wrapped-strip-ticks"));
-    const ends = element("p", "wrapped-strip-ends");
-    ends.append(element("span", "", `← ${strip.lowLabel}`), element("span", "", `${strip.highLabel} →`));
-    block.append(plot, axis, ends, caption);
-    const mine = strip.points.filter((point) => isViewer(point.people));
-    if (mine.length && strip.you === "pairs") {
-      const closest = mine[0];
-      const furthest = mine.at(-1);
-      const other = (point) => point.people.find((name) => name !== viewerName);
-      block.append(element("p", "wrapped-strip-you",
-        `You: closest to ${other(closest)} (${closest.display.split(" ")[0]}), furthest from ${other(furthest)} (${furthest.display.split(" ")[0]}).`));
-    } else if (mine.length) {
-      block.append(element("p", "wrapped-strip-you", `Your ${mine.length === 1 ? "record is" : "records are"} the dark ${mine.length === 1 ? "dot" : "dots"}.`));
+    block.append(plot, axis);
+    if (strip.lowLabel || strip.highLabel) {
+      const ends = element("p", "wrapped-strip-ends");
+      ends.append(element("span", "", `← ${strip.lowLabel || ""}`), element("span", "", `${strip.highLabel || ""} →`));
+      block.append(ends);
     }
     return block;
   }
@@ -357,11 +374,9 @@
     const frame = element("div", "wrapped-map");
     frame.style.setProperty("--map-ratio", `${map.width} / ${map.height}`);
     frame.style.setProperty("--map-mask", `url("${map.src}")`);
-    const caption = element("p", "wrapped-strip-caption");
-    caption.setAttribute("aria-live", "polite");
-    const resting = focus ? `Showing ${focus}’s stamps. Hover or tap a pin.` : "Hover or tap a pin.";
-    caption.textContent = resting;
-    // Bigger pins first, so small ones stay on top and reachable.
+    const tip = chartTip(frame);
+    const entries = [];
+    // Bigger pins first, so small ones stay visible on top.
     for (const pin of [...map.pins].sort((a, b) => b.artists.length - a.artists.length)) {
       const dot = element("button", `wrapped-map-pin${pin.country ? " is-country" : ""}`);
       dot.type = "button";
@@ -372,19 +387,41 @@
       const artists = pin.artists.map((artist) => `${artist.name} (${artist.pickers.join(", ")})`).join("; ");
       const text = `${pin.place}: ${artists}`;
       dot.setAttribute("aria-label", text);
-      const show = () => { caption.textContent = text; };
-      const rest = () => { caption.textContent = resting; };
-      dot.addEventListener("mouseenter", show);
-      dot.addEventListener("focus", show);
-      dot.addEventListener("click", show);
-      dot.addEventListener("mouseleave", rest);
-      dot.addEventListener("blur", rest);
+      dot.addEventListener("focus", () => tip.show(dot, text));
+      dot.addEventListener("blur", tip.hide);
+      entries.push({ dot, pin, text });
       frame.append(dot);
     }
-    block.append(frame, caption);
-    if (map.pins.some((pin) => pin.country)) {
-      block.append(element("p", "wrapped-strip-you", "Rings mark artists whose hometown isn’t known, placed on their country."));
-    }
+    // Pins crowd each other in England and on the US East Coast, so the pointer reads the
+    // nearest pin within reach instead of whichever dot is drawn on top.
+    let hot = null;
+    const read = (event) => {
+      const box = frame.getBoundingClientRect();
+      let best = null;
+      let bestDistance = 24;
+      for (const entry of entries) {
+        const distance = Math.hypot(event.clientX - (box.left + (entry.pin.x / map.width) * box.width),
+          event.clientY - (box.top + (entry.pin.y / map.height) * box.height));
+        if (distance < bestDistance) {
+          best = entry;
+          bestDistance = distance;
+        }
+      }
+      if (best === hot) return;
+      hot?.dot.classList.remove("is-hot");
+      hot = best;
+      if (!hot) return tip.hide();
+      hot.dot.classList.add("is-hot");
+      tip.show(hot.dot, hot.text);
+    };
+    frame.addEventListener("pointermove", read);
+    frame.addEventListener("pointerdown", read);
+    frame.addEventListener("pointerleave", () => {
+      hot?.dot.classList.remove("is-hot");
+      hot = null;
+      tip.hide();
+    });
+    block.append(frame);
     return block;
   }
 
@@ -455,6 +492,39 @@
     }
     block.append(axis);
     return block;
+  }
+
+  // Named winners under a chart: a big heading, one line of detail, then their mix or record.
+  function awardsBlock(awards) {
+    const block = element("section", `wrapped-awards${awards.some((award) => award.records?.length) ? " has-records" : ""}`);
+    for (const award of awards) {
+      const item = element("div", "wrapped-award");
+      item.append(element("h3", "wrapped-award-title", award.heading));
+      if (award.sub) item.append(element("p", "wrapped-award-sub", award.sub));
+      if (award.mix?.length) item.append(mixBlock(award.mix));
+      for (const record of (award.records || []).map(expandRecord)) {
+        const row = element("div", "wrapped-award-record");
+        row.append(cover(record), recordCopy(record));
+        item.append(row);
+      }
+      block.append(item);
+    }
+    return block;
+  }
+
+  // Covers only, big, each one a link to the album on Spotify.
+  function artWall(records) {
+    const list = element("ul", "wrapped-art-wall");
+    for (const record of records) {
+      const item = element("li");
+      const link = cover(record, "wrapped-cover wrapped-art");
+      const who = record.pickers?.length ? `, picked by ${record.pickers.join(", ")}` : "";
+      link.title = `${record.name} · ${record.artistName}${who}`;
+      link.setAttribute("aria-label", `${record.name} by ${record.artistName}${who}; open in Spotify`);
+      item.append(link);
+      list.append(item);
+    }
+    return list;
   }
 
   function notesBlock(notes) {
@@ -708,7 +778,7 @@
       id = "", title, lede, detail = "", records: rawRecords = [], notes = [], wordMap = [], links = [], status = "",
       cast = [], stat = null, ranking = [], mix = [], timeline = null, chips = [], fact = "", people = [],
       titleLines = [], axis = null, strip = null, map = null, mixes: cardMixes = [], unranked = false,
-      mixPair = null, mapFocus = "", genreMixes = null,
+      mixPair = null, mapFocus = "", genreMixes = null, awards = [], artWall: wall = false,
     } = { ...card, ...view };
     const records = (rawRecords || []).map(expandRecord);
     const mixes = mixPair && genreMixes
@@ -759,7 +829,7 @@
     if (links?.length) main.append(linksBlock(links));
 
     const unique = uniqueRecords(records);
-    const layout = unique.length ? recordLayout(unique.length) : "";
+    const layout = unique.length && !wall ? recordLayout(unique.length) : "";
     const body = element("div", "wrapped-story-body");
     body.append(main);
     // A strip needs the slide's full width, so its records go underneath.
@@ -771,6 +841,8 @@
     }
     article.append(head, body);
     if (layout === "grid" || layout === "list" || (layout && strip)) article.append(recordBlock(unique));
+    if (wall && unique.length) article.append(artWall(unique));
+    if (awards?.length) article.append(awardsBlock(awards));
 
     // Size each slide by how much it carries: sparse slides center and grow, dense ones tighten.
     const blocks = main.children.length;

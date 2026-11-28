@@ -126,15 +126,16 @@ export async function loadWrappedRows(db, groupId) {
        WHERE li.season = ? AND u.group_id = ?
        ORDER BY lower(ar.name), aa.spotify_album_id`,
     ).bind(RECORD_SEASON, groupId),
-    // Who made each record and where they are from (scripts/fetch-album-facts.mjs), with map
+    // Who made each record and where they are from (scripts/fetch-album-facts.mjs, with gaps
+    // filled by scripts/fill-artist-places.mjs), with map
     // coordinates for the begin area, or the country when the area is unknown (record_places).
     db.prepare(
       `WITH group_facts AS (
          SELECT f.spotify_album_id AS spotifyAlbumId,
            json_extract(f.facts_json, '$.artist.name') AS artistName,
            json_extract(f.facts_json, '$.artist.type') AS artistType,
-           upper(trim(json_extract(f.facts_json, '$.artist.country'))) AS country,
-           trim(coalesce(json_extract(f.facts_json, '$.artist.beginArea'), '')) AS area,
+           upper(trim(coalesce(json_extract(f.facts_json, '$.place.country'), json_extract(f.facts_json, '$.artist.country')))) AS country,
+           trim(coalesce(json_extract(f.facts_json, '$.place.area'), json_extract(f.facts_json, '$.artist.beginArea'), '')) AS area,
            json_extract(f.facts_json, '$.artist.similar') AS similarJson
          FROM record_album_facts f
          WHERE f.spotify_album_id IN (

@@ -3,8 +3,8 @@
 //   node scripts/geocode-places.mjs            (places not looked up yet)
 //   node scripts/geocode-places.mjs --retry    (also places that were not found before)
 //   node scripts/geocode-places.mjs --dry-run  (look up and print, save nothing)
-// The place is the artist's MusicBrainz begin area and country from record_album_facts
-// (run scripts/fetch-album-facts.mjs first). Each country also gets its own row, for
+// The place is facts_json.place (scripts/fill-artist-places.mjs) or else the artist's
+// MusicBrainz begin area and country from record_album_facts (scripts/fetch-album-facts.mjs). Each country also gets its own row, for
 // artists with no begin area. Lookups use OpenStreetMap's Nominatim, which allows one
 // request a second; only place names are sent.
 import { d1Query, d1Write, sqlNumber, sqlText, wait } from "./lib/remote-d1.mjs";
@@ -14,8 +14,8 @@ const dryRun = process.argv.includes("--dry-run");
 
 const places = d1Query(`WITH artists AS (
     SELECT DISTINCT
-      upper(trim(json_extract(f.facts_json, '$.artist.country'))) AS country,
-      trim(coalesce(json_extract(f.facts_json, '$.artist.beginArea'), '')) AS area
+      upper(trim(coalesce(json_extract(f.facts_json, '$.place.country'), json_extract(f.facts_json, '$.artist.country')))) AS country,
+      trim(coalesce(json_extract(f.facts_json, '$.place.area'), json_extract(f.facts_json, '$.artist.beginArea'), '')) AS area
     FROM record_album_facts f
     JOIN record_list_items li ON li.spotify_album_id = f.spotify_album_id
   ), wanted AS (

@@ -1222,8 +1222,7 @@ button.wrapped-rank-row:focus-visible {
   max-width: none;
 }
 
-.wrapped-ranking.has-axis .wrapped-rank-row,
-.wrapped-rank-axis {
+.wrapped-ranking.has-axis .wrapped-rank-row {
   grid-template-columns: 1.4rem minmax(6rem, 12rem) minmax(0, 1fr) 5.5rem;
 }
 
@@ -1263,17 +1262,6 @@ button.wrapped-rank-row:focus-visible {
   text-align: right;
 }
 
-.wrapped-rank-axis {
-  display: grid;
-  gap: 0.6rem;
-  padding: 0.3rem 0.4rem 0 0;
-}
-
-.wrapped-rank-ticks {
-  position: relative;
-  grid-column: 3;
-  height: 1.1rem;
-}
 
 .wrapped-axis-tick {
   position: absolute;
@@ -1377,17 +1365,7 @@ button.wrapped-rank-row:focus-visible {
   white-space: nowrap;
 }
 
-.wrapped-strip-caption {
-  min-height: 2.8em;
-  margin: 0.2rem 0 0;
-  font-size: 0.92rem;
-}
 
-.wrapped-strip-you {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: 0.82rem;
-}
 
 /* World map: country outlines drawn as a mask, so the lines take the theme's colour. */
 .wrapped-map-block {
@@ -1434,7 +1412,12 @@ button.wrapped-rank-row:focus-visible {
   opacity: 0.15;
 }
 
-.wrapped-map-pin:hover {
+/* The map reads the nearest pin to the pointer, so pins themselves ignore it. */
+.wrapped-map-pin {
+  pointer-events: none;
+}
+
+.wrapped-map-pin.is-hot {
   z-index: 2;
   box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 3.5px var(--color-text);
 }
@@ -1455,8 +1438,7 @@ button.wrapped-rank-row:focus-visible {
 }
 
 @media (max-width: 640px) {
-  .wrapped-ranking.has-axis .wrapped-rank-row,
-  .wrapped-rank-axis {
+  .wrapped-ranking.has-axis .wrapped-rank-row {
     grid-template-columns: 1.2rem minmax(5rem, 8rem) minmax(0, 1fr) 4.2rem;
     gap: 0.45rem;
   }
@@ -1465,4 +1447,77 @@ button.wrapped-rank-row:focus-visible {
 /* Captions can carry a number worth reading in full, so they wrap instead of cutting off. */
 .wrapped-record-copy > .wrapped-record-caption {
   white-space: normal;
+}
+
+/* A label floating over a chart, next to the dot or pin being read. */
+.wrapped-chart-tip {
+  position: absolute;
+  z-index: 3;
+  width: max-content;
+  max-width: min(22rem, 80vw);
+  margin: 0;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  pointer-events: none;
+  translate: -50% calc(-100% - 8px);
+}
+
+.wrapped-chart-tip[data-edge="start"] {
+  translate: -12px calc(-100% - 8px);
+}
+
+.wrapped-chart-tip[data-edge="end"] {
+  translate: calc(-100% + 12px) calc(-100% - 8px);
+}
+
+/* Award winners under a chart: the award's name is the headline here. */
+.wrapped-awards {
+  display: grid;
+  gap: 1.8rem;
+  margin-top: 1.8rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--wrapped-rule);
+}
+
+.wrapped-awards.has-records {
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.wrapped-award-title {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.3vw, 1.7rem);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.wrapped-award-sub {
+  margin: 0.25rem 0 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.wrapped-award-record {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  gap: 0.9rem;
+  align-items: start;
+}
+
+/* Cover twins: big covers only, each a link to the album. */
+.wrapped-art-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 1.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 640px) {
+  .wrapped-art-wall {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
